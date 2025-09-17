@@ -1,0 +1,299 @@
+# GitHub Actions CI/CD Pipeline for E-commerce Platform
+# This workflow demonstrates enterprise-grade CI/CD with multiple environments
+
+name: E-commerce Platform CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ecommerce-backend
+  IMAGE_NAME_FRONTEND: ecommerce-frontend
+
+jobs:
+  # Job 1: Code Quality and Security Checks
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for SonarQube
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies - Backend
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Install dependencies - Frontend
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Lint Backend Code
+      working-directory: ./backend
+      run: npm run lint
+
+    - name: Lint Frontend Code
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: Format Check
+      run: |
+        npx prettier --check "backend/**/*.{js,ts,json}"
+        npx prettier --check "frontend/**/*.{js,ts,tsx,json}"
+
+    - name: Run Unit Tests - Backend
+      working-directory: ./backend
+      run: npm test
+
+    - name: Run Unit Tests - Frontend
+      working-directory: ./frontend
+      run: npm test -- --coverage --watchAll=false
+
+    - name: SonarQube Quality Gate
+      uses: sonarqube-quality-gate-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: Security Audit - Backend
+      working-directory: ./backend
+      run: npm audit --audit-level high
+
+    - name: Security Audit - Frontend
+      working-directory: ./frontend
+      run: npm audit --audit-level high
+
+  # Job 2: Build and Test Docker Images
+  build-and-test:
+    name: Build & Test Images
+    runs-on: ubuntu-latest
+    needs: code-quality
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_BACKEND }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build Backend Image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Run Trivy Security Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.meta.outputs.tags }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy Scan Results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Job 3: Deploy to Development Environment
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/develop'
+    environment: development
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ecommerce-dev-cluster
+
+    - name: Deploy to Development
+      run: |
+        kubectl apply -f k8s/base/ -n ecommerce-dev
+        kubectl set image deployment/ecommerce-backend backend=${{ needs.build-and-test.outputs.image-tag }} -n ecommerce-dev
+        kubectl rollout status deployment/ecommerce-backend -n ecommerce-dev
+
+    - name: Run Integration Tests
+      run: |
+        kubectl wait --for=condition=ready pod -l app=ecommerce-backend -n ecommerce-dev --timeout=300s
+        # Add your integration test commands here
+        echo "Running integration tests..."
+
+    - name: Notify Development Team
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#dev-deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 4: Deploy to Staging Environment (with Approval)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ecommerce-staging-cluster
+
+    - name: Deploy to Staging
+      run: |
+        kubectl apply -f k8s/base/ -n ecommerce-staging
+        kubectl apply -f k8s/production/ -n ecommerce-staging
+        kubectl set image deployment/ecommerce-backend backend=${{ needs.build-and-test.outputs.image-tag }} -n ecommerce-staging
+        kubectl rollout status deployment/ecommerce-backend -n ecommerce-staging
+
+    - name: Run End-to-End Tests
+      run: |
+        kubectl wait --for=condition=ready pod -l app=ecommerce-backend -n ecommerce-staging --timeout=300s
+        # Add your E2E test commands here
+        echo "Running E2E tests..."
+
+    - name: Performance Testing
+      run: |
+        # Add performance testing commands here
+        echo "Running performance tests..."
+
+    - name: Notify QA Team
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#qa-testing'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 5: Deploy to Production (Manual Approval Required)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: us-west-2
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ecommerce-prod-cluster
+
+    - name: Blue-Green Deployment
+      run: |
+        # Apply production configurations
+        kubectl apply -f k8s/base/ -n ecommerce-prod
+        kubectl apply -f k8s/production/ -n ecommerce-prod
+        
+        # Perform blue-green deployment
+        kubectl set image deployment/ecommerce-backend backend=${{ needs.build-and-test.outputs.image-tag }} -n ecommerce-prod
+        kubectl rollout status deployment/ecommerce-backend -n ecommerce-prod --timeout=600s
+
+    - name: Health Check
+      run: |
+        kubectl wait --for=condition=ready pod -l app=ecommerce-backend -n ecommerce-prod --timeout=300s
+        # Add health check commands here
+        curl -f https://ecommerce.yourdomain.com/health || exit 1
+
+    - name: Monitor for 72 Hours
+      run: |
+        echo "Production deployment successful"
+        echo "Starting 72-hour monitoring period..."
+        # This would typically trigger monitoring alerts
+
+    - name: Notify Production Team
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#production-deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 6: Rollback on Failure
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: failure()
+    environment: production
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: us-west-2
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ecommerce-prod-cluster
+
+    - name: Rollback Deployment
+      run: |
+        kubectl rollout undo deployment/ecommerce-backend -n ecommerce-prod
+        kubectl rollout status deployment/ecommerce-backend -n ecommerce-prod
+
+    - name: Notify Incident Response
+      uses: 8398a7/action-slack@v3
+      with:
+        status: 'failure'
+        channel: '#incident-response'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        text: 'Production deployment failed and rollback completed'

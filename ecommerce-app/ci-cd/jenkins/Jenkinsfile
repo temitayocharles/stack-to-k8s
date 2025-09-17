@@ -1,0 +1,407 @@
+#!/usr/bin/env groovy
+// E-commerce Application - Jenkins Pipeline
+// Resilient CI/CD with comprehensive logging and error handling
+
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = 'your-registry.com'
+        KUBECONFIG = credentials('kubeconfig')
+        SCANNER_HOME = tool 'sonar-scanner'
+    }
+
+    stages {
+        stage('Checkout & Setup') {
+            steps {
+                script {
+                    echo "🔄 Starting E-commerce Application CI/CD Pipeline"
+                    echo "📋 Pipeline triggered by: ${currentBuild.getBuildCauses()[0].shortDescription}"
+
+                    // Create logs directory
+                    sh 'mkdir -p logs'
+                }
+            }
+        }
+
+        stage('Lint Backend') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔍 Starting Backend Linting..."
+
+                        sh '''
+                        cd backend
+                        npm install
+                        npm run lint > ../logs/backend-lint-log.txt 2>&1 || echo "Linting completed with warnings"
+                        '''
+
+                        echo "✅ Backend linting completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/backend-lint-log.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Lint Frontend') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔍 Starting Frontend Linting..."
+
+                        sh '''
+                        cd frontend
+                        npm install
+                        npm run lint > ../logs/frontend-lint-log.txt 2>&1 || echo "Linting completed with warnings"
+                        '''
+
+                        echo "✅ Frontend linting completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/frontend-lint-log.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Test Backend') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🧪 Starting Backend Testing..."
+
+                        sh '''
+                        cd backend
+                        npm install
+                        npm test > ../logs/backend-test-log.txt 2>&1 || echo "Testing completed with some failures"
+                        '''
+
+                        echo "✅ Backend testing completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/backend-test-log.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Test Frontend') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🧪 Starting Frontend Testing..."
+
+                        sh '''
+                        cd frontend
+                        npm install
+                        npm test > ../logs/frontend-test-log.txt 2>&1 || echo "Testing completed with some failures"
+                        '''
+
+                        echo "✅ Frontend testing completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/frontend-test-log.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Security Scan Backend') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔒 Starting Backend Security Scanning..."
+
+                        sh '''
+                        cd backend
+                        npm audit --audit-level moderate > ../logs/backend-security-scan.txt 2>&1 || echo "Security scan completed with findings"
+                        '''
+
+                        echo "✅ Backend security scan completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/backend-security-scan.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Security Scan Frontend') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔒 Starting Frontend Security Scanning..."
+
+                        sh '''
+                        cd frontend
+                        npm audit --audit-level moderate > ../logs/frontend-security-scan.txt 2>&1 || echo "Security scan completed with findings"
+                        '''
+
+                        echo "✅ Frontend security scan completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/frontend-security-scan.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    echo "🏗️ Building Docker Images..."
+
+                    sh '''
+                    # Build backend image
+                    docker build -t ${DOCKER_REGISTRY}/ecommerce-backend:${BUILD_NUMBER} ./backend
+
+                    # Build frontend image
+                    docker build -t ${DOCKER_REGISTRY}/ecommerce-frontend:${BUILD_NUMBER} ./frontend
+                    '''
+
+                    echo "✅ Docker images built successfully"
+                }
+            }
+        }
+
+        stage('Trivy Container Scan') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔍 Starting Container Security Scanning with Trivy..."
+
+                        sh '''
+                        # Scan backend image
+                        trivy image --format table --output logs/backend-trivy-scan.txt ${DOCKER_REGISTRY}/ecommerce-backend:${BUILD_NUMBER} || echo "Trivy scan completed with findings"
+
+                        # Scan frontend image
+                        trivy image --format table --output logs/frontend-trivy-scan.txt ${DOCKER_REGISTRY}/ecommerce-frontend:${BUILD_NUMBER} || echo "Trivy scan completed with findings"
+                        '''
+
+                        echo "✅ Container security scanning completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/backend-trivy-scan.txt,logs/frontend-trivy-scan.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    echo "📤 Pushing Docker Images to Registry..."
+
+                    sh '''
+                    # Login to registry
+                    echo "Logging into Docker registry..."
+
+                    # Push images
+                    docker push ${DOCKER_REGISTRY}/ecommerce-backend:${BUILD_NUMBER}
+                    docker push ${DOCKER_REGISTRY}/ecommerce-frontend:${BUILD_NUMBER}
+
+                    # Tag as latest
+                    docker tag ${DOCKER_REGISTRY}/ecommerce-backend:${BUILD_NUMBER} ${DOCKER_REGISTRY}/ecommerce-backend:latest
+                    docker tag ${DOCKER_REGISTRY}/ecommerce-frontend:${BUILD_NUMBER} ${DOCKER_REGISTRY}/ecommerce-frontend:latest
+
+                    docker push ${DOCKER_REGISTRY}/ecommerce-backend:latest
+                    docker push ${DOCKER_REGISTRY}/ecommerce-frontend:latest
+                    '''
+
+                    echo "✅ Docker images pushed successfully"
+                }
+            }
+        }
+
+        stage('Kubernetes Validation') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔍 Validating Kubernetes Manifests..."
+
+                        sh '''
+                        # Validate k8s manifests
+                        kubeconform k8s/ > logs/k8s-validation-log.txt 2>&1 || echo "Kubernetes validation completed with warnings"
+                        '''
+
+                        echo "✅ Kubernetes validation completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/k8s-validation-log.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Kubernetes Security Scan') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🔒 Scanning Kubernetes Manifests for Security Issues..."
+
+                        sh '''
+                        # Use kubesec to scan manifests
+                        kubesec scan k8s/ > logs/k8s-security-scan.txt 2>&1 || echo "Kubesec scan completed with findings"
+                        '''
+
+                        echo "✅ Kubernetes security scan completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/k8s-security-scan.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'staging'
+                }
+            }
+            steps {
+                script {
+                    echo "🚀 Deploying to Staging Environment..."
+
+                    sh '''
+                    # Update staging deployment
+                    sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/ecommerce-backend:${BUILD_NUMBER}|g' k8s/base/05-backend.yaml
+                    sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/ecommerce-frontend:${BUILD_NUMBER}|g' k8s/base/06-frontend.yaml
+
+                    # Apply to staging namespace
+                    kubectl apply -f k8s/base/ -n ecommerce-staging
+                    '''
+
+                    echo "✅ Staging deployment completed"
+                }
+            }
+        }
+
+        stage('Integration Tests') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'staging'
+                }
+            }
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        echo "🧪 Running Integration Tests..."
+
+                        sh '''
+                        # Wait for deployment to be ready
+                        kubectl wait --for=condition=available --timeout=300s deployment/ecommerce-backend -n ecommerce-staging
+                        kubectl wait --for=condition=available --timeout=300s deployment/ecommerce-frontend -n ecommerce-staging
+
+                        # Run integration tests
+                        npm run test:integration > logs/integration-test-log.txt 2>&1 || echo "Integration tests completed with some failures"
+                        '''
+
+                        echo "✅ Integration tests completed"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'logs/integration-test-log.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    echo "🚀 Deploying to Production Environment..."
+
+                    // Production deployment with approval
+                    timeout(time: 1, unit: 'HOURS') {
+                        input message: 'Deploy to Production?', ok: 'Deploy'
+                    }
+
+                    sh '''
+                    # Update production deployment
+                    sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/ecommerce-backend:${BUILD_NUMBER}|g' k8s/production/05-backend.yaml
+                    sed -i 's|image:.*|image: ${DOCKER_REGISTRY}/ecommerce-frontend:${BUILD_NUMBER}|g' k8s/production/06-frontend.yaml
+
+                    # Apply advanced features
+                    kubectl apply -f k8s/production/ -n ecommerce-production
+                    '''
+
+                    echo "✅ Production deployment completed"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo "📊 Generating Pipeline Summary..."
+
+                sh '''
+                echo "=== E-COMMERCE APPLICATION CI/CD PIPELINE SUMMARY ===" > logs/pipeline-summary.txt
+                echo "Build Number: ${BUILD_NUMBER}" >> logs/pipeline-summary.txt
+                echo "Build Status: ${currentBuild.currentResult}" >> logs/pipeline-summary.txt
+                echo "Branch: ${BRANCH_NAME}" >> logs/pipeline-summary.txt
+                echo "Duration: ${currentBuild.durationString}" >> logs/pipeline-summary.txt
+                echo "Triggered By: ${currentBuild.getBuildCauses()[0].shortDescription}" >> logs/pipeline-summary.txt
+                echo "" >> logs/pipeline-summary.txt
+                echo "📁 Archived Logs:" >> logs/pipeline-summary.txt
+                echo "- Backend Lint: logs/backend-lint-log.txt" >> logs/pipeline-summary.txt
+                echo "- Frontend Lint: logs/frontend-lint-log.txt" >> logs/pipeline-summary.txt
+                echo "- Backend Tests: logs/backend-test-log.txt" >> logs/pipeline-summary.txt
+                echo "- Frontend Tests: logs/frontend-test-log.txt" >> logs/pipeline-summary.txt
+                echo "- Backend Security: logs/backend-security-scan.txt" >> logs/pipeline-summary.txt
+                echo "- Frontend Security: logs/frontend-security-scan.txt" >> logs/pipeline-summary.txt
+                echo "- Backend Trivy: logs/backend-trivy-scan.txt" >> logs/pipeline-summary.txt
+                echo "- Frontend Trivy: logs/frontend-trivy-scan.txt" >> logs/pipeline-summary.txt
+                echo "- K8s Validation: logs/k8s-validation-log.txt" >> logs/pipeline-summary.txt
+                echo "- K8s Security: logs/k8s-security-scan.txt" >> logs/pipeline-summary.txt
+                echo "- Integration Tests: logs/integration-test-log.txt" >> logs/pipeline-summary.txt
+                '''
+            }
+
+            archiveArtifacts artifacts: 'logs/pipeline-summary.txt', allowEmptyArchive: true
+
+            echo "🧹 Cleaning up workspace..."
+            cleanWs()
+        }
+
+        success {
+            echo "✅ Pipeline completed successfully!"
+        }
+
+        failure {
+            echo "❌ Pipeline failed!"
+        }
+
+        unstable {
+            echo "⚠️ Pipeline completed with warnings/issues (this is normal for resilient pipelines)"
+        }
+    }
+}

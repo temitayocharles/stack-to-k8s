@@ -1,0 +1,26 @@
+# E-commerce Platform Namespace
+# This creates an isolated environment for the e-commerce application
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecommerce
+  labels:
+    app: ecommerce-platform
+    env: production
+---
+# Resource Quota for the namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ecommerce-quota
+  namespace: ecommerce
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "4"
+    services: "10"
+    secrets: "10"
+    configmaps: "10"

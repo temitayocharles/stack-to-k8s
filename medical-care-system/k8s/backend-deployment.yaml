@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-care-api
+  namespace: medical-care-system
+  labels:
+    app: medical-care-api
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: medical-care-api
+  template:
+    metadata:
+      labels:
+        app: medical-care-api
+        component: backend
+    spec:
+      containers:
+      - name: medical-care-api
+        image: medical-care-api:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=sql-server-service,1433;Database=MedicalCareDB;User=sa;Password=MedicalCare2025!;TrustServerCertificate=true;MultipleActiveResultSets=true"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: false

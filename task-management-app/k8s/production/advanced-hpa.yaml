@@ -1,0 +1,486 @@
+# Advanced Horizontal Pod Autoscaler with custom metrics
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: taskmanagement-backend-hpa
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskmanagement-backend
+  minReplicas: 5
+  maxReplicas: 50
+  metrics:
+  # CPU utilization
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # Memory utilization
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Custom metric: Active WebSocket connections
+  - type: Pods
+    pods:
+      metric:
+        name: websocket_active_connections
+      target:
+        type: AverageValue
+        averageValue: "1000"
+  # Custom metric: API request rate
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  # Custom metric: Database connection pool usage
+  - type: Pods
+    pods:
+      metric:
+        name: database_connection_pool_usage_percent
+      target:
+        type: AverageValue
+        averageValue: "70"
+  # Custom metric: Task processing queue length
+  - type: Pods
+    pods:
+      metric:
+        name: task_processing_queue_length
+      target:
+        type: AverageValue
+        averageValue: "100"
+  # Custom metric: AI prediction cache hit rate (scale down when high hit rate)
+  - type: Pods
+    pods:
+      metric:
+        name: ai_prediction_cache_hit_rate_percent
+      target:
+        type: AverageValue
+        averageValue: "20" # Scale up when cache hit rate is low (more computation needed)
+  # Custom metric: Real-time collaboration events per second
+  - type: Pods
+    pods:
+      metric:
+        name: collaboration_events_per_second
+      target:
+        type: AverageValue
+        averageValue: "50"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5 minutes
+      policies:
+      - type: Percent
+        value: 10  # Scale down by max 10% of current replicas
+        periodSeconds: 60
+      - type: Pods
+        value: 2   # Or scale down by max 2 pods
+        periodSeconds: 60
+      selectPolicy: Min  # Use the more conservative policy
+    scaleUp:
+      stabilizationWindowSeconds: 60   # 1 minute
+      policies:
+      - type: Percent
+        value: 50  # Scale up by max 50% of current replicas
+        periodSeconds: 60
+      - type: Pods
+        value: 5   # Or scale up by max 5 pods
+        periodSeconds: 60
+      selectPolicy: Max  # Use the more aggressive policy for scaling up
+---
+# Vertical Pod Autoscaler for intelligent resource allocation
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: taskmanagement-backend-vpa
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: autoscaling
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskmanagement-backend
+  updatePolicy:
+    updateMode: "Auto"  # Automatically apply recommendations
+  resourcePolicy:
+    containerPolicies:
+    - containerName: taskmanagement-backend
+      minAllowed:
+        cpu: 200m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 4000m
+        memory: 8Gi
+      controlledResources: ["cpu", "memory"]
+    - containerName: fluent-bit
+      minAllowed:
+        cpu: 50m
+        memory: 64Mi
+      maxAllowed:
+        cpu: 200m
+        memory: 256Mi
+      controlledResources: ["cpu", "memory"]
+    - containerName: ai-model-updater
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 1Gi
+      controlledResources: ["cpu", "memory"]
+---
+# Pod Disruption Budget for high availability during scaling and updates
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: taskmanagement-backend-pdb
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: availability
+spec:
+  selector:
+    matchLabels:
+      app: taskmanagement-backend
+  minAvailable: 3  # Always keep at least 3 pods running
+  # Alternative: maxUnavailable: 2  # Allow max 2 pods to be unavailable
+---
+# Custom Resource Definition for intelligent scaling metrics
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: taskmanagementscalers.scaling.taskmanagement.io
+spec:
+  group: scaling.taskmanagement.io
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              scaleTargetRef:
+                type: object
+                properties:
+                  apiVersion:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+              aiDrivenScaling:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  predictionWindow:
+                    type: string
+                  trainingDataDays:
+                    type: integer
+                  scalingFactors:
+                    type: object
+                    properties:
+                      userActivity:
+                        type: number
+                      taskComplexity:
+                        type: number
+                      collaborationIntensity:
+                        type: number
+                      timeOfDay:
+                        type: number
+                      dayOfWeek:
+                        type: number
+              businessMetrics:
+                type: object
+                properties:
+                  taskCompletionRate:
+                    type: object
+                    properties:
+                      target:
+                        type: number
+                      weight:
+                        type: number
+                  userSatisfactionScore:
+                    type: object
+                    properties:
+                      target:
+                        type: number
+                      weight:
+                        type: number
+                  responseTime:
+                    type: object
+                    properties:
+                      target:
+                        type: string
+                      weight:
+                        type: number
+          status:
+            type: object
+            properties:
+              currentReplicas:
+                type: integer
+              desiredReplicas:
+                type: integer
+              aiRecommendations:
+                type: object
+                properties:
+                  predictedLoad:
+                    type: number
+                  recommendedReplicas:
+                    type: integer
+                  confidence:
+                    type: number
+                  nextPrediction:
+                    type: string
+              scalingEvents:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    action:
+                      type: string
+                    reason:
+                      type: string
+                    replicas:
+                      type: integer
+  scope: Namespaced
+  names:
+    plural: taskmanagementscalers
+    singular: taskmanagementscaler
+    kind: TaskManagementScaler
+    shortNames:
+    - tms
+---
+# Custom AI-driven autoscaler instance
+apiVersion: scaling.taskmanagement.io/v1
+kind: TaskManagementScaler
+metadata:
+  name: intelligent-backend-scaler
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: ai-scaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: taskmanagement-backend
+  aiDrivenScaling:
+    enabled: true
+    predictionWindow: "30m"      # Predict load 30 minutes ahead
+    trainingDataDays: 30         # Use 30 days of historical data
+    scalingFactors:
+      userActivity: 1.5          # Weight for user activity patterns
+      taskComplexity: 1.2        # Weight for AI task complexity analysis
+      collaborationIntensity: 1.3 # Weight for real-time collaboration
+      timeOfDay: 1.1             # Weight for time-based patterns
+      dayOfWeek: 1.0             # Weight for weekly patterns
+  businessMetrics:
+    taskCompletionRate:
+      target: 95.0               # Target 95% task completion rate
+      weight: 2.0                # High priority metric
+    userSatisfactionScore:
+      target: 4.5                # Target 4.5/5 user satisfaction
+      weight: 1.5
+    responseTime:
+      target: "200ms"            # Target 200ms API response time
+      weight: 2.0
+---
+# Network Policy for secure scaling communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: autoscaler-network-policy
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: network-security
+spec:
+  podSelector:
+    matchLabels:
+      app: taskmanagement-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow metrics scraping from Prometheus
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 9090
+  # Allow health checks from load balancers
+  - from: []  # Allow from anywhere for health checks
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow WebSocket connections
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 8081
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow database connections
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres-cluster
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow Redis connections
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis-cluster
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow external API calls (HTTPS)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+---
+# ServiceMonitor for custom metrics collection
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: taskmanagement-backend-metrics
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: taskmanagement-backend
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    scheme: http
+    metricRelabelings:
+    # Relabel custom metrics for autoscaling
+    - sourceLabels: [__name__]
+      regex: 'taskmanagement_websocket_connections_active'
+      targetLabel: websocket_active_connections
+    - sourceLabels: [__name__]
+      regex: 'taskmanagement_http_requests_per_second'
+      targetLabel: http_requests_per_second
+    - sourceLabels: [__name__]
+      regex: 'taskmanagement_database_pool_usage_percent'
+      targetLabel: database_connection_pool_usage_percent
+    - sourceLabels: [__name__]
+      regex: 'taskmanagement_task_queue_length'
+      targetLabel: task_processing_queue_length
+    - sourceLabels: [__name__]
+      regex: 'taskmanagement_ai_cache_hit_rate_percent'
+      targetLabel: ai_prediction_cache_hit_rate_percent
+    - sourceLabels: [__name__]
+      regex: 'taskmanagement_collaboration_events_per_second'
+      targetLabel: collaboration_events_per_second
+---
+# PrometheusRule for autoscaling alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: taskmanagement-autoscaling-alerts
+  namespace: taskmanagement-prod
+  labels:
+    app: taskmanagement-backend
+    component: alerting
+spec:
+  groups:
+  - name: taskmanagement.autoscaling
+    rules:
+    - alert: HighWebSocketConnections
+      expr: avg(websocket_active_connections) > 800
+      for: 2m
+      labels:
+        severity: warning
+        component: autoscaling
+      annotations:
+        summary: "High WebSocket connection count"
+        description: "Average WebSocket connections ({{ $value }}) is above threshold"
+        
+    - alert: HighAPIRequestRate
+      expr: avg(http_requests_per_second) > 80
+      for: 2m
+      labels:
+        severity: warning
+        component: autoscaling
+      annotations:
+        summary: "High API request rate"
+        description: "Average API requests per second ({{ $value }}) is above threshold"
+        
+    - alert: DatabaseConnectionPoolExhaustion
+      expr: avg(database_connection_pool_usage_percent) > 90
+      for: 1m
+      labels:
+        severity: critical
+        component: autoscaling
+      annotations:
+        summary: "Database connection pool near exhaustion"
+        description: "Database connection pool usage ({{ $value }}%) is critically high"
+        
+    - alert: TaskProcessingQueueBacklog
+      expr: avg(task_processing_queue_length) > 500
+      for: 5m
+      labels:
+        severity: warning
+        component: autoscaling
+      annotations:
+        summary: "Task processing queue backlog"
+        description: "Task queue length ({{ $value }}) indicates processing backlog"
+        
+    - alert: LowAICacheHitRate
+      expr: avg(ai_prediction_cache_hit_rate_percent) < 30
+      for: 10m
+      labels:
+        severity: info
+        component: autoscaling
+      annotations:
+        summary: "Low AI prediction cache hit rate"
+        description: "AI cache hit rate ({{ $value }}%) is low, may need more compute resources"
+        
+    - alert: HighCollaborationActivity
+      expr: avg(collaboration_events_per_second) > 40
+      for: 3m
+      labels:
+        severity: info
+        component: autoscaling
+      annotations:
+        summary: "High real-time collaboration activity"
+        description: "Collaboration events per second ({{ $value }}) indicates high activity"

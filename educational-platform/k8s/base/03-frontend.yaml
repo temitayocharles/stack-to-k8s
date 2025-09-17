@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: educational-frontend
+  namespace: educational
+  labels:
+    app: educational-frontend
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: educational-frontend
+  template:
+    metadata:
+      labels:
+        app: educational-frontend
+        component: frontend
+    spec:
+      containers:
+      - name: educational-frontend
+        image: educational-platform/frontend:latest
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: VUE_APP_API_BASE_URL
+          value: "https://api.educational-platform.com"
+        - name: VUE_APP_STRIPE_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: STRIPE_PUBLIC_KEY
+        - name: VUE_APP_ENVIRONMENT
+          value: "production"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

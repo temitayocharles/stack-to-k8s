@@ -1,0 +1,46 @@
+# Pod Disruption Budgets for E-commerce Platform
+# This ensures high availability during updates and cluster maintenance
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ecommerce-backend-pdb
+  namespace: ecommerce
+spec:
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+  minAvailable: 2
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ecommerce-frontend-pdb
+  namespace: ecommerce
+spec:
+  selector:
+    matchLabels:
+      app: ecommerce-frontend
+  minAvailable: 1
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mongodb-pdb
+  namespace: ecommerce
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+  minAvailable: 1
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  namespace: ecommerce
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  minAvailable: 1

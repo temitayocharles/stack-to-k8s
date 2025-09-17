@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  medical-care-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: medical-care-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MedicalCare2025!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - medical-care-db-data:/var/opt/mssql
+    networks:
+      - medical-care-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P MedicalCare2025! -Q 'SELECT 1'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Backend API
+  medical-care-api:
+    build:
+      context: ./backend/MedicalCareSystem.API
+      dockerfile: Dockerfile
+    container_name: medical-care-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=medical-care-db,1433;Database=MedicalCareDB;User=sa;Password=MedicalCare2025!;TrustServerCertificate=true;MultipleActiveResultSets=true
+    ports:
+      - "5170:8080"
+    depends_on:
+      medical-care-db:
+        condition: service_healthy
+    networks:
+      - medical-care-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Blazor WebAssembly
+  medical-care-frontend:
+    build:
+      context: ./frontend/MedicalCareSystem.Frontend
+      dockerfile: Dockerfile
+    container_name: medical-care-frontend
+    ports:
+      - "5171:80"
+    depends_on:
+      - medical-care-api
+    networks:
+      - medical-care-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  medical-care-db-data:
+    driver: local
+
+networks:
+  medical-care-network:
+    driver: bridge

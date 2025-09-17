@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-social-media-dashboard
+  namespace: social-media
+data:
+  social-media-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Social Media Platform Metrics",
+        "tags": ["social-media", "ruby", "rails", "react"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "API Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"social-media-backend\"}[5m])",
+                "legendFormat": "{{method}} {{status}}"
+              }
+            ],
+            "yAxes": [
+              {
+                "label": "Requests/sec"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Response Times",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"social-media-backend\"}[5m]))",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"social-media-backend\"}[5m]))",
+                "legendFormat": "50th percentile"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Active Users",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "social_media_active_users_total",
+                "legendFormat": "Active Users"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "pg_stat_activity_count{job=\"social-media-backend\"}",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Redis Cache Hit Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m])) * 100",
+                "legendFormat": "Cache Hit Rate %"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Pod CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{namespace=\"social-media\"}[5m]) * 100",
+                "legendFormat": "{{pod}}"
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "title": "Pod Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{namespace=\"social-media\"} / 1024 / 1024",
+                "legendFormat": "{{pod}} (MB)"
+              }
+            ]
+          },
+          {
+            "id": 8,
+            "title": "Error Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"social-media-backend\",status=~\"5..\"}[5m]) / rate(http_requests_total{job=\"social-media-backend\"}[5m]) * 100",
+                "legendFormat": "Error Rate %"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: social-media
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: "admin123"
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-piechart-panel"
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+        - name: grafana-dashboards
+          mountPath: /etc/grafana/provisioning/dashboards
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+      volumes:
+      - name: grafana-storage
+        emptyDir: {}
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-social-media-dashboard
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: social-media
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,229 @@
+stages:
+  - test
+  - security
+  - build
+  - deploy
+
+variables:
+  REGISTRY: "registry.gitlab.com"
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE"
+  DOCKER_TAG: "$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+  KUBECONFIG: /etc/deploy/config
+
+cache:
+  paths:
+    - backend/.cache/pip
+    - frontend/node_modules/
+
+test:backend:
+  stage: test
+  image: python:3.11
+  services:
+    - postgres:15
+    - redis:7-alpine
+  variables:
+    POSTGRES_DB: educational_platform_test
+    POSTGRES_USER: test_user
+    POSTGRES_PASSWORD: test_password
+  before_script:
+    - cd backend
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+  script:
+    - python -m pytest tests/ -v --cov=. --cov-report=xml --junitxml=test-results.xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/coverage.xml
+      junit: backend/test-results.xml
+    expire_in: 1 week
+
+test:frontend:
+  stage: test
+  image: node:18
+  before_script:
+    - cd frontend
+    - npm install
+  script:
+    - npm test -- --watchAll=false --coverage --testResultsProcessor=jest-junit
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: frontend/coverage/cobertura-coverage.xml
+      junit: frontend/junit.xml
+    expire_in: 1 week
+
+security:trivy:
+  stage: security
+  image:
+    name: aquasecurity/trivy:latest
+    entrypoint: [""]
+  script:
+    - trivy fs --format json --output trivy-results.json .
+  artifacts:
+    paths:
+      - trivy-results.json
+    expire_in: 1 week
+  allow_failure: true
+
+security:kubesec:
+  stage: security
+  image:
+    name: controlplaneio/kubesec:v2
+    entrypoint: [""]
+  script:
+    - kubesec scan k8s/ --format json --output kubesec-results.json
+  artifacts:
+    paths:
+      - kubesec-results.json
+    expire_in: 1 week
+  allow_failure: true
+
+build:backend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd backend
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        ENV_FILE="../config/production.env"
+      elif [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
+        ENV_FILE="../config/staging.env"
+      else
+        ENV_FILE="../config/development.env"
+      fi
+    - docker build -t $IMAGE_NAME/backend:$DOCKER_TAG --build-arg ENV_FILE=$ENV_FILE .
+    - docker push $IMAGE_NAME/backend:$DOCKER_TAG
+  only:
+    - main
+    - develop
+    - merge_requests
+
+build:frontend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd frontend
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        ENV_FILE="../config/production.env"
+      elif [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
+        ENV_FILE="../config/staging.env"
+      else
+        ENV_FILE="../config/development.env"
+      fi
+    - docker build -t $IMAGE_NAME/frontend:$DOCKER_TAG --build-arg ENV_FILE=$ENV_FILE .
+    - docker push $IMAGE_NAME/frontend:$DOCKER_TAG
+  only:
+    - main
+    - develop
+    - merge_requests
+
+deploy:staging:
+  stage: deploy
+  image: google/cloud-sdk:alpine
+  environment:
+    name: staging
+    url: https://staging.educational-platform.example.com
+  before_script:
+    - echo $KUBE_CONFIG_STAGING | base64 -d > $KUBECONFIG
+    - chmod 600 $KUBECONFIG
+  script:
+    - |
+      # Update image tags in manifests
+      sed -i "s|image:.*|image: $IMAGE_NAME/backend:$DOCKER_TAG|g" k8s/base/02-backend.yaml
+      sed -i "s|image:.*|image: $IMAGE_NAME/frontend:$DOCKER_TAG|g" k8s/base/03-frontend.yaml
+
+      # Deploy to staging
+      kubectl apply -f k8s/base/
+
+      # Wait for rollout
+      kubectl rollout status deployment/educational-backend -n educational --timeout=300s
+      kubectl rollout status deployment/educational-frontend -n educational --timeout=300s
+
+      # Run integration tests
+      kubectl run integration-test --image=curlimages/curl --rm -i --restart=Never -- \
+        curl -f http://educational-frontend.educational.svc.cluster.local/api/health
+  dependencies:
+    - build:backend
+    - build:frontend
+  only:
+    - develop
+
+deploy:production:
+  stage: deploy
+  image: google/cloud-sdk:alpine
+  environment:
+    name: production
+    url: https://educational-platform.example.com
+  before_script:
+    - echo $KUBE_CONFIG_PRODUCTION | base64 -d > $KUBECONFIG
+    - chmod 600 $KUBECONFIG
+  script:
+    - |
+      # Update image tags in manifests
+      sed -i "s|image:.*|image: $IMAGE_NAME/backend:$DOCKER_TAG|g" k8s/production/02-backend.yaml
+      sed -i "s|image:.*|image: $IMAGE_NAME/frontend:$DOCKER_TAG|g" k8s/production/03-frontend.yaml
+
+      # Deploy to production
+      kubectl apply -f k8s/production/
+
+      # Wait for rollout
+      kubectl rollout status deployment/educational-backend -n educational --timeout=600s
+      kubectl rollout status deployment/educational-frontend -n educational --timeout=600s
+
+      # Run smoke tests
+      kubectl run smoke-test --image=curlimages/curl --rm -i --restart=Never -- \
+        curl -f http://educational-frontend.educational.svc.cluster.local
+  dependencies:
+    - build:backend
+    - build:frontend
+  only:
+    - main
+  when: manual
+
+cleanup:
+  stage: deploy
+  image: docker:latest
+  script:
+    - docker system prune -f
+  when: always
+  only:
+    - main
+    - develop
+
+monitoring:alert:
+  stage: deploy
+  image: curlimages/curl
+  script:
+    - |
+      # Send deployment notification to monitoring system
+      curl -X POST https://api.monitoring.example.com/webhook \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"project\": \"$CI_PROJECT_NAME\",
+          \"environment\": \"$CI_ENVIRONMENT_NAME\",
+          \"status\": \"$CI_JOB_STATUS\",
+          \"url\": \"$CI_ENVIRONMENT_URL\"
+        }"
+  when: always
+  only:
+    - main
+    - develop
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml

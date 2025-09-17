@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  social-media-db:
+    image: postgres:15-alpine
+    container_name: social-media-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=social_media_development
+      - POSTGRES_USER=social_user
+      - POSTGRES_PASSWORD=SocialMedia2025!
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - social-media-db-data:/var/lib/postgresql/data
+    networks:
+      - social-media-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U social_user -d social_media_development"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Redis Cache for Sessions and Background Jobs
+  social-media-redis:
+    image: redis:7-alpine
+    container_name: social-media-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - social-media-redis-data:/data
+    networks:
+      - social-media-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    command: redis-server --appendonly yes
+
+  # Ruby on Rails Backend API
+  social-media-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: social-media-backend
+    restart: unless-stopped
+    environment:
+      - RAILS_ENV=development
+      - RAILS_SERVE_STATIC_FILES=true
+      - DATABASE_USERNAME=social_user
+      - DATABASE_PASSWORD=SocialMedia2025!
+      - DATABASE_HOST=social-media-db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://social-media-redis:6379/0
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+    ports:
+      - "3000:3000"
+    depends_on:
+      social-media-db:
+        condition: service_healthy
+      social-media-redis:
+        condition: service_healthy
+    networks:
+      - social-media-network
+    volumes:
+      - ./backend:/app
+      - /app/tmp
+      - /app/log
+      - /app/vendor/bundle
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # React Native Web Frontend
+  social-media-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: social-media-frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000/api
+      - REACT_APP_ENV=development
+      - REACT_APP_WEBSOCKET_URL=ws://localhost:3000/cable
+    ports:
+      - "3001:80"
+    depends_on:
+      - social-media-backend
+    networks:
+      - social-media-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Sidekiq Background Job Processor
+  social-media-sidekiq:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: social-media-sidekiq
+    restart: unless-stopped
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_USERNAME=social_user
+      - DATABASE_PASSWORD=SocialMedia2025!
+      - DATABASE_HOST=social-media-db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://social-media-redis:6379/0
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+    depends_on:
+      social-media-db:
+        condition: service_healthy
+      social-media-redis:
+        condition: service_healthy
+    networks:
+      - social-media-network
+    volumes:
+      - ./backend:/app
+      - /app/tmp
+      - /app/log
+      - /app/vendor/bundle
+    command: bundle exec sidekiq
+
+volumes:
+  social-media-db-data:
+    driver: local
+  social-media-redis-data:
+    driver: local
+
+networks:
+  social-media-network:
+    driver: bridge

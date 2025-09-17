@@ -1,0 +1,98 @@
+# RBAC Configuration for E-commerce Platform
+# This implements role-based access control for secure operations
+
+# Service Account for E-commerce Application
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecommerce-service-account
+  namespace: ecommerce
+  labels:
+    app: ecommerce-platform
+---
+# Role for application operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ecommerce-app-role
+  namespace: ecommerce
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+# Role Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ecommerce-app-binding
+  namespace: ecommerce
+subjects:
+- kind: ServiceAccount
+  name: ecommerce-service-account
+  namespace: ecommerce
+roleRef:
+  kind: Role
+  name: ecommerce-app-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Cluster Role for monitoring access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ecommerce-monitoring-role
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "nodes/metrics", "services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+---
+# Cluster Role Binding for monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ecommerce-monitoring-binding
+subjects:
+- kind: ServiceAccount
+  name: ecommerce-service-account
+  namespace: ecommerce
+roleRef:
+  kind: ClusterRole
+  name: ecommerce-monitoring-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Security Context Constraints (for OpenShift)
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: ecommerce-scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+readOnlyRootFilesystem: true
+requiredDropCapabilities:
+- KILL
+- MKNOD
+- SETUID
+- SETGID
+runAsUser:
+  type: MustRunAsNonRoot
+seLinuxContext:
+  type: MustRunAs
+users:
+- system:serviceaccount:ecommerce:ecommerce-service-account

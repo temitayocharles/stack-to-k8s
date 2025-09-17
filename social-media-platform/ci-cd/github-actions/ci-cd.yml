@@ -1,0 +1,277 @@
+name: Social Media Platform CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: social_media_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.2
+        bundler-cache: true
+        working-directory: ./backend
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./frontend/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Lint Ruby code
+      run: |
+        cd backend
+        bundle exec rubocop
+    
+    - name: Lint JavaScript code
+      run: |
+        cd frontend
+        npm run lint
+    
+    - name: Run backend tests
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/social_media_test
+        REDIS_URL: redis://localhost:6379
+        RAILS_ENV: test
+      run: |
+        cd backend
+        bundle exec rails db:create db:migrate
+        bundle exec rspec
+    
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm test -- --coverage --watchAll=false
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./backend/coverage/coverage.xml,./frontend/coverage/lcov.info
+
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run Brakeman security scanner
+      run: |
+        cd backend
+        gem install brakeman
+        brakeman -o brakeman-results.json --format json
+    
+    - name: Run npm audit
+      run: |
+        cd frontend
+        npm audit --audit-level moderate
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata for backend
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+    
+    - name: Extract metadata for frontend
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+    
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+    
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+    
+    - name: Scan backend image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.meta-backend.outputs.tags }}
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
+    
+    - name: Scan frontend image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.meta-frontend.outputs.tags }}
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region us-east-1 --name social-media-staging
+    
+    - name: Deploy to staging
+      run: |
+        sed -i 's|social-media-backend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:develop|g' k8s/base/02-backend.yaml
+        sed -i 's|social-media-frontend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:develop|g' k8s/base/03-frontend.yaml
+        kubectl apply -f k8s/base/ -n social-media-staging
+    
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/social-media-backend -n social-media-staging
+        kubectl rollout status deployment/social-media-frontend -n social-media-staging
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region us-east-1 --name social-media-production
+    
+    - name: Deploy to production
+      run: |
+        sed -i 's|social-media-backend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:main|g' k8s/base/02-backend.yaml
+        sed -i 's|social-media-frontend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:main|g' k8s/base/03-frontend.yaml
+        kubectl apply -f k8s/base/ -n social-media
+        kubectl apply -f k8s/production/ -n social-media
+    
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/social-media-backend -n social-media
+        kubectl rollout status deployment/social-media-frontend -n social-media
+    
+    - name: Run smoke tests
+      run: |
+        # Wait for services to be ready
+        sleep 60
+        # Test backend health endpoint
+        kubectl run test-pod --rm -i --restart=Never --image=curlimages/curl -- curl -f http://social-media-backend-service:3000/api/v1/health
+        # Test frontend
+        kubectl run test-pod --rm -i --restart=Never --image=curlimages/curl -- curl -f http://social-media-frontend-service:80/
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Notify Slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        text: |
+          Social Media Platform deployment completed
+          Status: ${{ job.status }}
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}

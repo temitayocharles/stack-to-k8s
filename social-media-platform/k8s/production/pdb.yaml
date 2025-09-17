@@ -1,0 +1,23 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: social-media-backend-pdb
+  namespace: social-media
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: social-media-backend
+      tier: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: social-media-frontend-pdb
+  namespace: social-media
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: social-media-frontend
+      tier: frontend

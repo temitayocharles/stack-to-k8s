@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: medical-care-config
+  namespace: medical-care-system
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:80;https://+:443"
+  ConnectionStrings__DefaultConnection: "Server=medical-care-db,1433;Database=MedicalCareDB;User Id=sa;Password=YourStrong!Passw0rd;"

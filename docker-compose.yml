@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  # MongoDB for E-commerce App
+  ecommerce-mongodb:
+    image: mongo:7.0
+    container_name: ecommerce-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: ecommerce
+    volumes:
+      - ecommerce_mongo_data:/data/db
+      - ./ecommerce-app/backend/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - multi-app-network
+
+  # Redis for Weather App
+  weather-redis:
+    image: redis:7.2-alpine
+    container_name: weather-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - weather_redis_data:/data
+    networks:
+      - multi-app-network
+
+  # PostgreSQL for Educational Platform
+  educational-postgresql:
+    image: postgres:15
+    container_name: educational-postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: educational_platform
+      POSTGRES_USER: eduuser
+      POSTGRES_PASSWORD: edupass123
+    volumes:
+      - educational_postgres_data:/var/lib/postgresql/data
+      - ./educational-platform/backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - multi-app-network
+
+  # Redis for Educational Platform (caching)
+  educational-redis:
+    image: redis:7.2-alpine
+    container_name: educational-redis
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - educational_redis_data:/data
+    networks:
+      - multi-app-network
+
+  # SQL Server for Medical Care System
+  medical-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: medical-sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: MedicalCare123!
+      ACCEPT_EULA: Y
+      MSSQL_DB: MedicalCareDB
+    volumes:
+      - medical_sqlserver_data:/var/opt/mssql
+    networks:
+      - multi-app-network
+
+  # CouchDB for Task Management App
+  task-couchdb:
+    image: couchdb:3.3
+    container_name: task-couchdb
+    ports:
+      - "5984:5984"
+    environment:
+      COUCHDB_USER: taskadmin
+      COUCHDB_PASSWORD: taskpass123
+    volumes:
+      - task_couchdb_data:/opt/couchdb/data
+    networks:
+      - multi-app-network
+
+  # PostgreSQL for Social Media Platform
+  social-postgresql:
+    image: postgres:15
+    container_name: social-postgresql
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: social_media
+      POSTGRES_USER: socialuser
+      POSTGRES_PASSWORD: socialpass123
+    volumes:
+      - social_postgres_data:/var/lib/postgresql/data
+      - ./social-media-platform/backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - multi-app-network
+
+  # pgAdmin for PostgreSQL Management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - multi-app-network
+    depends_on:
+      - educational-postgresql
+      - social-postgresql
+
+  # Redis Commander for Redis Management (optional)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: weather:weather-redis:6379,educational:educational-redis:6379
+    networks:
+      - multi-app-network
+    depends_on:
+      - weather-redis
+      - educational-redis
+
+volumes:
+  ecommerce_mongo_data:
+  weather_redis_data:
+  educational_postgres_data:
+  educational_redis_data:
+  medical_sqlserver_data:
+  task_couchdb_data:
+  social_postgres_data:
+  pgadmin_data:
+
+networks:
+  multi-app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Redis Cache Database
+  weather-redis:
+    image: redis:7-alpine
+    container_name: weather-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - weather-redis-data:/data
+    networks:
+      - weather-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    command: redis-server --appendonly yes
+
+  # Flask Backend API
+  weather-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: weather-backend
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=development
+      - PORT=5001
+      - REDIS_HOST=weather-redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      - CORS_ORIGINS=http://localhost:8080,http://weather-frontend
+    ports:
+      - "5001:5001"
+    depends_on:
+      weather-redis:
+        condition: service_healthy
+    networks:
+      - weather-network
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Vue.js Frontend
+  weather-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: weather-frontend
+    restart: unless-stopped
+    environment:
+      - VUE_APP_API_URL=http://localhost:5001/api
+      - VUE_APP_ENV=development
+    ports:
+      - "8080:80"
+    depends_on:
+      - weather-backend
+    networks:
+      - weather-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  weather-redis-data:
+    driver: local
+
+networks:
+  weather-network:
+    driver: bridge

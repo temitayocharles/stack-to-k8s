@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: educational-backend
+  namespace: educational
+  labels:
+    app: educational-backend
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: educational-backend
+  template:
+    metadata:
+      labels:
+        app: educational-backend
+        component: backend
+    spec:
+      containers:
+      - name: educational-backend
+        image: educational-platform/backend:latest
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: FLASK_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: educational-config
+              key: FLASK_ENV
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: educational-config
+              key: LOG_LEVEL
+        - name: REDIS_CACHE_TTL
+          valueFrom:
+            configMapKeyRef:
+              name: educational-config
+              key: REDIS_CACHE_TTL
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: SECRET_KEY
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: JWT_SECRET_KEY
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: REDIS_URL
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: OPENAI_API_KEY
+        - name: STRIPE_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: STRIPE_PUBLIC_KEY
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: STRIPE_SECRET_KEY
+        - name: ZOOM_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: ZOOM_CLIENT_ID
+        - name: ZOOM_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: ZOOM_CLIENT_SECRET
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: AWS_SECRET_ACCESS_KEY
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: SMTP_PASSWORD
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: SENTRY_DSN
+        volumeMounts:
+        - name: uploads-storage
+          mountPath: /app/uploads
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: uploads-storage
+        persistentVolumeClaim:
+          claimName: educational-uploads-pvc

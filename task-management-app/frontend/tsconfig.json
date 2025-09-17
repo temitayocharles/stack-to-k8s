@@ -1,0 +1,71 @@
+{
+  "extends": "./.svelte-kit/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "Bundler",
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true,
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "importsNotUsedAsValues": "error",
+    "preserveValueImports": false,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"],
+      "$components": ["./src/lib/components"],
+      "$components/*": ["./src/lib/components/*"],
+      "$stores": ["./src/lib/stores"],
+      "$stores/*": ["./src/lib/stores/*"],
+      "$utils": ["./src/lib/utils"],
+      "$utils/*": ["./src/lib/utils/*"],
+      "$types": ["./src/lib/types"],
+      "$types/*": ["./src/lib/types/*"],
+      "$api": ["./src/lib/api"],
+      "$api/*": ["./src/lib/api/*"]
+    }
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte",
+    "tests/**/*.ts",
+    "tests/**/*.js",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "build/**",
+    "dist/**",
+    ".svelte-kit/**",
+    "package/**"
+  ],
+  "ts-node": {
+    "esm": true
+  }
+}

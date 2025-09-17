@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-server-service
+  namespace: medical-care-system
+  labels:
+    app: sql-server
+spec:
+  selector:
+    app: sql-server
+  ports:
+  - port: 1433
+    targetPort: 1433
+    protocol: TCP
+    name: sql
+  type: ClusterIP

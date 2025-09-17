@@ -1,0 +1,22 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-care-api-pdb
+  namespace: medical-care-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: medical-care-api
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-care-frontend-pdb
+  namespace: medical-care-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: medical-care-frontend
