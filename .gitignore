@@ -19,13 +19,18 @@ Thumbs.db
 *~
 
 # Environment variables and secrets
+.env
 .env.local
 .env.production
 .env.staging
+.env.development
+*.env
 *.key
 *.pem
 *.p12
 *.pfx
+*secret*
+*Secret*
 
 # Node.js
 node_modules/
