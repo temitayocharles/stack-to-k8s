@@ -203,27 +203,27 @@ jobs:
           # Build backend image
           if [ -f "backend/Dockerfile" ]; then
             echo "Building backend image..."
-            docker build -t ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest ./backend
-            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${TIMESTAMP}
-            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${COMMIT_SHA}
+            docker build -t ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:latest ./backend
+            docker tag ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:latest ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:${TIMESTAMP}
+            docker tag ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:latest ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:${COMMIT_SHA}
             
             echo "Pushing backend image..."
-            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest
-            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${TIMESTAMP}
-            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${COMMIT_SHA}
+            docker push ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:latest
+            docker push ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:${TIMESTAMP}
+            docker push ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-backend:${COMMIT_SHA}
           fi
           
           # Build frontend image
           if [ -f "frontend/Dockerfile" ]; then
             echo "Building frontend image..."
-            docker build -t ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest ./frontend
-            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${TIMESTAMP}
-            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${COMMIT_SHA}
+            docker build -t ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:latest ./frontend
+            docker tag ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:latest ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:${TIMESTAMP}
+            docker tag ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:latest ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:${COMMIT_SHA}
             
             echo "Pushing frontend image..."
-            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest
-            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${TIMESTAMP}
-            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${COMMIT_SHA}
+            docker push ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:latest
+            docker push ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:${TIMESTAMP}
+            docker push ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ matrix.name }}-frontend:${COMMIT_SHA}
           fi
 
       - name: 🧪 Integration Tests with Docker Compose
@@ -292,16 +292,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🐳 DockerHub Images:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- 🛒 E-commerce: \`tcainfrforge/ecommerce-backend:latest\`, \`tcainfrforge/ecommerce-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 🎓 Educational: \`tcainfrforge/educational-backend:latest\`, \`tcainfrforge/educational-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 🌤️ Weather: \`tcainfrforge/weather-backend:latest\`, \`tcainfrforge/weather-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 🏥 Medical: \`tcainfrforge/medical-backend:latest\`, \`tcainfrforge/medical-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Task Mgmt: \`tcainfrforge/task-management-backend:latest\`, \`tcainfrforge/task-management-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 📱 Social Media: \`tcainfrforge/social-media-backend:latest\`, \`tcainfrforge/social-media-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛒 E-commerce: \`${{ env.DOCKERHUB_USERNAME }}/ecommerce-backend:latest\`, \`${{ env.DOCKERHUB_USERNAME }}/ecommerce-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎓 Educational: \`${{ env.DOCKERHUB_USERNAME }}/educational-backend:latest\`, \`${{ env.DOCKERHUB_USERNAME }}/educational-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌤️ Weather: \`${{ env.DOCKERHUB_USERNAME }}/weather-backend:latest\`, \`${{ env.DOCKERHUB_USERNAME }}/weather-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏥 Medical: \`${{ env.DOCKERHUB_USERNAME }}/medical-backend:latest\`, \`${{ env.DOCKERHUB_USERNAME }}/medical-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Task Mgmt: \`${{ env.DOCKERHUB_USERNAME }}/task-management-backend:latest\`, \`${{ env.DOCKERHUB_USERNAME }}/task-management-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📱 Social Media: \`${{ env.DOCKERHUB_USERNAME }}/social-media-backend:latest\`, \`${{ env.DOCKERHUB_USERNAME }}/social-media-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🎯 Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "1. **Pull images**: \`docker pull tcainfrforge/[app-name]-[service]:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Pull images**: \`docker pull ${{ env.DOCKERHUB_USERNAME }}/[app-name]-[service]:latest\`" >> $GITHUB_STEP_SUMMARY
           echo "2. **Deploy to Kubernetes**: Use the images in your K8s manifests" >> $GITHUB_STEP_SUMMARY
           echo "3. **Practice scaling**: Try horizontal pod autoscaling with these images" >> $GITHUB_STEP_SUMMARY
 
