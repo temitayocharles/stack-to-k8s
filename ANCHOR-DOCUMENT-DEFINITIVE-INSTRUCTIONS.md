@@ -320,6 +320,16 @@ kubectl apply -f k8s/advanced-features/autoscaling/
 - **Parallel Execution**: Optimized test running with detailed reporting
 - **CI/CD Ready**: Easy integration with GitHub Actions, Jenkins, GitLab
 - **Coverage Reporting**: Detailed test results and coverage analysis
+- **Sanity Check Integration**: Mandatory cleanup validation after each test category
+
+**3.1. Mandatory Sanity Check & Cleanup - CRITICAL**
+- **Pre-Test Validation**: Verify clean workspace state before testing begins
+- **Post-Test Cleanup**: Immediate removal of temporary files, containers, and artifacts
+- **Workspace Hygiene**: Automated validation that only production files remain
+- **Resource Liberation**: Complete cleanup to free resources for next tests
+- **Anti-Bloat Protection**: Prevention of workspace pollution and size bloat
+- **CI/CD Ready**: Easy integration with GitHub Actions, Jenkins, GitLab
+- **Coverage Reporting**: Detailed test results and coverage analysis
 
 **4. Production Monitoring Stack - REQUIRED**
 - **Prometheus**: Metrics collection with 50+ metrics

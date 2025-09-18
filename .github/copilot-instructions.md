@@ -24,6 +24,14 @@ This workspace contains multiple real working applications across different doma
 - **Parallel Execution**: Optimized test running with detailed reporting
 - **CI/CD Ready**: Easy integration with GitHub Actions, Jenkins, GitLab
 - **Coverage Reporting**: Detailed test results and coverage analysis
+- **Sanity Check Integration**: Mandatory cleanup validation after each test category
+
+**3.1. Mandatory Sanity Check & Cleanup - CRITICAL**
+- **Pre-Test Validation**: Verify clean workspace state before testing begins
+- **Post-Test Cleanup**: Immediate removal of temporary files, containers, and artifacts
+- **Workspace Hygiene**: Automated validation that only production files remain
+- **Resource Liberation**: Complete cleanup to free resources for next tests
+- **Anti-Bloat Protection**: Prevention of workspace pollution and size bloat
 
 **4. Production Monitoring Stack - REQUIRED**
 - **Prometheus**: Metrics collection with 50+ metrics
@@ -100,6 +108,86 @@ func (h *HealthCheckService) CheckHealth(ctx context.Context) HealthStatus {
 4. **Frontend Tests** - UI component testing
 5. **End-to-End Tests** - Complete user journey validation
 6. **Security Tests** - Vulnerability assessment
+7. **Performance Tests** - System performance benchmarking
+
+#### SANITY CHECK & CLEANUP PROCEDURES - MANDATORY
+
+**Pre-Test Workspace Validation**:
+```bash
+# Check workspace size before testing
+du -sh . | awk '{print "Workspace size: " $1}'
+
+# Verify no temporary files exist
+find . -name "*.tmp" -o -name "*.bak" -o -name "*draft*" | wc -l
+
+# Check container status
+docker ps -q | wc -l | awk '{print "Running containers: " $1}'
+
+# Verify clean git status
+git status --porcelain | wc -l | awk '{print "Uncommitted files: " $1}'
+```
+
+**Post-Test Cleanup Validation**:
+```bash
+#!/bin/bash
+# Mandatory cleanup after each test category
+
+echo "🧹 STARTING POST-TEST CLEANUP..."
+
+# 1. Remove temporary test files
+echo "  Cleaning temporary files..."
+find . -name "*.tmp" -type f -delete
+find . -name "*.bak" -type f -delete
+find . -name "*draft*" -type f -delete
+find . -name "test-*.log" -type f -delete
+
+# 2. Clean test artifacts
+echo "  Cleaning test artifacts..."
+rm -rf test-results/ coverage-reports/ performance-data/ 2>/dev/null || true
+rm -rf .nyc_output/ junit.xml test-output.xml 2>/dev/null || true
+
+# 3. Stop and remove test containers
+echo "  Cleaning test containers..."
+docker-compose down -v --remove-orphans 2>/dev/null || true
+docker container prune -f
+docker image prune -f
+
+# 4. Validate workspace hygiene
+echo "  Validating workspace..."
+TEMP_FILES=$(find . -name "*.tmp" -o -name "*.bak" -o -name "*draft*" | wc -l)
+RUNNING_CONTAINERS=$(docker ps -q | wc -l)
+WORKSPACE_SIZE=$(du -sh . | awk '{print $1}')
+
+if [ "$TEMP_FILES" -eq 0 ] && [ "$RUNNING_CONTAINERS" -eq 0 ]; then
+    echo "✅ CLEANUP SUCCESSFUL - Workspace clean"
+    echo "📊 Final workspace size: $WORKSPACE_SIZE"
+else
+    echo "❌ CLEANUP FAILED - Manual intervention required"
+    echo "   Temporary files: $TEMP_FILES"
+    echo "   Running containers: $RUNNING_CONTAINERS"
+    exit 1
+fi
+```
+
+**Workspace Hygiene Standards**:
+```bash
+# REQUIRED file organization after testing
+application/
+├── src/                    # ✅ Source code only
+├── docs/                   # ✅ Final documentation
+├── docker-compose.yml      # ✅ Production config
+├── Dockerfile             # ✅ Final container config
+├── package.json           # ✅ Dependencies
+├── README.md              # ✅ Final documentation
+└── k8s/                   # ✅ Kubernetes manifests
+
+# ❌ MUST BE REMOVED after testing
+temp/                      # Delete immediately
+*.tmp, *.bak              # Delete immediately
+*draft*, *test*           # Delete immediately
+build/, dist/             # Delete after verification
+coverage/, test-results/  # Archive then delete
+```
 7. **Performance Tests** - System performance benchmarking
 
 #### COMPREHENSIVE TESTING FRAMEWORK - PRODUCTION READY
@@ -193,6 +281,26 @@ curl -X GET http://localhost:5001/api/categories
 ((CURRENT_TEST++))
 show_progress $CURRENT_TEST $TOTAL_TESTS "Final Validation & Reporting"
 # Generate comprehensive test report
+
+# MANDATORY: Post-test cleanup and sanity check
+echo "🧹 MANDATORY POST-TEST CLEANUP & SANITY CHECK"
+./cleanup-workspace.sh
+./cleanup-containers.sh
+
+# Validate workspace is clean
+TEMP_FILES=$(find . -name "*.tmp" -o -name "*.bak" -o -name "*draft*" | wc -l)
+RUNNING_CONTAINERS=$(docker ps -q | wc -l)
+
+if [ "$TEMP_FILES" -eq 0 ] && [ "$RUNNING_CONTAINERS" -eq 0 ]; then
+    echo "✅ WORKSPACE HYGIENE VALIDATED - All temporary files cleaned"
+    echo "✅ CONTAINER CLEANUP VALIDATED - All test containers removed"
+    echo "🎉 TESTING COMPLETE WITH CLEAN WORKSPACE"
+else
+    echo "❌ CLEANUP VALIDATION FAILED"
+    echo "   Temporary files found: $TEMP_FILES"
+    echo "   Running containers: $RUNNING_CONTAINERS"
+    exit 1
+fi
 ```
 
 **Test Results Summary Format**:
@@ -386,6 +494,25 @@ echo "🎯 NOT A CARICATURE: Real working application with all components integr
 3. Pull request → Full test suite + security scanning
 4. Merge to main → Load testing + performance validation
 5. Deployment → Health checks + monitoring validation
+6. MANDATORY → Post-test cleanup and sanity check validation
+```
+
+**Integrated Testing Workflow with Cleanup**:
+```bash
+# 1. Start testing
+npm test
+
+# 2. Run comprehensive testing
+./run-enterprise-tests.sh
+
+# 3. MANDATORY: Execute cleanup validation
+./test-cleanup-template.sh
+
+# 4. Verify workspace hygiene
+# ✅ All temporary files removed
+# ✅ All test containers stopped
+# ✅ Workspace size optimized
+# ✅ Ready for next development cycle
 ```
 
 ### CLEANUP AND RESOURCE MANAGEMENT - CRITICAL WORKSPACE HYGIENE
