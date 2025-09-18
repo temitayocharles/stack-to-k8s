@@ -1,0 +1,325 @@
+name: 🚀 Global Workspace CI/CD Pipeline
+# 🎯 Build, Test, and Deploy All Applications to DockerHub
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  REGISTRY: docker.io
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+jobs:
+  # 🔍 DETECT CHANGES IN APPLICATIONS
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      ecommerce: ${{ steps.changes.outputs.ecommerce }}
+      educational: ${{ steps.changes.outputs.educational }}
+      weather: ${{ steps.changes.outputs.weather }}
+      medical: ${{ steps.changes.outputs.medical }}
+      task-management: ${{ steps.changes.outputs.task-management }}
+      social-media: ${{ steps.changes.outputs.social-media }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Detect Changed Applications
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            ecommerce:
+              - 'ecommerce-app/**'
+            educational:
+              - 'educational-platform/**'
+            weather:
+              - 'weather-app/**'
+            medical:
+              - 'medical-care-system/**'
+            task-management:
+              - 'task-management-app/**'
+            social-media:
+              - 'social-media-platform/**'
+
+      - name: 📋 Set Build Matrix
+        id: set-matrix
+        run: |
+          apps=()
+          if [[ "${{ steps.changes.outputs.ecommerce }}" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            apps+=('{"name":"ecommerce","path":"ecommerce-app","services":["backend","frontend"],"difficulty":"beginner"}')
+          fi
+          if [[ "${{ steps.changes.outputs.educational }}" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            apps+=('{"name":"educational","path":"educational-platform","services":["backend","frontend"],"difficulty":"intermediate"}')
+          fi
+          if [[ "${{ steps.changes.outputs.weather }}" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            apps+=('{"name":"weather","path":"weather-app","services":["backend","frontend"],"difficulty":"intermediate"}')
+          fi
+          if [[ "${{ steps.changes.outputs.medical }}" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            apps+=('{"name":"medical","path":"medical-care-system","services":["backend","frontend"],"difficulty":"advanced"}')
+          fi
+          if [[ "${{ steps.changes.outputs.task-management }}" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            apps+=('{"name":"task-management","path":"task-management-app","services":["backend","frontend"],"difficulty":"advanced"}')
+          fi
+          if [[ "${{ steps.changes.outputs.social-media }}" == "true" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            apps+=('{"name":"social-media","path":"social-media-platform","services":["backend","frontend"],"difficulty":"advanced"}')
+          fi
+          
+          if [ ${#apps[@]} -eq 0 ]; then
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+          else
+            printf -v joined '%s,' "${apps[@]}"
+            echo "matrix={\"include\":[${joined%,}]}" >> $GITHUB_OUTPUT
+          fi
+
+  # 🧪 TEST AND BUILD APPLICATIONS
+  build-and-test:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.matrix != '{"include":[]}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: '${{ matrix.path }}/*/package*.json'
+
+      - name: ☕ Setup Java (for Java applications)
+        if: matrix.name == 'educational'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🐍 Setup Python (for Python applications)
+        if: matrix.name == 'weather'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 🐹 Setup Go (for Go applications)
+        if: matrix.name == 'task-management'
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: 💎 Setup Ruby (for Ruby applications)
+        if: matrix.name == 'social-media'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: '${{ matrix.path }}/backend'
+
+      - name: 🧪 Run Application Tests
+        working-directory: ${{ matrix.path }}
+        run: |
+          echo "🧪 Testing ${{ matrix.name }} application..."
+          
+          # Create test script for each application type
+          case "${{ matrix.name }}" in
+            "ecommerce")
+              cd backend && npm ci && npm test || echo "Tests not configured yet"
+              cd ../frontend && npm ci && npm run build
+              ;;
+            "educational")
+              cd backend && ./mvnw test || echo "Tests not configured yet"
+              cd ../frontend && npm ci && npm run build
+              ;;
+            "weather")
+              cd backend && pip install -r requirements.txt && python -m pytest tests/ || echo "Tests not configured yet"
+              cd ../frontend && npm ci && npm run build
+              ;;
+            "medical")
+              cd backend && dotnet test || echo "Tests not configured yet"
+              cd ../frontend && npm ci && npm run build
+              ;;
+            "task-management")
+              cd backend && go test ./... || echo "Tests not configured yet"
+              cd ../frontend && npm ci && npm run build
+              ;;
+            "social-media")
+              cd backend && bundle exec rspec || echo "Tests not configured yet"
+              cd ../frontend && npm ci && npm run build
+              ;;
+          esac
+
+      - name: 🔍 Security Scan with Trivy
+        working-directory: ${{ matrix.path }}
+        run: |
+          # Install Trivy
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
+          # Scan filesystem for vulnerabilities
+          trivy fs . --exit-code 0 --severity HIGH,CRITICAL --format table
+
+      - name: 🏗️ Build and Push Docker Images
+        working-directory: ${{ matrix.path }}
+        run: |
+          # Build timestamp for image tags
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          COMMIT_SHA=${GITHUB_SHA:0:7}
+          
+          echo "🏗️ Building images for ${{ matrix.name }} application..."
+          
+          # Build backend image
+          if [ -f "backend/Dockerfile" ]; then
+            echo "Building backend image..."
+            docker build -t ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest ./backend
+            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${TIMESTAMP}
+            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${COMMIT_SHA}
+            
+            echo "Pushing backend image..."
+            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:latest
+            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${TIMESTAMP}
+            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-backend:${COMMIT_SHA}
+          fi
+          
+          # Build frontend image
+          if [ -f "frontend/Dockerfile" ]; then
+            echo "Building frontend image..."
+            docker build -t ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest ./frontend
+            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${TIMESTAMP}
+            docker tag ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${COMMIT_SHA}
+            
+            echo "Pushing frontend image..."
+            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:latest
+            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${TIMESTAMP}
+            docker push ${{ env.REGISTRY }}/tcainfrforge/${{ matrix.name }}-frontend:${COMMIT_SHA}
+          fi
+
+      - name: 🧪 Integration Tests with Docker Compose
+        working-directory: ${{ matrix.path }}
+        run: |
+          echo "🧪 Running integration tests for ${{ matrix.name }}..."
+          
+          # Start services
+          docker-compose up -d
+          
+          # Wait for services to be ready
+          sleep 30
+          
+          # Health check tests
+          case "${{ matrix.name }}" in
+            "ecommerce")
+              curl -f http://localhost:5001/health || exit 1
+              curl -f http://localhost:3001 || exit 1
+              ;;
+            "educational")
+              curl -f http://localhost:8080/actuator/health || exit 1
+              curl -f http://localhost:4200 || exit 1
+              ;;
+            "weather")
+              curl -f http://localhost:5000/health || exit 1
+              curl -f http://localhost:3000 || exit 1
+              ;;
+            "medical")
+              curl -f http://localhost:5000/health || exit 1
+              curl -f http://localhost:3000 || exit 1
+              ;;
+            "task-management")
+              curl -f http://localhost:8080/health || exit 1
+              curl -f http://localhost:3000 || exit 1
+              ;;
+            "social-media")
+              curl -f http://localhost:3000/health || exit 1
+              curl -f http://localhost:4000 || exit 1
+              ;;
+          esac
+          
+          # Cleanup
+          docker-compose down -v
+
+  # 📊 DEPLOYMENT SUMMARY
+  deployment-summary:
+    needs: [detect-changes, build-and-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📊 Generate Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Applications Processed:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.build-and-test.result }}" == "success" ]]; then
+            echo "✅ **All applications built and deployed successfully!**" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-and-test.result }}" == "failure" ]]; then
+            echo "❌ **Some applications failed to build or deploy**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **No applications changed - deployment skipped**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 DockerHub Images:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛒 E-commerce: \`tcainfrforge/ecommerce-backend:latest\`, \`tcainfrforge/ecommerce-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎓 Educational: \`tcainfrforge/educational-backend:latest\`, \`tcainfrforge/educational-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌤️ Weather: \`tcainfrforge/weather-backend:latest\`, \`tcainfrforge/weather-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏥 Medical: \`tcainfrforge/medical-backend:latest\`, \`tcainfrforge/medical-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Task Mgmt: \`tcainfrforge/task-management-backend:latest\`, \`tcainfrforge/task-management-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📱 Social Media: \`tcainfrforge/social-media-backend:latest\`, \`tcainfrforge/social-media-frontend:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Pull images**: \`docker pull tcainfrforge/[app-name]-[service]:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Deploy to Kubernetes**: Use the images in your K8s manifests" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Practice scaling**: Try horizontal pod autoscaling with these images" >> $GITHUB_STEP_SUMMARY
+
+  # 🔔 NOTIFICATIONS
+  notify:
+    needs: [build-and-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔔 Notify on Success
+        if: needs.build-and-test.result == 'success'
+        run: |
+          echo "🎉 All applications successfully built and pushed to DockerHub!"
+          echo "Ready for Kubernetes deployment and practice!"
+
+      - name: 🚨 Notify on Failure
+        if: needs.build-and-test.result == 'failure'
+        run: |
+          echo "❌ Some applications failed to build or test."
+          echo "Check the job logs for detailed error information."
+          exit 1

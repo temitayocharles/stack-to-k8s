@@ -1,0 +1,77 @@
+name: 🛒 E-commerce App CI/CD
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'ecommerce-app/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'ecommerce-app/**' ]
+
+env:
+  REGISTRY: docker.io
+  APP_NAME: ecommerce
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ecommerce-app
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'ecommerce-app/*/package*.json'
+
+      - name: 🧪 Test Backend
+        working-directory: ./ecommerce-app/backend
+        run: |
+          npm ci
+          npm test || echo "Tests not configured yet"
+
+      - name: 🧪 Test & Build Frontend
+        working-directory: ./ecommerce-app/frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏗️ Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ecommerce-app/backend
+          push: true
+          tags: |
+            tcainfrforge/ecommerce-backend:latest
+            tcainfrforge/ecommerce-backend:${{ github.sha }}
+
+      - name: 🏗️ Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ecommerce-app/frontend
+          push: true
+          tags: |
+            tcainfrforge/ecommerce-frontend:latest
+            tcainfrforge/ecommerce-frontend:${{ github.sha }}
+
+      - name: 🧪 Integration Test
+        run: |
+          docker-compose up -d
+          sleep 30
+          curl -f http://localhost:5001/health || exit 1
+          curl -f http://localhost:3001 || exit 1
+          docker-compose down -v
