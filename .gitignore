@@ -32,6 +32,58 @@ Thumbs.db
 *secret*
 *Secret*
 
+# Temporary and backup files - CRITICAL CLEANUP
+*.tmp
+*.temp
+*.bak
+*.backup
+*temp*
+*draft*
+*-draft.*
+*.old
+*.orig
+
+# Test results and artifacts - SHOULD NOT BE COMMITTED
+test-results/
+coverage/
+.nyc_output/
+junit.xml
+*.xml
+enterprise-test-results/
+chaos-test-results/
+security-scan-results/
+screenshots/
+performance-data/
+
+# Log files - SHOULD NOT BE COMMITTED
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+server.log
+debug.log
+error.log
+build.log
+
+# Session and progress files - TEMPORARY ONLY
+SESSION_LOG.md
+PROGRESS_LOG.md
+CORRECTED_TEST_REPORT.md
+ENTERPRISE_FINAL_REPORT.md
+
+# Auto-approval and notification files - NOT FOR UPSTREAM
+AUTONOMOUS-OPERATION-CONFIG.md
+UNIVERSAL-AUTO-APPROVAL-VERIFICATION.md
+NOTIFICATION_README.md
+notification_config.json
+notification_demo.go
+.shell-auto-approval.sh
+.zshrc-auto-approval
+.zshrc_auto_approve
+setup-universal-auto-approval.sh
+universal-terminal-auto-approval.sh
+
 # Node.js
 node_modules/
 npm-debug.log*
@@ -74,8 +126,6 @@ obj/
 *.user
 *.suo
 *.cache
-*.log
-*.tmp
 packages/
 .vs/
 
@@ -110,8 +160,6 @@ vendor/
 /.sass-cache
 /connect.lock
 /libpeerconnection.log
-npm-debug.log
-yarn-error.log
 
 # Docker
 .dockerignore
@@ -121,24 +169,11 @@ yarn-error.log
 *.db
 *.sql
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
 # Runtime data
 pids/
 *.pid
 *.seed
 *.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# nyc test coverage
-.nyc_output/
 
 # Compiled binary addons
 build/Release
@@ -193,16 +228,6 @@ temp/
 # Upload directories
 uploads/
 static/uploads/
-
-# Test results and reports
-test-results/
-junit.xml
-*.xml
-
-# Backup files
-*.bak
-*.backup
-*~
 
 # Generated files
 dist/

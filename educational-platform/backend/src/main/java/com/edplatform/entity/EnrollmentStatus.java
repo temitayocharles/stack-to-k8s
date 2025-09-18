@@ -5,5 +5,6 @@ public enum EnrollmentStatus {
     COMPLETED,
     DROPPED,
     SUSPENDED,
-    PENDING_PAYMENT
+    PENDING_PAYMENT,
+    WITHDRAWN
 }

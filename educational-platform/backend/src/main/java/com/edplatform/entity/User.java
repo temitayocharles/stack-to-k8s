@@ -109,12 +109,78 @@ public class User extends BaseEntity implements UserDetails {
     // Constructors
     public User() {}
 
+    // Custom constructor for essential fields
     public User(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.roles = new HashSet<>();
         this.roles.add(Role.STUDENT); // Default role
+        this.isEmailVerified = false;
+        this.isActive = true;
+    }
+
+    // Static builder method for AuthService
+    public static UserBuilder builder() {
+        return new UserBuilder();
+    }
+
+    public static class UserBuilder {
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String password;
+        private Set<Role> roles = new HashSet<>();
+        private Boolean isActive = true;
+        private Boolean isEmailVerified = false;
+
+        public UserBuilder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public UserBuilder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public UserBuilder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public UserBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public UserBuilder roles(Set<Role> roles) {
+            this.roles = roles;
+            return this;
+        }
+
+        public UserBuilder isActive(Boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
+        public UserBuilder isEmailVerified(Boolean isEmailVerified) {
+            this.isEmailVerified = isEmailVerified;
+            return this;
+        }
+
+        public User build() {
+            User user = new User();
+            user.firstName = this.firstName;
+            user.lastName = this.lastName;
+            user.email = this.email;
+            user.password = this.password;
+            user.roles = this.roles;
+            user.isActive = this.isActive;
+            user.isEmailVerified = this.isEmailVerified;
+            return user;
+        }
     }
 
     // UserDetails implementation

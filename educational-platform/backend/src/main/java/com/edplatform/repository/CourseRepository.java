@@ -4,6 +4,7 @@ import com.edplatform.entity.Course;
 import com.edplatform.entity.CourseCategory;
 import com.edplatform.entity.CourseLevel;
 import com.edplatform.entity.CourseStatus;
+import com.edplatform.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,11 +26,27 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     
     List<Course> findByStatus(CourseStatus status);
     
+    Page<Course> findByStatus(CourseStatus status, Pageable pageable);
+    
     List<Course> findByCategory(CourseCategory category);
+    
+    Page<Course> findByCategoryAndStatus(CourseCategory category, CourseStatus status, Pageable pageable);
     
     List<Course> findByLevel(CourseLevel level);
     
+    Page<Course> findByLevelAndStatus(CourseLevel level, CourseStatus status, Pageable pageable);
+    
+    Page<Course> findByTitleContainingIgnoreCaseAndStatus(String title, CourseStatus status, Pageable pageable);
+    
     List<Course> findByInstructorId(Long instructorId);
+    
+    Page<Course> findByInstructor(User instructor, Pageable pageable);
+    
+    List<Course> findByIsFeaturedTrueAndStatus(CourseStatus status);
+    
+    long countByStatus(CourseStatus status);
+    
+    long countByInstructorId(Long instructorId);
     
     @Query("SELECT c FROM Course c WHERE c.status = 'PUBLISHED'")
     List<Course> findAllPublishedCourses();
@@ -92,7 +109,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT DISTINCT c.category FROM Course c WHERE c.status = 'PUBLISHED'")
     List<CourseCategory> findAllActiveCategories();
     
-    @Query("SELECT c FROM Course c JOIN c.enrollments e WHERE e.user.id = :userId")
+    @Query("SELECT c FROM Course c JOIN c.enrollments e WHERE e.student.id = :userId")
     List<Course> findCoursesByStudentId(@Param("userId") Long userId);
     
     @Query("SELECT c FROM Course c WHERE c.language = :language AND c.status = 'PUBLISHED'")

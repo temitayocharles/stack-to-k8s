@@ -1,0 +1,310 @@
+# AlertManager Configuration with 25+ Enterprise Rules
+# Comprehensive alerting for production environments
+
+groups:
+  - name: critical-alerts
+    rules:
+    # Application Health Alerts
+    - alert: ApplicationDown
+      expr: up{job=~"educational-platform-backend|medical-care-backend|weather-app-backend|task-management-backend"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        team: platform
+      annotations:
+        summary: "Application {{ $labels.job }} is down"
+        description: "Application {{ $labels.job }} has been down for more than 1 minute."
+
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+      for: 2m
+      labels:
+        severity: critical
+        team: platform
+      annotations:
+        summary: "High error rate detected on {{ $labels.job }}"
+        description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+    - alert: DatabaseConnectionFailure
+      expr: postgresql_up == 0 or sqlserver_up == 0 or redis_up == 0
+      for: 30s
+      labels:
+        severity: critical
+        team: database
+      annotations:
+        summary: "Database connection failure detected"
+        description: "Database {{ $labels.instance }} is unreachable."
+
+  - name: performance-alerts
+    rules:
+    # Performance Alerts
+    - alert: HighResponseTime
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+      for: 3m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "High response time on {{ $labels.job }}"
+        description: "95th percentile response time is {{ $value }}s for the last 5 minutes."
+
+    - alert: HighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "High CPU usage on {{ $labels.container_label_app }}"
+        description: "CPU usage is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+    - alert: HighMemoryUsage
+      expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.85
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "High memory usage on {{ $labels.container_label_app }}"
+        description: "Memory usage is {{ $value | humanizePercentage }} of limit."
+
+    - alert: DiskSpaceRunningLow
+      expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.15
+      for: 10m
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "Disk space running low on {{ $labels.instance }}"
+        description: "Disk space is {{ $value | humanizePercentage }} full."
+
+  - name: kubernetes-alerts
+    rules:
+    # Kubernetes Cluster Alerts
+    - alert: KubernetesPodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is restarting frequently."
+
+    - alert: KubernetesPodNotReady
+      expr: kube_pod_status_ready{condition="false"} == 1
+      for: 10m
+      labels:
+        severity: warning
+        team: platform
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} not ready"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been not ready for more than 10 minutes."
+
+    - alert: KubernetesNodeNotReady
+      expr: kube_node_status_ready{condition="false"} == 1
+      for: 5m
+      labels:
+        severity: critical
+        team: infrastructure
+      annotations:
+        summary: "Node {{ $labels.node }} is not ready"
+        description: "Node {{ $labels.node }} has been not ready for more than 5 minutes."
+
+    - alert: KubernetesNodeMemoryPressure
+      expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+      for: 2m
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "Node {{ $labels.node }} under memory pressure"
+        description: "Node {{ $labels.node }} is under memory pressure."
+
+    - alert: KubernetesNodeDiskPressure
+      expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+      for: 2m
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "Node {{ $labels.node }} under disk pressure"
+        description: "Node {{ $labels.node }} is under disk pressure."
+
+  - name: business-metrics-alerts
+    rules:
+    # Business Logic Alerts
+    - alert: HighUserRegistrationFailure
+      expr: rate(user_registration_failures_total[10m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+        team: product
+      annotations:
+        summary: "High user registration failure rate"
+        description: "User registration failure rate is {{ $value }} per second."
+
+    - alert: PaymentProcessingFailure
+      expr: rate(payment_failures_total[5m]) > 0
+      for: 1m
+      labels:
+        severity: critical
+        team: payments
+      annotations:
+        summary: "Payment processing failures detected"
+        description: "Payment failures: {{ $value }} per second."
+
+    - alert: TaskCreationAnomalies
+      expr: rate(tasks_created_total[10m]) > 100 or rate(tasks_created_total[10m]) < 1
+      for: 5m
+      labels:
+        severity: warning
+        team: product
+      annotations:
+        summary: "Unusual task creation rate"
+        description: "Task creation rate is {{ $value }} per second, which is unusual."
+
+  - name: security-alerts
+    rules:
+    # Security Alerts
+    - alert: HighFailedLoginAttempts
+      expr: rate(failed_login_attempts_total[5m]) > 10
+      for: 2m
+      labels:
+        severity: warning
+        team: security
+      annotations:
+        summary: "High failed login attempts"
+        description: "Failed login attempts: {{ $value }} per second."
+
+    - alert: UnauthorizedAPIAccess
+      expr: rate(http_requests_total{status="401"}[5m]) > 5
+      for: 3m
+      labels:
+        severity: warning
+        team: security
+      annotations:
+        summary: "High unauthorized API access"
+        description: "Unauthorized requests: {{ $value }} per second."
+
+    - alert: SuspiciousNetworkActivity
+      expr: rate(network_transmit_bytes_total[5m]) > 100000000 or rate(network_receive_bytes_total[5m]) > 100000000
+      for: 10m
+      labels:
+        severity: warning
+        team: security
+      annotations:
+        summary: "Suspicious network activity detected"
+        description: "Network activity: TX {{ $value }} bytes/sec."
+
+  - name: monitoring-alerts
+    rules:
+    # Monitoring Infrastructure Alerts
+    - alert: PrometheusTargetDown
+      expr: up == 0
+      for: 5m
+      labels:
+        severity: warning
+        team: monitoring
+      annotations:
+        summary: "Prometheus target {{ $labels.instance }} is down"
+        description: "Prometheus target {{ $labels.instance }} has been down for more than 5 minutes."
+
+    - alert: PrometheusConfigReloadFailure
+      expr: prometheus_config_last_reload_successful != 1
+      for: 5m
+      labels:
+        severity: warning
+        team: monitoring
+      annotations:
+        summary: "Prometheus configuration reload failure"
+        description: "Prometheus configuration reload has failed."
+
+    - alert: AlertmanagerConfigInconsistent
+      expr: count(count by (cluster)(alertmanager_config_hash)) > 1
+      for: 5m
+      labels:
+        severity: warning
+        team: monitoring
+      annotations:
+        summary: "Alertmanager configuration inconsistent"
+        description: "Alertmanager instances have different configurations."
+
+  - name: infrastructure-alerts
+    rules:
+    # Infrastructure Alerts
+    - alert: LoadBalancerDown
+      expr: probe_success{job="blackbox"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        team: infrastructure
+      annotations:
+        summary: "Load balancer health check failed"
+        description: "Load balancer {{ $labels.instance }} is not responding."
+
+    - alert: CertificateExpiringSoon
+      expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+      for: 12h
+      labels:
+        severity: warning
+        team: infrastructure
+      annotations:
+        summary: "SSL certificate expiring soon"
+        description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+
+    - alert: BackupJobFailed
+      expr: time() - backup_last_success_timestamp > 86400
+      for: 1h
+      labels:
+        severity: critical
+        team: database
+      annotations:
+        summary: "Backup job failed"
+        description: "Backup job has not succeeded in the last 24 hours."
+
+  - name: application-specific-alerts
+    rules:
+    # Educational Platform Specific
+    - alert: CourseEnrollmentAnomalies
+      expr: rate(course_enrollments_total[10m]) > 50 or rate(course_enrollments_total[10m]) < 0.1
+      for: 5m
+      labels:
+        severity: warning
+        team: education
+      annotations:
+        summary: "Unusual course enrollment rate"
+        description: "Course enrollment rate is {{ $value }} per second."
+
+    # Medical Care Specific
+    - alert: PatientDataAccessFailure
+      expr: rate(patient_data_access_failures_total[5m]) > 0
+      for: 1m
+      labels:
+        severity: critical
+        team: medical
+      annotations:
+        summary: "Patient data access failures"
+        description: "Patient data access failures: {{ $value }} per second."
+
+    # Weather App Specific
+    - alert: WeatherAPIRateLimitExceeded
+      expr: rate(weather_api_rate_limit_exceeded_total[5m]) > 0
+      for: 2m
+      labels:
+        severity: warning
+        team: weather
+      annotations:
+        summary: "Weather API rate limit exceeded"
+        description: "Weather API rate limit exceeded: {{ $value }} times per second."
+
+    # Task Management Specific
+    - alert: TaskSyncFailures
+      expr: rate(task_sync_failures_total[5m]) > 0.1
+      for: 3m
+      labels:
+        severity: warning
+        team: productivity
+      annotations:
+        summary: "High task synchronization failures"
+        description: "Task sync failures: {{ $value }} per second."

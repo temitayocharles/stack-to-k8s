@@ -1,3 +1,23 @@
+/*
+ * ===============================================================
+ * PROPRIETARY E-COMMERCE PLATFORM - REACT FRONTEND
+ * ===============================================================
+ * 
+ * COPYRIGHT (c) 2025 Temitayo Charles Akinniranye
+ * All Rights Reserved. Patent Pending.=============================================================
+ * PROPRIETARY E-COMMERCE PLATFORM - REACT FRONTEND
+ * ===============================================================
+ * 
+ * COPYRIGHT (c) 2025 [Your Full Legal Name]. All Rights Reserved.
+ * PATENT PENDING - Commercial Use Strictly Prohibited
+ * 
+ * This React frontend application is protected intellectual
+ * property. Unauthorized commercial use will result in legal action.
+ * 
+ * For licensing inquiries: [your-email@domain.com]
+ * ===============================================================
+ */
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';

@@ -2,6 +2,7 @@ package com.edplatform.service;
 
 import com.edplatform.dto.auth.UserDto;
 import com.edplatform.entity.User;
+import com.edplatform.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -21,21 +22,11 @@ public interface UserMapper {
     /**
      * Convert User entity to UserDto
      */
-    @Mapping(target = "password", ignore = true) // Never expose password
     @Mapping(target = "fullName", expression = "java(user.getFirstName() + \" \" + user.getLastName())")
-    @Mapping(target = "roleName", source = "role")
+    @Mapping(target = "roleName", expression = "java(mapRolesToString(user.getRoles()))")
+    @Mapping(target = "username", source = "email")
+    @Mapping(target = "isVerified", source = "isEmailVerified")
     UserDto toDto(User user);
-
-    /**
-     * Convert UserDto to User entity
-     */
-    @Mapping(target = "id", ignore = true) // ID should not be set manually
-    @Mapping(target = "password", ignore = true) // Password handled separately
-    @Mapping(target = "createdAt", ignore = true) // Managed by service
-    @Mapping(target = "updatedAt", ignore = true) // Managed by service
-    @Mapping(target = "lastLoginAt", ignore = true) // Managed by service
-    @Mapping(target = "authorities", ignore = true) // Derived from role
-    User toEntity(UserDto userDto);
 
     /**
      * Convert list of User entities to list of UserDtos
@@ -43,46 +34,57 @@ public interface UserMapper {
     List<UserDto> toDtoList(List<User> users);
 
     /**
-     * Update existing User entity from UserDto
+     * Update existing User entity from UserDto using MappingTarget
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true) // Email should not be changed
-    @Mapping(target = "username", ignore = true) // Username should not be changed
     @Mapping(target = "password", ignore = true) // Password handled separately
-    @Mapping(target = "role", ignore = true) // Role changes handled separately
+    @Mapping(target = "roles", ignore = true) // Role changes handled separately
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "lastLoginAt", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
-    void updateEntityFromDto(UserDto userDto, @MappingTarget User user);
-
-    /**
-     * Create a basic User entity for registration
-     */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true) // Password encoded separately
-    @Mapping(target = "isActive", constant = "true")
-    @Mapping(target = "isVerified", constant = "false")
-    @Mapping(target = "createdAt", ignore = true) // Set by service
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "lastLoginAt", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
-    User createEntityFromDto(UserDto userDto);
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "lastLogin", ignore = true)
+    @Mapping(target = "isEmailVerified", source = "isVerified")
+    @Mapping(target = "emailVerificationToken", ignore = true)
+    @Mapping(target = "passwordResetToken", ignore = true)
+    @Mapping(target = "passwordResetExpires", ignore = true)
+    @Mapping(target = "enrollments", ignore = true)
+    @Mapping(target = "taughtCourses", ignore = true)
+    @Mapping(target = "quizAttempts", ignore = true)
+    @Mapping(target = "assignments", ignore = true)
+    @Mapping(target = "studentId", ignore = true)
+    @Mapping(target = "enrollmentDate", ignore = true)
+    @Mapping(target = "employeeId", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "specialization", ignore = true)
+    @Mapping(target = "hireDate", ignore = true)
+    void updateEntityFromDto(UserDto userDto, @MappingTarget User user);
 
     /**
      * Default method to handle role enum to string conversion
      */
-    default String mapRole(User.Role role) {
+    default String mapRole(Role role) {
         return role != null ? role.name() : null;
     }
 
     /**
      * Default method to handle string to role enum conversion
      */
-    default User.Role mapRole(String role) {
+    default Role mapRole(String role) {
         try {
-            return role != null ? User.Role.valueOf(role.toUpperCase()) : null;
+            return role != null ? Role.valueOf(role.toUpperCase()) : null;
         } catch (IllegalArgumentException e) {
-            return User.Role.STUDENT; // Default fallback
+            return Role.STUDENT; // Default fallback
         }
+    }
+
+    /**
+     * Helper method to convert roles set to string
+     */
+    default String mapRolesToString(java.util.Set<Role> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return Role.STUDENT.name();
+        }
+        return roles.iterator().next().name(); // Return first role for simplicity
     }
 }

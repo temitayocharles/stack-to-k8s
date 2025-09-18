@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -53,7 +54,7 @@ public class EnrollmentService {
         Enrollment enrollment = new Enrollment();
         enrollment.setStudent(student);
         enrollment.setCourse(course);
-        enrollment.setEnrollmentDate(LocalDate.now());
+        enrollment.setEnrollmentDate(LocalDateTime.now());
         enrollment.setStatus(EnrollmentStatus.ACTIVE);
         enrollment.setProgress(0.0);
 
@@ -78,7 +79,7 @@ public class EnrollmentService {
         }
 
         enrollment.setStatus(EnrollmentStatus.WITHDRAWN);
-        enrollment.setWithdrawalDate(LocalDate.now());
+        enrollment.setWithdrawalDate(LocalDateTime.now());
         enrollmentRepository.save(enrollment);
     }
 
@@ -131,7 +132,7 @@ public class EnrollmentService {
         // Auto-complete if progress reaches 100%
         if (progress >= 100.0 && enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
             enrollment.setStatus(EnrollmentStatus.COMPLETED);
-            enrollment.setCompletionDate(LocalDate.now());
+            enrollment.setCompletionDate(LocalDateTime.now());
         }
 
         Enrollment updatedEnrollment = enrollmentRepository.save(enrollment);

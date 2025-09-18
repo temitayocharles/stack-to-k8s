@@ -32,6 +32,9 @@ public class Enrollment extends BaseEntity {
     @Column(name = "progress_percentage", nullable = false)
     private Double progressPercentage = 0.0;
 
+    @Column(name = "withdrawal_date")
+    private LocalDateTime withdrawalDate;
+
     @Column(name = "last_accessed")
     private LocalDateTime lastAccessed;
 
@@ -118,6 +121,19 @@ public class Enrollment extends BaseEntity {
         }
     }
 
+    // Alias methods for backward compatibility
+    public void setProgress(Double progress) {
+        setProgressPercentage(progress);
+    }
+
+    public void setProgress(double progress) {
+        setProgressPercentage(progress);
+    }
+
+    public Double getProgress() {
+        return getProgressPercentage();
+    }
+
     public void issueCertificate(String certificateUrl) {
         this.certificateIssued = true;
         this.certificateUrl = certificateUrl;
@@ -170,6 +186,14 @@ public class Enrollment extends BaseEntity {
 
     public void setProgressPercentage(Double progressPercentage) {
         this.progressPercentage = progressPercentage;
+    }
+
+    public LocalDateTime getWithdrawalDate() {
+        return withdrawalDate;
+    }
+
+    public void setWithdrawalDate(LocalDateTime withdrawalDate) {
+        this.withdrawalDate = withdrawalDate;
     }
 
     public LocalDateTime getLastAccessed() {

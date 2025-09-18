@@ -63,13 +63,13 @@ services:
       - VUE_APP_API_URL=http://localhost:5002/api
       - VUE_APP_ENV=development
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - weather-backend
     networks:
       - weather-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/"]
       interval: 30s
       timeout: 10s
       retries: 3

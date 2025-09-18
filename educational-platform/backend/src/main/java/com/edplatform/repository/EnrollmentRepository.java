@@ -2,6 +2,10 @@ package com.edplatform.repository;
 
 import com.edplatform.entity.Enrollment;
 import com.edplatform.entity.EnrollmentStatus;
+import com.edplatform.entity.User;
+import com.edplatform.entity.Course;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,13 +20,31 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
     Optional<Enrollment> findByStudentIdAndCourseId(Long studentId, Long courseId);
     
+    Optional<Enrollment> findByStudentAndCourse(User student, Course course);
+    
     boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
+    
+    boolean existsByStudentAndCourse(User student, Course course);
+    
+    boolean existsByStudentAndCourseAndStatus(User student, Course course, EnrollmentStatus status);
     
     List<Enrollment> findByStudentId(Long studentId);
     
     List<Enrollment> findByCourseId(Long courseId);
     
     List<Enrollment> findByStatus(EnrollmentStatus status);
+    
+    Page<Enrollment> findByStudentAndStatus(User student, EnrollmentStatus status, Pageable pageable);
+    
+    List<Enrollment> findByStudentAndStatus(User student, EnrollmentStatus status);
+    
+    Page<Enrollment> findByCourseAndStatus(Course course, EnrollmentStatus status, Pageable pageable);
+    
+    long countByStatus(EnrollmentStatus status);
+    
+    long countByStudentIdAndStatus(Long studentId, EnrollmentStatus status);
+    
+    long countByCourseIdAndStatus(Long courseId, EnrollmentStatus status);
     
     @Query("SELECT e FROM Enrollment e WHERE e.student.id = :studentId AND e.status = :status")
     List<Enrollment> findByStudentIdAndStatus(@Param("studentId") Long studentId, @Param("status") EnrollmentStatus status);

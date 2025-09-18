@@ -1,3 +1,23 @@
+/*
+ * ===============================================================
+ * PROPRIETARY E-COMMERCE PLATFORM - BACKEND SERVER
+ * ===============================================================
+ * 
+ * COPYRIGHT (c) 2025 Temitayo Charles Akinniranye
+ * All Rights Reserved. Patent Pending.=============================================================
+ * PROPRIETARY E-COMMERCE PLATFORM - BACKEND SERVER
+ * ===============================================================
+ * 
+ * COPYRIGHT (c) 2025 [Your Full Legal Name]. All Rights Reserved.
+ * PATENT PENDING - Commercial Use Strictly Prohibited
+ * 
+ * This Node.js/Express backend server is protected intellectual
+ * property. Unauthorized commercial use will result in legal action.
+ * 
+ * For licensing inquiries: [your-email@domain.com]
+ * ===============================================================
+ */
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');

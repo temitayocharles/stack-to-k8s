@@ -2,6 +2,7 @@ package com.edplatform.service;
 
 import com.edplatform.dto.auth.*;
 import com.edplatform.entity.User;
+import com.edplatform.entity.Role;
 import com.edplatform.exception.BusinessException;
 import com.edplatform.exception.ResourceNotFoundException;
 import com.edplatform.repository.UserRepository;
@@ -18,7 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import java.util.HashSet;
+import java.util.Set;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,28 +52,43 @@ public class AuthService {
             throw new BusinessException("User with email " + request.getEmail() + " already exists");
         }
 
-        // Check if username is taken
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BusinessException("Username " + request.getUsername() + " is already taken");
+        // Check if username is taken (using email as username)
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Email " + request.getEmail() + " is already taken");
         }
 
         // Create new user entity
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.STUDENT); // Default role
+        
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : User.Role.STUDENT)
+                .roles(roles)
                 .isActive(true)
-                .isVerified(false) // Email verification required
-                .createdAt(LocalDateTime.now())
+                .isEmailVerified(false) // Email verification required
                 .build();
 
         User savedUser = userRepository.save(user);
         log.info("User registered successfully with ID: {}", savedUser.getId());
 
         return userMapper.toDto(savedUser);
+    }
+
+    /**
+     * Authenticate user and return JWT token (alias for authenticateUser)
+     */
+    public LoginResponse login(@Valid LoginRequest request) {
+        return authenticateUser(request);
+    }
+
+    /**
+     * Register new user (alias for registerUser)
+     */
+    public UserDto register(@Valid CreateUserRequest request) {
+        return registerUser(request);
     }
 
     /**
@@ -105,7 +123,7 @@ public class AuthService {
             String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
             // Update last login time
-            user.setLastLoginAt(LocalDateTime.now());
+            user.setLastLogin(LocalDateTime.now());
             userRepository.save(user);
 
             log.info("User authenticated successfully: {}", user.getEmail());
@@ -173,7 +191,7 @@ public class AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("No authenticated user found");
+            throw new BusinessException("User not authenticated");
         }
 
         String email = authentication.getName();
@@ -181,6 +199,56 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         return userMapper.toDto(user);
+    }
+
+    /**
+     * Get current authenticated user by username (alias method)
+     */
+    public UserDto getCurrentUser(String username) {
+        return getCurrentUser(); // Ignore parameter, use context
+    }
+
+    /**
+     * Update user profile
+     */
+    public UserDto updateProfile(String username, @Valid UpdateUserRequest request) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Update user fields
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth());
+        }
+
+        User savedUser = userRepository.save(user);
+        return userMapper.toDto(savedUser);
+    }
+
+    /**
+     * Change user password with username parameter
+     */
+    public void changePassword(String username, @Valid ChangePasswordRequest request) {
+        changePassword(request); // Use existing method
+    }
+
+    /**
+     * Verify email with token
+     */
+    public void verifyEmail(String token) {
+        User user = userRepository.findByEmailVerificationToken(token)
+                .orElseThrow(() -> new BusinessException("Invalid verification token"));
+
+        user.setIsEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        userRepository.save(user);
     }
 
     /**
@@ -274,7 +342,8 @@ public class AuthService {
     public boolean hasRole(String role) {
         try {
             User currentUser = getCurrentAuthenticatedUser();
-            return currentUser.getRole().name().equals(role);
+            return currentUser.getRoles().stream()
+                    .anyMatch(r -> r.name().equals(role));
         } catch (Exception e) {
             return false;
         }

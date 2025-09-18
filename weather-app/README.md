@@ -1,4 +1,11 @@
-````markdown
+`# 🌤️ WEATHER INTELLIGENCE PLATFORM - YOUR HERO'S JOURNEY TO DATA ARCHITECT
+## **From Weather Curiosity to Real-Time Data Platform Mastery**
+### **From Simple Weather Queries to Enterprise Data Engineering Excellence**
+### **🎁 A Community Gift from TCA-InfraForge**
+
+> **🎯 HERO'S JOURNEY**: Transform from someone who just checks weather apps into a confident Data Platform Engineer who can architect, deploy, and scale real-time data systems that process millions of API calls and deliver critical insights that businesses rely on for decision-making!
+
+**✨ This enterprise-grade weather platform was built by Temitayo Charles Akinniranye (TCA-InfraForge), Senior DevOps Engineer, as part of his mission to help businesses achieve their goals through secure, cost-optimized, and effective infrastructure solutions.**down
 # �️ WEATHER APPLICATION - YOUR JOURNEY TO CLOUD MASTERY  
 ## **From Data Novice to Cloud Solutions Architect**
 ### **🎁 A Community Gift from [TCA-InfraForge](../ABOUT-THE-CREATOR.md)**
@@ -784,10 +791,10 @@ cd terraform
 terraform init
 
 # Plan deployment
-terraform plan -var-file="../config/production.tfvars"
+terraform plan -var-file="config/production.tfvars"
 
 # Apply deployment
-terraform apply -var-file="../config/production.tfvars"
+terraform apply -var-file="config/production.tfvars"
 ```
 
 ## Monitoring

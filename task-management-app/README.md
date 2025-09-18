@@ -1,10 +1,10 @@
 # ⚡ TASK MANAGEMENT SYSTEM - YOUR JOURNEY TO OPERATIONAL EXCELLENCE
 ## **From Chaos Coordinator to Operations Technology Leader**
-### **🎁 A Community Gift from [TCA-InfraForge](../ABOUT-THE-CREATOR.md)**
+### **🎁 A Community Gift from TCA-InfraForge**
 
 > **🎯 HERO'S JOURNEY**: Transform yourself from someone drowning in disorganized projects into an Operations Technology Expert who builds real-time collaboration platforms that eliminate chaos and drive team productivity!
 
-**✨ This enterprise-grade task management platform was engineered by [Temitayo Charles Akinniranye (TCA-InfraForge)](../ABOUT-THE-CREATOR.md), Senior DevOps Engineer, as part of his commitment to helping businesses achieve their goals through secure, cost-optimized, and effective infrastructure solutions.**
+**✨ This enterprise-grade task management platform was engineered by Temitayo Charles Akinniranye (TCA-InfraForge), Senior DevOps Engineer, as part of his commitment to helping businesses achieve their goals through secure, cost-optimized, and effective infrastructure solutions.**
 
 ---
 

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Course, CourseCategory, CourseLevel, CourseSection } from '../../shared/models/course.model';
+import { Course, CourseCategory, CourseLevel } from '../../shared/models/course.model';
 
 export interface CourseSearchParams {
   page?: number;

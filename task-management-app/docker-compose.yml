@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8082:8080"
     environment:
       - DATABASE_URL=postgres://taskuser:taskpass@db:5432/taskmanagement?sslmode=disable
       - PORT=8080
@@ -23,7 +23,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3002:80"
     environment:
       - API_URL=http://backend:8080
     depends_on:
@@ -38,7 +38,7 @@ services:
       - POSTGRES_USER=taskuser
       - POSTGRES_PASSWORD=taskpass
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql/init.sql:/docker-entrypoint-initdb.d/init.sql

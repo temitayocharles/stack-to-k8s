@@ -1,3 +1,24 @@
+/*
+ * ===============================================================
+ * PROPRIETARY TASK MANAGEMENT PLATFORM - GO BACKEND
+ * ===============================================================
+ * 
+ * COPYRIGHT (c) 2025 Temitayo Charles Akinniranye
+ * All Rights Reserved. Patent Pending.=============================================================
+ * PROPRIETARY TASK MANAGEMENT PLATFORM - GO BACKEND
+ * ===============================================================
+ * 
+ * COPYRIGHT (c) 2025 [Your Full Legal Name]. All Rights Reserved.
+ * PATENT PENDING - Commercial Use Strictly Prohibited
+ * 
+ * This Go backend server for task management is protected 
+ * intellectual property. Unauthorized commercial use will 
+ * result in legal action.
+ * 
+ * For licensing inquiries: [your-email@domain.com]
+ * ===============================================================
+ */
+
 package main
 
 import (
