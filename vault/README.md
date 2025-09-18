@@ -1,4 +1,15 @@
-# 🔐 **HashiCorp Vault Integration for Enterprise Secret Management**
+# 🔐 **HashiCorp Vault In---
+
+## **🚀 Quick Start Options**
+
+### **🎓 Complete Beginner?**
+**👉 [Follow the Step-by-Step Guide](./STEP-BY-STEP-GUIDE.md)**
+- **"Click this, click that"** approach
+- **Complete beginner-friendly** instructions  
+- **Visual guidance** and troubleshooting
+- **45 minutes** from zero to expert
+
+### **⚡ Quick Start (Experienced Users)**ration for Enterprise Secret Management**
 
 > **🎯 Purpose**: Learn enterprise-grade secret management with HashiCorp Vault  
 > **🎓 Skill Level**: Intermediate to Advanced  
@@ -27,7 +38,9 @@
 
 ## **� Deployment Options**
 
-### **Option 1: Local Development (Recommended)**
+### **⚡ Quick Start (Experienced Users)**
+
+#### **Option 1: Local Development (Recommended)**
 ```bash
 # Clone and start Vault locally
 cd vault/
@@ -38,7 +51,7 @@ open http://localhost:8200
 # Token: vault-dev-token (change for production!)
 ```
 
-### **Option 2: Your Own Secrets**
+#### **Option 2: Interactive Setup**
 ```bash
 # Initialize with your secrets
 ./scripts/setup-vault.sh
@@ -48,7 +61,7 @@ open http://localhost:8200
 ./scripts/generate-secrets.sh educational-platform
 ```
 
-### **Option 3: Kubernetes Deployment**
+#### **Option 3: Kubernetes Deployment**
 ```bash
 # Deploy to your K8s cluster
 kubectl apply -f k8s/vault-deployment.yaml
