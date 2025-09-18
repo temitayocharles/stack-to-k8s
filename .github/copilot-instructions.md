@@ -1556,6 +1556,77 @@ UPSTREAM_STATUS: [Git push confirmation]
 NEXT_STEPS: [What comes next]
 ```
 
+#### **COMPREHENSIVE SESSION TRACKING & CHECKPOINTS - CRITICAL**
+
+**SESSION CONTINUITY REQUIREMENTS**:
+> *"log progress each time so that when i come back here to work and i ask you what's next or what are we doing or anything in that regard, we are not just starting from scratch again... we can pickup from wherever we stopped. like checkpoints and points to consider"*
+
+**MANDATORY PROGRESS LOG STRUCTURE**:
+```bash
+# SESSION_LOG.md - Required in workspace root
+## SESSION: [Date] - [Primary Objective]
+### STARTING CONTEXT
+- Previous session completion status
+- Applications worked on
+- Current milestone status
+- Known issues/blockers
+
+### WORK COMPLETED THIS SESSION
+- [TIMESTAMP] Action: Description
+- [TIMESTAMP] Result: Outcome  
+- [TIMESTAMP] Verified: Validation method
+- [TIMESTAMP] Committed: Git hash + message
+
+### CURRENT STATUS
+- Active todos: [List with IDs]
+- Applications ready: [List]
+- Applications pending: [List with specific needs]
+- Tests passing: [Application list]
+- Deployments working: [Application list]
+
+### NEXT SESSION PRIORITIES
+1. [Immediate priority - ready to start]
+2. [Secondary priority - dependencies noted]
+3. [Future priority - context provided]
+
+### CHECKPOINT MARKERS
+- ✅ CHECKPOINT_1: [Milestone] - [Verification]
+- 🔄 CHECKPOINT_2: [Milestone] - [In Progress]
+- ⏳ CHECKPOINT_3: [Milestone] - [Pending]
+
+### DECISION POINTS & CONTEXT
+- Key decisions made: [Rationale provided]
+- Alternative approaches considered: [Why rejected]
+- User preferences noted: [For future reference]
+- Technical debt identified: [Priority level]
+```
+
+**AUTOMATED CHECKPOINT LOGGING**:
+```bash
+#!/bin/bash
+# checkpoint-logger.sh - Auto-generates session logs
+
+echo "## SESSION: $(date '+%Y-%m-%d %H:%M') - $1" >> SESSION_LOG.md
+echo "### STARTING CONTEXT" >> SESSION_LOG.md
+echo "- Last commit: $(git log -1 --oneline)" >> SESSION_LOG.md
+echo "- Branch: $(git branch --show-current)" >> SESSION_LOG.md
+echo "- Workspace size: $(du -sh . | awk '{print $1}')" >> SESSION_LOG.md
+echo "- Running containers: $(docker ps -q | wc -l)" >> SESSION_LOG.md
+echo "" >> SESSION_LOG.md
+```
+
+**SEAMLESS WORK RESUMPTION PROTOCOL**:
+```bash
+# When user asks "what's next?" or "what are we doing?"
+1. Read SESSION_LOG.md for context
+2. Check todo list status
+3. Verify last checkpoint completion
+4. Identify immediate next action
+5. Provide context-aware response:
+   "Based on our last session, we completed [X] and were working on [Y]. 
+    The next step is [Z] because [context]."
+```
+
 **MILESTONE DEFINITION CRITERIA**:
 - ✅ All security vulnerabilities resolved
 - ✅ All tests passing (0 failures)
