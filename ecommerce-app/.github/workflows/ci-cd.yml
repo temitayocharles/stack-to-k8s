@@ -56,8 +56,8 @@ jobs:
           context: ./ecommerce-app/backend
           push: true
           tags: |
-            tcainfrforge/ecommerce-backend:latest
-            tcainfrforge/ecommerce-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ github.sha }}
 
       - name: 🏗️ Build and Push Frontend
         uses: docker/build-push-action@v5
@@ -65,8 +65,8 @@ jobs:
           context: ./ecommerce-app/frontend
           push: true
           tags: |
-            tcainfrforge/ecommerce-frontend:latest
-            tcainfrforge/ecommerce-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ github.sha }}
 
       - name: 🧪 Integration Test
         run: |
