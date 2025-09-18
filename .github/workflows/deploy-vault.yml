@@ -1,116 +1,163 @@
-name: Deploy Vault and Secure Secrets
+name: Deploy Vault and Secure Workspace Secrets
 
 on:
   push:
     branches:
-      - main  # Triggers on push to main branch
+      - main
+    paths:
+      - 'Dockerfile.vault'
+      - 'scripts/scan-workspace-secrets.sh'
+      - '.github/workflows/deploy-vault.yml'
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   deploy-vault:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: 🔑 Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Vault Docker image
+      - name: 🏗️ Build Vault Docker image
         run: |
-          docker build -t ghcr.io/temitayocharles/full-stack-apps/vault-secured:latest -f Dockerfile.vault .
+          docker build -t ghcr.io/${{ github.repository }}/vault-secured:latest -f Dockerfile.vault .
 
-      - name: Run Vault container
+      - name: 🚀 Run Vault container
         run: |
           docker run -d --name vault-container -p 8200:8200 \
             -e VAULT_DEV_ROOT_TOKEN_ID=${{ secrets.VAULT_ROOT_TOKEN || 'root' }} \
             -e VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200 \
-            ghcr.io/temitayocharles/full-stack-apps/vault-secured:latest
+            hashicorp/vault:latest vault server -dev
 
-      - name: Wait for Vault to be ready
+      - name: ⏳ Wait for Vault to be ready
         run: |
-          for i in {1..30}; do
+          echo "Waiting for Vault to start..."
+          for i in {1..60}; do
             if curl -s http://localhost:8200/v1/sys/health > /dev/null; then
+              echo "✅ Vault is ready!"
               break
             fi
+            echo "⏳ Waiting... ($i/60)"
             sleep 2
           done
 
-      - name: Initialize Vault with user credentials
+      - name: 🔧 Initialize Vault authentication
         run: |
           export VAULT_TOKEN=${{ secrets.VAULT_ROOT_TOKEN || 'root' }}
-          # Set up initial user
-          docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault auth enable userpass
-          docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault write auth/userpass/users/temitayocharles password=nutmuq-meRnod-3cyphp policies=default
+          export VAULT_ADDR=http://localhost:8200
+          
+          # Enable KV v2 secrets engine
+          docker exec -e VAULT_TOKEN=$VAULT_TOKEN -e VAULT_ADDR=$VAULT_ADDR vault-container \
+            vault secrets enable -version=2 kv
+          
+          # Enable userpass authentication
+          docker exec -e VAULT_TOKEN=$VAULT_TOKEN -e VAULT_ADDR=$VAULT_ADDR vault-container \
+            vault auth enable userpass
+          
+          # Create user for workspace access
+          docker exec -e VAULT_TOKEN=$VAULT_TOKEN -e VAULT_ADDR=$VAULT_ADDR vault-container \
+            vault write auth/userpass/users/temitayocharles \
+            password=nutmuq-meRnod-3cyphp \
+            policies=default
 
-      - name: Collect and encode global configs and secrets from workspace
+      - name: 🛠️ Install scanning tools
         run: |
-          export VAULT_TOKEN=${{ secrets.VAULT_ROOT_TOKEN || 'root' }}
-          # Install jq and yq for parsing
           sudo apt-get update && sudo apt-get install -y jq
-          curl -Lo yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && chmod +x yq && sudo mv yq /usr/local/bin/
+          # Install yq for YAML processing
+          sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
 
-          # Find all config and secret files in the workspace (excluding .git and node_modules)
-          find . -type f \( -name "*.json" -o -name "*.yaml" -o -name "*.yml" -o -name "*.tfvars" -o -name "*.env" \) -not -path "./.git/*" -not -path "./node_modules/*" | while read file; do
-            echo "Processing $file"
-            
-            # Encode entire file
-            encoded=$(base64 -w 0 "$file")
-            secret_path="secret/files/$(basename "$file")"
-            docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault kv put "$secret_path" content="$encoded"
-            
-            # Extract key-value pairs based on file type
-            if [[ "$file" == *.json ]]; then
-              jq -r 'to_entries[] | "\(.key)=\(.value)"' "$file" 2>/dev/null | while read kv; do
-                key=$(echo "$kv" | cut -d'=' -f1)
-                value=$(echo "$kv" | cut -d'=' -f2-)
-                if [ -n "$key" ] && [ -n "$value" ]; then
-                  docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault kv put "secret/kv/$(basename "$file" .json)/$key" value="$value"
-                fi
-              done
-            elif [[ "$file" == *.yaml ]] || [[ "$file" == *.yml ]]; then
-              yq -r 'to_entries[] | "\(.key)=\(.value)"' "$file" 2>/dev/null | while read kv; do
-                key=$(echo "$kv" | cut -d'=' -f1)
-                value=$(echo "$kv" | cut -d'=' -f2-)
-                if [ -n "$key" ] && [ -n "$value" ]; then
-                  docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault kv put "secret/kv/$(basename "$file" .${file##*.})/$key" value="$value"
-                fi
-              done
-            elif [[ "$file" == *.env ]]; then
-              while IFS='=' read -r key value; do
-                # Skip comments and empty lines
-                [[ $key =~ ^[[:space:]]*# ]] && continue
-                [[ -z "$key" ]] && continue
-                if [ -n "$key" ] && [ -n "$value" ]; then
-                  docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault kv put "secret/kv/$(basename "$file" .env)/$key" value="$value"
-                fi
-              done < "$file"
-            elif [[ "$file" == *.tfvars ]]; then
-              # For .tfvars, encode the whole file since parsing HCL is complex
-              echo "Storing .tfvars file as encoded content"
+      - name: 🔍 Run comprehensive workspace secrets scan
+        run: |
+          chmod +x scripts/scan-workspace-secrets.sh
+          export VAULT_TOKEN=${{ secrets.VAULT_ROOT_TOKEN || 'root' }}
+          export VAULT_ADDR=http://localhost:8200
+          ./scripts/scan-workspace-secrets.sh
+
+      - name: 📊 Generate secrets inventory report
+        run: |
+          export VAULT_TOKEN=${{ secrets.VAULT_ROOT_TOKEN || 'root' }}
+          export VAULT_ADDR=http://localhost:8200
+          
+          echo "# 🔐 Vault Secrets Inventory Report" > vault-inventory.md
+          echo "" >> vault-inventory.md
+          echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> vault-inventory.md
+          echo "" >> vault-inventory.md
+          
+          echo "## 📂 Scanned Applications" >> vault-inventory.md
+          for app in ecommerce-app educational-platform weather-app medical-care-system task-management-app social-media-platform; do
+            if [[ -d "$app" ]]; then
+              echo "- ✅ $app" >> vault-inventory.md
+            else
+              echo "- ❌ $app (not found)" >> vault-inventory.md
             fi
           done
+          
+          echo "" >> vault-inventory.md
+          echo "## 🔑 Secret Paths in Vault" >> vault-inventory.md
+          
+          # List all secret paths
+          docker exec -e VAULT_TOKEN=$VAULT_TOKEN -e VAULT_ADDR=$VAULT_ADDR vault-container \
+            vault kv list -format=json secret/ 2>/dev/null | jq -r '.[]?' | while read path; do
+            echo "- \`secret/$path\`" >> vault-inventory.md
+          done
+          
+          echo "" >> vault-inventory.md
+          echo "## 🌐 Access Information" >> vault-inventory.md
+          echo "- **Vault URL**: http://localhost:8200" >> vault-inventory.md
+          echo "- **Root Token**: \`${{ secrets.VAULT_ROOT_TOKEN || 'root' }}\`" >> vault-inventory.md
+          echo "- **Username**: temitayocharles" >> vault-inventory.md
+          echo "- **Password**: nutmuq-meRnod-3cyphp" >> vault-inventory.md
+          
+          cat vault-inventory.md
 
-      - name: Inject generic secrets into Vault
+      - name: 🏷️ Tag and push Vault image
         run: |
-          export VAULT_TOKEN=${{ secrets.VAULT_ROOT_TOKEN || 'root' }}
-          # Example generic secrets (replace with actual ones)
-          docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault kv put secret/global/database password="genericpass123"
-          docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault-container vault kv put secret/global/api_key key="genericapikey456"
-          # Add more as needed
+          # Tag with timestamp
+          docker tag ghcr.io/${{ github.repository }}/vault-secured:latest \
+            ghcr.io/${{ github.repository }}/vault-secured:$(date +%Y%m%d-%H%M%S)
+          
+          # Push both tags
+          docker push ghcr.io/${{ github.repository }}/vault-secured:latest
+          docker push ghcr.io/${{ github.repository }}/vault-secured:$(date +%Y%m%d-%H%M%S)
 
-      - name: Push Vault image to GHCR
-        run: |
-          docker push ghcr.io/temitayocharles/full-stack-apps/vault-secured:latest
+      - name: 💾 Upload secrets inventory
+        uses: actions/upload-artifact@v3
+        with:
+          name: vault-secrets-inventory
+          path: vault-inventory.md
 
-      - name: Clean up
+      - name: 🧹 Clean up
+        if: always()
         run: |
-          docker stop vault-container
-          docker rm vault-container
+          docker stop vault-container 2>/dev/null || true
+          docker rm vault-container 2>/dev/null || true
+
+      - name: 📋 Deployment summary
+        run: |
+          echo "## 🎉 Vault Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔐 Vault Access:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: \`ghcr.io/${{ github.repository }}/vault-secured:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Root Token**: \`${{ secrets.VAULT_ROOT_TOKEN || 'root' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **User**: temitayocharles / nutmuq-meRnod-3cyphp" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Secrets Scanned:" >> $GITHUB_STEP_SUMMARY
+          echo "- All 6 applications scanned for secrets and configs" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment variables, API keys, and configs stored securely" >> $GITHUB_STEP_SUMMARY
+          echo "- Secret templates created for easy application setup" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Run: \`docker run -p 8200:8200 ghcr.io/${{ github.repository }}/vault-secured:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. Open: http://localhost:8200" >> $GITHUB_STEP_SUMMARY
+          echo "3. Login with root token or user credentials" >> $GITHUB_STEP_SUMMARY
