@@ -27,6 +27,29 @@ This is a complete e-commerce platform with shopping cart, payment processing, a
 
 ---
 
+## **🐳 Ready to Deploy? Two Easy Options!**
+
+### **🚀 Option 1: Use Pre-Built Images (Fastest)**
+```bash
+# Images ready on DockerHub - just pull and run:
+docker pull temitayocharles/ecommerce-backend:latest
+docker pull temitayocharles/ecommerce-frontend:latest
+
+# Or use docker-compose (recommended):
+docker-compose up -d
+```
+
+### **🛠️ Option 2: Build Your Own (More Learning)**
+```bash
+# Great for practicing Docker skills:
+docker-compose build
+docker-compose up -d
+```
+
+**Both options work perfectly!** Choose based on your learning goals.
+
+---
+
 ## **🏗️ What's Under the Hood**
 
 **Frontend:** React website (what customers see)  

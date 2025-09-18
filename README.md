@@ -82,7 +82,31 @@ Each application has a simple **GET-STARTED.md** that offers three paths:
 
 ---
 
-## **💼 Perfect for Your Career Goals**
+## **� Two Ways to Deploy - Your Choice!**
+
+### **🚀 Easy Way: Use Pre-Built Images**
+All applications are **ready-to-deploy** on DockerHub:
+```bash
+# Ready-to-use images available now:
+docker pull temitayocharles/ecommerce-backend:latest
+docker pull temitayocharles/educational-backend:latest
+docker pull temitayocharles/weather-backend:latest
+# ... and more!
+```
+
+### **🛠️ Learning Way: Build Your Own**
+Want **extra Docker practice**? Build images yourself:
+```bash
+# Clone → Build → Deploy (great for learning!)
+docker-compose build
+docker-compose up -d
+```
+
+**📊 Both paths work perfectly** - choose based on your learning goals!
+
+---
+
+## **�💼 Perfect for Your Career Goals**
 
 ### **If You Want To Work At:**
 - **E-commerce Companies** → Start with 🛒 E-commerce Platform

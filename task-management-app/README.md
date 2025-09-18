@@ -28,6 +28,29 @@ This is a complete task management and collaboration platform with real-time upd
 
 ---
 
+## **🐳 Deployment Ready? Two Professional Options!**
+
+### **🚀 Production Deploy: Pre-Built Images**
+```bash
+# Enterprise-grade Go microservices:
+docker pull temitayocharles/task-management-backend:latest
+docker pull temitayocharles/task-management-frontend:latest
+
+# Launch the complete platform:
+docker-compose up -d
+```
+
+### **🛠️ Build & Master: Go Deep Dive**
+```bash
+# Perfect for learning Go microservices compilation:
+docker-compose build  # Watch Go builds & Svelte compilation
+docker-compose up -d
+```
+
+**Both options are production-grade!** Choose your learning preference.
+
+---
+
 ## **🏗️ Technology Stack**
 
 **Backend:** Go (Golang) - High-performance concurrent microservices  

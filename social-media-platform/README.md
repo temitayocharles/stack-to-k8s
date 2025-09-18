@@ -28,6 +28,29 @@ This is a complete social media platform with feeds, messaging, content delivery
 
 ---
 
+## **🐳 Scale-Ready Deployment - Two Approaches!**
+
+### **🚀 Instant Scale: Pre-Built Images**
+```bash
+# Production-scale social platform:
+docker pull temitayocharles/social-media-backend:latest
+docker pull temitayocharles/social-media-frontend:latest
+
+# Deploy at scale:
+docker-compose up -d
+```
+
+### **🛠️ Build & Scale: Master the Stack**
+```bash
+# Learn Ruby on Rails & React Native builds:
+docker-compose build  # Watch Rails API & React Native compilation
+docker-compose up -d
+```
+
+**Both options are built for millions of users!** Pick your learning path.
+
+---
+
 ## **🏗️ Technology Stack**
 
 **Backend:** Ruby on Rails API - Proven framework for high-traffic applications  

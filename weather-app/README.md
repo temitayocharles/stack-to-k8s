@@ -28,6 +28,29 @@ This is a complete weather data platform with real-time API integration, caching
 
 ---
 
+## **🐳 Ready to Launch? Two Simple Ways!**
+
+### **🚀 Express Deploy: Pre-Built Images**
+```bash
+# Production-ready weather platform:
+docker pull temitayocharles/weather-backend:latest
+docker pull temitayocharles/weather-frontend:latest
+
+# Launch the entire platform:
+docker-compose up -d
+```
+
+### **🛠️ Build & Explore: Developer Mode**
+```bash
+# Perfect for learning Python & Vue.js builds:
+docker-compose build  # Watch Flask & Vue compilation
+docker-compose up -d
+```
+
+**Both approaches are fully functional!** Choose your learning style.
+
+---
+
 ## **🏗️ Technology Stack**
 
 **Backend:** Python Flask - Lightweight but powerful data processing  

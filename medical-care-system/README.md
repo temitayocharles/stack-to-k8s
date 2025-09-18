@@ -28,6 +28,29 @@ This is a complete healthcare management system with patient records, appointmen
 
 ---
 
+## **🐳 Healthcare-Grade Deployment Options!**
+
+### **🚀 Secure Deploy: Pre-Built Images**
+```bash
+# HIPAA-ready healthcare platform:
+docker pull temitayocharles/medical-backend:latest
+docker pull temitayocharles/medical-frontend:latest
+
+# Deploy with security configurations:
+docker-compose up -d
+```
+
+### **🛠️ Build & Secure: Enterprise Learning**
+```bash
+# Master .NET Core & healthcare security builds:
+docker-compose build  # Watch .NET compilation & Blazor builds
+docker-compose up -d
+```
+
+**Both options meet healthcare security standards!** Choose your approach.
+
+---
+
 ## **🏗️ Technology Stack**
 
 **Backend:** .NET Core 7+ - Enterprise-grade healthcare business logic  

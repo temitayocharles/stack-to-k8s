@@ -28,6 +28,29 @@ This is a complete learning management system with course creation, student trac
 
 ---
 
+## **🐳 Deployment Options - Choose Your Approach!**
+
+### **🚀 Quick Deploy: Pre-Built Images**
+```bash
+# Ready-to-use enterprise images:
+docker pull temitayocharles/educational-backend:latest
+docker pull temitayocharles/educational-frontend:latest
+
+# Deploy with docker-compose:
+docker-compose up -d
+```
+
+### **🛠️ Build & Learn: DIY Approach**
+```bash
+# Great for understanding enterprise Java builds:
+docker-compose build  # Watch Maven & Angular builds
+docker-compose up -d
+```
+
+**Both approaches are production-ready!** Pick based on your learning goals.
+
+---
+
 ## **🏗️ Technology Stack**
 
 **Backend:** Spring Boot (Java 17) - Enterprise-grade business logic  

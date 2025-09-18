@@ -1,5 +1,9 @@
 version: '3.8'
 
+# 🐳 Easy Deployment Options:
+# 1. Use pre-built images: Change 'build: .' to 'image: temitayocharles/task-management-backend:latest'
+# 2. Build yourself: Keep 'build: .' for learning Docker builds
+
 services:
   backend:
     build:
