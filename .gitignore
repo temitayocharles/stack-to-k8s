@@ -32,6 +32,17 @@ Thumbs.db
 *secret*
 *Secret*
 
+# PRIVATE FILES - YOUR PERSONAL DATA ONLY (NOT PUBLIC INFRASTRUCTURE)
+docker-compose.personal.yml
+vault-data/
+vault-secrets-summary.txt
+vault-setup-summary.md
+VAULT-CONFIGURATION-SUMMARY.md
+configurations/
+.vault-token
+personal-vault-*
+*-personal.*
+
 # Temporary and backup files - CRITICAL CLEANUP
 *.tmp
 *.temp
