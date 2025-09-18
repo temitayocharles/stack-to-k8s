@@ -1,0 +1,179 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+  labels:
+    app: grafana
+    dashboard: "true"
+data:
+  task-management-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Task Management Overview",
+        "tags": ["task-management", "overview"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Backend Response Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"task-management-backend\"}[5m]))",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"task-management-backend\"}[5m]))",
+                "legendFormat": "50th percentile"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"task-management-backend\"}[5m])",
+                "legendFormat": "Requests per second"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{pod=~\"task-management-backend-.*\"}[5m]) * 100",
+                "legendFormat": "{{ pod }}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{pod=~\"task-management-backend-.*\"} / container_spec_memory_limit_bytes",
+                "legendFormat": "{{ pod }}"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "postgres_connections_active",
+                "legendFormat": "Active connections"
+              },
+              {
+                "expr": "postgres_connections_idle",
+                "legendFormat": "Idle connections"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Pod Status",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "kube_pod_info{namespace=\"task-management\"}",
+                "legendFormat": "{{ pod }}"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "timepicker": {},
+        "templating": {
+          "list": []
+        },
+        "annotations": {
+          "list": []
+        },
+        "refresh": "30s",
+        "schemaVersion": 27,
+        "version": 0,
+        "links": []
+      }
+    }
+  task-management-performance.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Task Management Performance",
+        "tags": ["task-management", "performance"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "API Performance by Endpoint",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "rate(http_request_duration_seconds_count{job=\"task-management-backend\"}[5m])",
+                "legendFormat": "{{ method }} {{ path }}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"task-management-backend\", status=~\"5..\"}[5m]) / rate(http_requests_total{job=\"task-management-backend\"}[5m]) * 100",
+                "legendFormat": "Error rate %"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Database Query Performance",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(postgres_query_duration_seconds_bucket[5m]))",
+                "legendFormat": "95th percentile query time"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Cache Hit Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100",
+                "legendFormat": "Cache hit rate %"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "timepicker": {},
+        "templating": {
+          "list": []
+        },
+        "annotations": {
+          "list": []
+        },
+        "refresh": "1m",
+        "schemaVersion": 27,
+        "version": 0,
+        "links": []
+      }
+    }

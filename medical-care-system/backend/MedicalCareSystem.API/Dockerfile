@@ -18,19 +18,11 @@ RUN dotnet publish "MedicalCareSystem.API.csproj" -c Release -o /app/publish /p:
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Install curl and SQL Server tools for health checks and database operations
+# Install curl for health checks
 USER root
 RUN apt-get update \
-    && apt-get install -y curl gnupg \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev \
+    && apt-get install -y curl netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Entity Framework CLI tools for database migrations
-RUN dotnet tool install --global dotnet-ef --version 9.0.9
-ENV PATH="$PATH:/root/.dotnet/tools"
 
 COPY --from=publish /app/publish .
 

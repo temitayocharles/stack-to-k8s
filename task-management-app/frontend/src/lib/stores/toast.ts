@@ -52,3 +52,10 @@ export function showWarning(title: string, message?: string) {
 export function showInfo(title: string, message?: string) {
   return addToast({ type: 'info', title, message });
 }
+
+// Toast object for backward compatibility
+export const toast = {
+  show: (title: string, type: 'success' | 'error' | 'warning' | 'info', message?: string) => {
+    return addToast({ type, title, message });
+  }
+};

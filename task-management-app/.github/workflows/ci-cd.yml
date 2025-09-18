@@ -1,0 +1,388 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ${{ github.repository }}/backend
+  FRONTEND_IMAGE: ${{ github.repository }}/frontend
+
+jobs:
+  # Security scanning and code quality
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Backend testing and building
+  backend:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: taskmanagement
+          POSTGRES_USER: taskuser
+          POSTGRES_PASSWORD: taskpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      working-directory: ./backend
+      run: go mod download
+
+    - name: Run Go tests
+      working-directory: ./backend
+      run: go test -v -race -coverprofile=coverage.out ./...
+      env:
+        DATABASE_URL: postgres://taskuser:taskpass@localhost:5432/taskmanagement?sslmode=disable
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage.out
+        flags: backend
+        name: backend-coverage
+
+    - name: Run Go linting
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+        working-directory: ./backend
+
+    - name: Build backend binary
+      working-directory: ./backend
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o task-manager .
+        chmod +x task-manager
+
+    - name: Build and push backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+          ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+        labels: |
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.revision=${{ github.sha }}
+
+  # Frontend testing and building
+  frontend:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Run frontend tests
+      working-directory: ./frontend
+      run: npm run check
+
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+
+    - name: Build and push frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
+          ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+        labels: |
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.revision=${{ github.sha }}
+
+  # Database migration testing
+  database-migration:
+    runs-on: ubuntu-latest
+    needs: backend
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: taskmanagement
+          POSTGRES_USER: taskuser
+          POSTGRES_PASSWORD: taskpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Test database schema
+      run: |
+        PGPASSWORD=taskpass psql -h localhost -U taskuser -d taskmanagement -f backend/init.sql/init.sql
+        echo "Database schema applied successfully"
+
+  # Integration testing
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, database-migration]
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: taskmanagement
+          POSTGRES_USER: taskuser
+          POSTGRES_PASSWORD: taskpass
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Start services with Docker Compose
+      run: |
+        docker-compose up -d db
+        sleep 10
+
+    - name: Run backend integration tests
+      run: |
+        docker-compose up -d backend
+        sleep 15
+        curl -f http://localhost:8080/api/v1/health || exit 1
+        curl -f http://localhost:8080/api/v1/tasks || exit 1
+
+    - name: Run frontend integration tests
+      run: |
+        docker-compose up -d frontend
+        sleep 10
+        curl -f http://localhost:3000/ || exit 1
+
+  # Deploy to staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, integration-test]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+    - name: Deploy to staging
+      run: |
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/policies.yaml
+        kubectl rollout status deployment/task-management-backend -n task-management
+        kubectl rollout status deployment/task-management-frontend -n task-management
+
+    - name: Run staging tests
+      run: |
+        sleep 30
+        kubectl run test-pod --image=curlimages/curl --rm -i --restart=Never -- curl -f http://task-management-frontend-service/api/v1/health
+
+  # Deploy to production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, integration-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'release'
+    environment: production
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+    - name: Deploy to production
+      run: |
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/policies.yaml
+        kubectl apply -f k8s/production/advanced-hpa.yaml
+        kubectl rollout status deployment/taskmanagement-backend -n taskmanagement-prod
+        kubectl rollout status deployment/taskmanagement-frontend -n taskmanagement-prod
+
+    - name: Run production smoke tests
+      run: |
+        sleep 60
+        kubectl run smoke-test --image=curlimages/curl --rm -i --restart=Never -- curl -f http://taskmanagement-backend-service.taskmanagement-prod.svc.cluster.local:8080/api/v1/health
+
+  # Performance testing
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run k6 performance tests
+      uses: k6io/action@v0.1
+      with:
+        filename: k6-tests/performance-test.js
+        flags: --out json=results.json
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: results.json
+
+  # Security testing
+  security-test:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run OWASP ZAP security scan
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        target: 'http://localhost:3000'
+        rules_file_name: '.zap/rules.tsv'
+        artifact_name: 'zap-scan'
+
+    - name: Run Snyk security scan
+      uses: snyk/actions/golang@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --file=./backend/go.mod
+
+  # Documentation deployment
+  docs:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js for docs
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Generate API documentation
+      working-directory: ./backend
+      run: |
+        go install github.com/swaggo/swag/cmd/swag@latest
+        swag init -g main.go
+
+    - name: Deploy docs to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        publish_branch: gh-pages
+
+  # Notification
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+    - name: Send Slack notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          🚀 Task Management Deployment ${{ job.status == 'success' && 'Successful' || 'Failed' }}
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Staging' }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: always()
+
+  # Rollback on failure
+  rollback:
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure() && github.ref == 'refs/heads/main'
+    steps:
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+    - name: Rollback deployment
+      run: |
+        kubectl rollout undo deployment/taskmanagement-backend -n taskmanagement-prod
+        kubectl rollout undo deployment/taskmanagement-frontend -n taskmanagement-prod
+
+    - name: Send rollback notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: |
+          ⚠️ Production deployment failed and has been rolled back
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

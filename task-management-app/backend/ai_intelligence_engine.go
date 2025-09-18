@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -9,8 +8,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // AIEngine - Advanced AI-powered task intelligence and predictive analytics
@@ -75,6 +72,7 @@ type WorkPatterns struct {
 	CommunicationStyle   string              `json:"communication_style"`
 	DecisionMakingSpeed  time.Duration       `json:"decision_making_speed"`
 	RiskTolerance        float64             `json:"risk_tolerance"`
+	AverageTaskLoad      float64             `json:"average_task_load"`
 }
 
 // TimeManagementProfile - Time management analysis
@@ -171,11 +169,15 @@ type LearningSample struct {
 
 // UserFeedback - User feedback on AI suggestions
 type UserFeedback struct {
-	Rating      int       `json:"rating"`       // 1-5 scale
-	Comments    string    `json:"comments"`
-	Helpful     bool      `json:"helpful"`
-	Accuracy    float64   `json:"accuracy"`     // 0-1 scale
-	Timestamp   time.Time `json:"timestamp"`
+	Rating      int                    `json:"rating"`       // 1-5 scale
+	Comments    string                 `json:"comments"`
+	Helpful     bool                   `json:"helpful"`
+	Accuracy    float64                `json:"accuracy"`     // 0-1 scale
+	Timestamp   time.Time              `json:"timestamp"`
+	UserID      string                 `json:"user_id"`
+	Action      string                 `json:"action"`
+	Context     map[string]interface{} `json:"context"`
+	Outcome     string                 `json:"outcome"`
 }
 
 // PatternAnalyzer - Advanced pattern recognition
@@ -262,16 +264,6 @@ type ContextAnalyzer struct {
 	contextPatterns map[string]*ContextPattern
 	learningData    []*ContextSample
 	mutex           sync.RWMutex
-}
-
-// ContextPattern - Recognized context patterns
-type ContextPattern struct {
-	PatternID   string                 `json:"pattern_id"`
-	Name        string                 `json:"name"`
-	Conditions  map[string]interface{} `json:"conditions"`
-	Outcomes    []string               `json:"outcomes"`
-	Confidence  float64                `json:"confidence"`
-	SampleSize  int                    `json:"sample_size"`
 }
 
 // ContextSample - Context learning sample
@@ -886,7 +878,7 @@ func (ai *AIEngine) AnalyzeWorkload(userID string, tasks []*Task) *WorkloadAnaly
 	}
 
 	// Get user profile for personalized analysis
-	profile, exists := ai.userProfiles[userID]
+	profile, _ := ai.userProfiles[userID]
 
 	// Generate workload suggestions
 	suggestions := ai.generateWorkloadSuggestions(activeTasks, highPriorityTasks, workloadLevel, upcomingDeadlines, profile)
@@ -1123,8 +1115,6 @@ func (ai *AIEngine) calculateProjectMetrics(projectID string, tasks []*Task, tea
 	completedTasks := 0
 	overdueTasks := 0
 	highPriorityTasks := 0
-
-	now := time.Now()
 
 	for _, task := range tasks {
 		if task.Status == "completed" {
@@ -1422,5 +1412,4 @@ type ProjectPrediction struct {
 }
 
 // This advanced AI engine provides enterprise-grade task intelligence
-// with machine learning-powered predictions, user profiling, and continuous learning</content>
-<parameter name="filePath">/Users/charlie/Documents/PERSONAL/task-management-app/backend/ai_intelligence_engine.go
+// with machine learning-powered predictions, user profiling, and continuous learning

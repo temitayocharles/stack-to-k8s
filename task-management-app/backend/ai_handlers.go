@@ -1,10 +1,11 @@
 package main
 
-package main
-
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -199,6 +200,71 @@ func containsKeyword(title, skill string) bool {
 // containsString checks if a string contains a substring (case-insensitive)
 func containsString(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || containsString(s[1:], substr) || containsString(s[:len(s)-1], substr))
+}
+
+// couchDBRequest makes an HTTP request to CouchDB
+func couchDBRequest(method, path string, data interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("http://%s:%s/%s%s", couchConfig.Host, couchConfig.Port, couchConfig.Database, path)
+
+	var body io.Reader
+	if data != nil {
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewBuffer(jsonData)
+	}
+
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	if couchConfig.Username != "" && couchConfig.Password != "" {
+		req.SetBasicAuth(couchConfig.Username, couchConfig.Password)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	return client.Do(req)
+}
+
+// broadcastUpdate broadcasts a message to all WebSocket clients
+func broadcastUpdate(eventType string, data interface{}) {
+	message := map[string]interface{}{
+		"type": eventType,
+		"data": data,
+		"timestamp": time.Now(),
+	}
+
+	jsonMessage, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("Error marshaling broadcast message: %v", err)
+		return
+	}
+
+	select {
+	case hub.broadcast <- jsonMessage:
+		log.Printf("Broadcasted %s event", eventType)
+	default:
+		log.Printf("Broadcast channel full, skipping %s event", eventType)
+	}
+}
+
+// getTaskByID retrieves a task by its ID from the database
+func getTaskByID(taskID string) (*Task, error) {
+	var task Task
+	err := db.QueryRow(
+		"SELECT id, title, description, status, priority, assignee_id, project_id, due_date, created_at, updated_at FROM tasks WHERE id = $1",
+		taskID,
+	).Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.Priority, &task.AssigneeID, &task.ProjectID, &task.DueDate, &task.CreatedAt, &task.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &task, nil
 }
 
 // Simple AI handlers that provide useful functionality without complexity

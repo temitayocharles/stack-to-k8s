@@ -1,0 +1,277 @@
+groups:
+  # Application Health Alerts
+  - name: application_health
+    rules:
+      - alert: TaskManagementBackendDown
+        expr: up{job="task-management-backend"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "Task Management Backend is down"
+          description: "Task Management Backend has been down for more than 5 minutes."
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#backend-down"
+
+      - alert: TaskManagementHighErrorRate
+        expr: rate(http_requests_total{job="task-management-backend", status=~"5.."}[5m]) / rate(http_requests_total{job="task-management-backend"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High error rate on Task Management Backend"
+          description: "Error rate is {{ $value | printf \"%.2f\" }}% (threshold: 5%)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#high-error-rate"
+
+      - alert: TaskManagementHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="task-management-backend"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High response time on Task Management Backend"
+          description: "95th percentile response time is {{ $value | printf \"%.2f\" }}s (threshold: 2s)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#high-response-time"
+
+  # Database Health Alerts
+  - name: database_health
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL has been down for more than 2 minutes."
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#database-down"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_activity_count{datname="taskmanagement"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High PostgreSQL connection count"
+          description: "PostgreSQL has {{ $value }} active connections (threshold: 80)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#high-connections"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_activity_max_tx_duration{datname="taskmanagement"}[5m]) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow PostgreSQL queries detected"
+          description: "PostgreSQL has slow queries running longer than 30 seconds"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#slow-queries"
+
+  # Cache Health Alerts
+  - name: cache_health
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis has been down for more than 2 minutes."
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#redis-down"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | printf \"%.1f\" }}% (threshold: 90%)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#redis-memory"
+
+  # System Resource Alerts
+  - name: system_resources
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | printf \"%.1f\" }}% on {{ $labels.instance }}"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | printf \"%.1f\" }}% on {{ $labels.instance }}"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#high-memory"
+
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Low disk space detected"
+          description: "Disk space is {{ $value | printf \"%.1f\" }}% available on {{ $labels.instance }}"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#low-disk"
+
+  # Kubernetes-specific Alerts
+  - name: kubernetes_alerts
+    rules:
+      - alert: KubernetesPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="task-management"}[5m]) > 0
+        for: 3m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Pod crash looping detected"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#pod-crash"
+
+      - alert: KubernetesPodNotReady
+        expr: kube_pod_status_ready{namespace="task-management", condition="false"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not ready"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#pod-not-ready"
+
+      - alert: KubernetesHighPodRestarts
+        expr: increase(kube_pod_container_status_restarts_total{namespace="task-management"}[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "High pod restart rate"
+          description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 10 minutes"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#high-restarts"
+
+  # Business Logic Alerts
+  - name: business_logic
+    rules:
+      - alert: TaskCreationRateSpike
+        expr: rate(task_creation_total[5m]) > rate(task_creation_total[1h]) * 3
+        for: 5m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Spike in task creation rate"
+          description: "Task creation rate has increased 3x compared to hourly average"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Monitoring#task-spike"
+
+      - alert: UserActivityDrop
+        expr: rate(http_requests_total{job="task-management-backend", path="/api/v1/users"}[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low user activity detected"
+          description: "User activity has dropped below normal levels"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Monitoring#low-activity"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: pg_stat_activity_count{datname="taskmanagement", state="idle"} < 2
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Only {{ $value }} idle connections remaining in pool"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Troubleshooting#connection-pool"
+
+  # Performance Monitoring
+  - name: performance_monitoring
+    rules:
+      - alert: SlowAPIEndpoint
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="task-management-backend"}[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: performance
+        annotations:
+          summary: "Slow API endpoint detected"
+          description: "Endpoint {{ $labels.path }} is responding slowly (95th percentile: {{ $value }}s)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Performance#slow-endpoints"
+
+      - alert: HighDatabaseLatency
+        expr: histogram_quantile(0.95, rate(pg_stat_database_query_duration_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database query latency"
+          description: "Database query latency is {{ $value }}s (95th percentile)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Performance#db-latency"
+
+      - alert: CacheMissRateHigh
+        expr: rate(cache_misses_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "High cache miss rate"
+          description: "Cache miss rate is {{ $value | printf \"%.1f\" }}% (threshold: 30%)"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Performance#cache-miss"
+
+  # Security Alerts
+  - name: security_alerts
+    rules:
+      - alert: UnusualLoginAttempts
+        expr: rate(login_attempts_total{status="failed"}[5m]) > rate(login_attempts_total{status="success"}[1h]) * 5
+        for: 5m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "Unusual number of failed login attempts"
+          description: "Failed login attempts are 5x higher than normal"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Security#failed-logins"
+
+      - alert: SuspiciousAPICalls
+        expr: rate(http_requests_total{status="403"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High number of forbidden API calls"
+          description: "Detected {{ $value }} forbidden API calls in 5 minutes"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Security#forbidden-calls"
+
+      - alert: DataExfiltrationAttempt
+        expr: rate(http_requests_total{method="GET", path=~"/api/v1/.*", response_size_bytes=">1000000"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Potential data exfiltration detected"
+          description: "Large data transfers detected from API endpoints"
+          runbook_url: "https://github.com/your-org/task-management-app/wiki/Security#data-exfiltration"

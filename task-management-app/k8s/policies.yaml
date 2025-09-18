@@ -30,10 +30,10 @@ spec:
   - to:
     - podSelector:
         matchLabels:
-          app: couchdb
+          app: postgres
     ports:
     - protocol: TCP
-      port: 5984
+      port: 5432
   - to:
     - podSelector:
         matchLabels:
@@ -89,15 +89,15 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: couchdb-monitor
+  name: postgres-monitor
   namespace: task-management
   labels:
-    app: couchdb
+    app: postgres
 spec:
   selector:
     matchLabels:
-      app: couchdb
+      app: postgres
   endpoints:
-  - port: couchdb
-    path: /_node/_local/_stats
+  - port: postgres
+    path: /metrics
     interval: 30s

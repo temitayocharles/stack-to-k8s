@@ -56,6 +56,83 @@ const (
 	ColorUnderline = "\033[4m"
 )
 
+// EnhancedLogger - Advanced logging system with security scanning and downloadable reports
+type EnhancedLogger struct {
+	logDir             string
+	currentLogFile     *os.File
+	logBuffer          *bytes.Buffer
+	colorEnabled       bool
+	mutex              sync.RWMutex
+	reportMutex        sync.RWMutex
+	scanResults        *SecurityScanResults
+	downloadableReports map[string]*DownloadableReport
+}
+
+// SecurityScanResults - Results from security scanning
+type SecurityScanResults struct {
+	ScanID         string
+	Timestamp      time.Time
+	ScanType       string
+	Target         string
+	Vulnerabilities []Vulnerability
+	RawOutput      string
+	Status         string
+	Summary        SecurityScanSummary
+}
+
+// SecurityScanSummary - Summary of security scan results
+type SecurityScanSummary struct {
+	TotalVulnerabilities int
+	CriticalCount        int
+	HighCount            int
+	MediumCount          int
+	LowCount             int
+	InfoCount            int
+	Recommendations      []string
+}
+
+// Vulnerability - Security vulnerability information
+type Vulnerability struct {
+	ID           string
+	Title        string
+	Description  string
+	Severity     VulnerabilitySeverity
+	CVE          string
+	CVSS         float64
+	Package      string
+	Version      string
+	FixedVersion string
+	Location     string
+	LineNumber    int
+	References   []string
+}
+
+// VulnerabilitySeverity - Severity levels for vulnerabilities
+type VulnerabilitySeverity string
+
+const (
+	SeverityCritical VulnerabilitySeverity = "CRITICAL"
+	SeverityHigh     VulnerabilitySeverity = "HIGH"
+	SeverityMedium   VulnerabilitySeverity = "MEDIUM"
+	SeverityLow      VulnerabilitySeverity = "LOW"
+	SeverityInfo     VulnerabilitySeverity = "INFO"
+	SeverityUnknown  VulnerabilitySeverity = "UNKNOWN"
+)
+
+// DownloadableReport - Report that can be downloaded
+type DownloadableReport struct {
+	ID          string
+	Name        string
+	Description string
+	Content     string
+	ContentType string
+	Size        int64
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+	DownloadURL string
+	Tags        []string
+}
+
 // Initialize the enhanced logger
 func NewEnhancedLogger(logDir string) (*EnhancedLogger, error) {
 	// Create log directory if it doesn't exist
@@ -609,5 +686,94 @@ func (el *EnhancedLogger) ParseVulnerabilityFromOutput(scannerType string, outpu
 		})
 	}
 
+	return vulnerabilities
+}
+
+// Missing methods for EnhancedLogger
+func (el *EnhancedLogger) cleanupExpiredReports() {
+	el.reportMutex.Lock()
+	defer el.reportMutex.Unlock()
+
+	now := time.Now()
+	for id, report := range el.downloadableReports {
+		if now.After(report.ExpiresAt) {
+			delete(el.downloadableReports, id)
+			// Clean up file
+			filename := fmt.Sprintf("report-%s.txt", id[:8])
+			filepath := filepath.Join(el.logDir, filename)
+			os.Remove(filepath)
+		}
+	}
+}
+
+func (el *EnhancedLogger) parseTrivyOutput(output string) []Vulnerability {
+	var vulnerabilities []Vulnerability
+	// Simple Trivy JSON output parser
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, `"VulnerabilityID"`) {
+			// Parse JSON line (simplified)
+			var vuln Vulnerability
+			vuln.ID = "trivy-" + uuid.New().String()[:8]
+			vuln.Title = "Vulnerability found by Trivy"
+			vuln.Severity = SeverityMedium
+			vuln.Description = "Parsed from Trivy output"
+			vulnerabilities = append(vulnerabilities, vuln)
+		}
+	}
+	return vulnerabilities
+}
+
+func (el *EnhancedLogger) parseGosecOutput(output string) []Vulnerability {
+	var vulnerabilities []Vulnerability
+	// Simple Gosec JSON output parser
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, `"rule_id"`) {
+			// Parse JSON line (simplified)
+			var vuln Vulnerability
+			vuln.ID = "gosec-" + uuid.New().String()[:8]
+			vuln.Title = "Security issue found by Gosec"
+			vuln.Severity = SeverityMedium
+			vuln.Description = "Parsed from Gosec output"
+			vulnerabilities = append(vulnerabilities, vuln)
+		}
+	}
+	return vulnerabilities
+}
+
+func (el *EnhancedLogger) parseNancyOutput(output string) []Vulnerability {
+	var vulnerabilities []Vulnerability
+	// Simple Nancy output parser
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "Vulnerable") {
+			// Parse line (simplified)
+			var vuln Vulnerability
+			vuln.ID = "nancy-" + uuid.New().String()[:8]
+			vuln.Title = "Vulnerable dependency found by Nancy"
+			vuln.Severity = SeverityHigh
+			vuln.Description = "Parsed from Nancy output"
+			vulnerabilities = append(vulnerabilities, vuln)
+		}
+	}
+	return vulnerabilities
+}
+
+func (el *EnhancedLogger) parseGitleaksOutput(output string) []Vulnerability {
+	var vulnerabilities []Vulnerability
+	// Simple Gitleaks JSON output parser
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, `"rule"`) {
+			// Parse JSON line (simplified)
+			var vuln Vulnerability
+			vuln.ID = "gitleaks-" + uuid.New().String()[:8]
+			vuln.Title = "Secret leak found by Gitleaks"
+			vuln.Severity = SeverityCritical
+			vuln.Description = "Parsed from Gitleaks output"
+			vulnerabilities = append(vulnerabilities, vuln)
+		}
+	}
 	return vulnerabilities
 }

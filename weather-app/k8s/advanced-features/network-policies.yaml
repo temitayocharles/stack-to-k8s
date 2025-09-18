@@ -1,0 +1,132 @@
+# 🛡️ NETWORK POLICIES FOR MICRO-SEGMENTATION
+# Zero-trust network security for weather-app production workloads
+
+---
+# Network Policy - Backend Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: weather-backend-network-policy
+  namespace: weather-production
+  labels:
+    app: weather-backend
+    tier: production
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: weather-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: weather-frontend
+    - podSelector:
+        matchLabels:
+          app: nginx-ingress
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 5000
+    - protocol: TCP
+      port: 8080  # Health check port
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: database
+    ports:
+    - protocol: TCP
+      port: 27017
+  - to: []  # Allow DNS
+    ports:
+    - protocol: UDP
+      port: 53
+  - to: []  # Allow HTTPS outbound for external APIs
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+# Network Policy - Frontend Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: weather-frontend-network-policy
+  namespace: weather-production
+  labels:
+    app: weather-frontend
+    tier: production
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: weather-frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: nginx-ingress
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: weather-backend
+    ports:
+    - protocol: TCP
+      port: 5000
+  - to: []  # Allow DNS
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# Network Policy - Database Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: weather-database-network-policy
+  namespace: weather-production
+  labels:
+    app: database
+    tier: production
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: weather-backend
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring  # For Prometheus monitoring
+    ports:
+    - protocol: TCP
+      port: 27017
+  egress:
+  - to: []  # Allow DNS
+    ports:
+    - protocol: UDP
+      port: 53

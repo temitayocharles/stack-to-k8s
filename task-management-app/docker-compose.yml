@@ -12,8 +12,9 @@ services:
       - PORT=8080
     depends_on:
       - db
-    volumes:
-      - ./backend:/app
+    # Remove volume mount to prevent overriding the built binary
+    # volumes:
+    #   - ./backend:/app
     networks:
       - task-network
 
@@ -22,14 +23,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:80"
     environment:
       - API_URL=http://backend:8080
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     networks:
       - task-network
 
@@ -43,7 +41,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/init.sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - task-network
 

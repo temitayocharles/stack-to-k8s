@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { user } from '../../lib/stores/user';
+  import { userStore } from '../../lib/stores/user';
   import { toast } from '../../lib/stores/toast';
   import TaskBoard from '../../lib/components/TaskBoard.svelte';
   import CreateTaskModal from '../../lib/components/CreateTaskModal.svelte';
@@ -50,7 +50,7 @@
   });
 
   async function loadData() {
-    if (!$user.isAuthenticated) {
+    if (!$userStore.isAuthenticated) {
       isLoading = false;
       return;
     }
@@ -58,13 +58,13 @@
     try {
       const [tasksRes, projectsRes, usersRes] = await Promise.all([
         fetch('/api/tasks', {
-          headers: { 'Authorization': `Bearer ${$user.token}` }
+          headers: { 'Authorization': `Bearer ${$userStore.token}` }
         }),
         fetch('/api/projects', {
-          headers: { 'Authorization': `Bearer ${$user.token}` }
+          headers: { 'Authorization': `Bearer ${$userStore.token}` }
         }),
         fetch('/api/users', {
-          headers: { 'Authorization': `Bearer ${$user.token}` }
+          headers: { 'Authorization': `Bearer ${$userStore.token}` }
         })
       ]);
 
@@ -85,7 +85,7 @@
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${$user.token}` }
+        headers: { 'Authorization': `Bearer ${$userStore.token}` }
       });
 
       if (!response.ok) throw new Error('Failed to delete task');
@@ -104,7 +104,7 @@
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${$user.token}`
+          'Authorization': `Bearer ${$userStore.token}`
         },
         body: JSON.stringify({ status: newStatus })
       });
@@ -189,7 +189,7 @@
       <LoadingSpinner />
       <p>Loading tasks...</p>
     </div>
-  {:else if !$user.isAuthenticated}
+  {:else if !$userStore.isAuthenticated}
     <div class="auth-required">
       <h2>Please Log In</h2>
       <p>You need to log in to view your tasks.</p>

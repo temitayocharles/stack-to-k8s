@@ -1,0 +1,83 @@
+# 🔐 SECURITY POLICIES & RBAC
+# Role-based access control for medical-care-system
+
+---
+# Cluster Role for Advanced Monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: medical-monitoring
+  labels:
+    app: medical
+    tier: production
+    component: security
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+
+---
+# Service Account for Monitoring
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: medical-monitoring
+  namespace: medical-production
+  labels:
+    app: medical
+    tier: production
+    component: security
+
+---
+# Cluster Role Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: medical-monitoring
+  labels:
+    app: medical
+    tier: production
+    component: security
+subjects:
+- kind: ServiceAccount
+  name: medical-monitoring
+  namespace: medical-production
+roleRef:
+  kind: ClusterRole
+  name: medical-monitoring
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy (for clusters that support it)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: medical-restricted
+  labels:
+    app: medical
+    tier: production
+    component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'

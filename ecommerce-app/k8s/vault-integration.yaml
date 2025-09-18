@@ -1,0 +1,238 @@
+# HashiCorp Vault Integration for E-commerce App
+# This configuration demonstrates enterprise-grade secrets management
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault-system
+---
+# Vault Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+  namespace: vault-system
+  labels:
+    app: vault
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      containers:
+      - name: vault
+        image: vault:1.15.2
+        ports:
+        - containerPort: 8200
+          name: vault-port
+        env:
+        - name: VAULT_DEV_ROOT_TOKEN_ID
+          value: "ecommerce-dev-token"
+        - name: VAULT_DEV_LISTEN_ADDRESS
+          value: "0.0.0.0:8200"
+        - name: VAULT_ADDR
+          value: "http://127.0.0.1:8200"
+        securityContext:
+          capabilities:
+            add: ["IPC_LOCK"]
+        readinessProbe:
+          httpGet:
+            path: /v1/sys/health
+            port: 8200
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+# Vault Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: vault-system
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8200
+    targetPort: 8200
+    name: vault
+  selector:
+    app: vault
+---
+# Vault ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault
+  namespace: vault-system
+---
+# Vault ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: vault
+  namespace: vault-system
+---
+# E-commerce App ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecommerce-app
+  namespace: ecommerce
+---
+# Secret for Vault Connection
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-config
+  namespace: ecommerce
+type: Opaque
+data:
+  vault-addr: aHR0cDovL3ZhdWx0LnZhdWx0LXN5c3RlbTo4MjAw  # http://vault.vault-system:8200
+  vault-token: ZWNvbW1lcmNlLWRldi10b2tlbg==  # ecommerce-dev-token
+---
+# ConfigMap for Vault Agent
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-agent-config
+  namespace: ecommerce
+data:
+  vault-agent.hcl: |
+    vault {
+      address = "http://vault.vault-system:8200"
+    }
+    
+    auto_auth {
+      method "kubernetes" {
+        mount_path = "auth/kubernetes"
+        config = {
+          role = "ecommerce-app"
+        }
+      }
+      
+      sink "file" {
+        config = {
+          path = "/vault/secrets/token"
+        }
+      }
+    }
+    
+    template {
+      source      = "/vault/templates/env.tpl"
+      destination = "/vault/secrets/.env"
+    }
+  
+  env.tpl: |
+    {{- with secret "secret/ecommerce/config" }}
+    NODE_ENV={{ .Data.data.NODE_ENV }}
+    PORT={{ .Data.data.PORT }}
+    MONGODB_URI={{ .Data.data.MONGODB_URI }}
+    REDIS_URL={{ .Data.data.REDIS_URL }}
+    JWT_SECRET={{ .Data.data.JWT_SECRET }}
+    JWT_EXPIRE={{ .Data.data.JWT_EXPIRE }}
+    STRIPE_SECRET_KEY={{ .Data.data.STRIPE_SECRET_KEY }}
+    EMAIL_HOST={{ .Data.data.EMAIL_HOST }}
+    EMAIL_USER={{ .Data.data.EMAIL_USER }}
+    EMAIL_PASS={{ .Data.data.EMAIL_PASS }}
+    {{- end }}
+---
+# Updated Backend Deployment with Vault Integration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-backend-vault
+  namespace: ecommerce
+  labels:
+    app: ecommerce-backend
+    version: vault-enabled
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+      version: vault-enabled
+  template:
+    metadata:
+      labels:
+        app: ecommerce-backend
+        version: vault-enabled
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "ecommerce-app"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/ecommerce/config"
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{- with secret "secret/ecommerce/config" -}}
+          export NODE_ENV="{{ .Data.data.NODE_ENV }}"
+          export PORT="{{ .Data.data.PORT }}"
+          export MONGODB_URI="{{ .Data.data.MONGODB_URI }}"
+          export REDIS_URL="{{ .Data.data.REDIS_URL }}"
+          export JWT_SECRET="{{ .Data.data.JWT_SECRET }}"
+          export JWT_EXPIRE="{{ .Data.data.JWT_EXPIRE }}"
+          export STRIPE_SECRET_KEY="{{ .Data.data.STRIPE_SECRET_KEY }}"
+          export EMAIL_HOST="{{ .Data.data.EMAIL_HOST }}"
+          export EMAIL_USER="{{ .Data.data.EMAIL_USER }}"
+          export EMAIL_PASS="{{ .Data.data.EMAIL_PASS }}"
+          {{- end }}
+    spec:
+      serviceAccountName: ecommerce-app
+      initContainers:
+      - name: vault-agent
+        image: vault:1.15.2
+        command: ['sh', '-c']
+        args:
+        - |
+          cp /vault/secrets/config /shared/.env
+        volumeMounts:
+        - name: vault-secrets
+          mountPath: /vault/secrets
+        - name: shared-secrets
+          mountPath: /shared
+      containers:
+      - name: backend
+        image: ecommerce-backend:latest
+        ports:
+        - containerPort: 5000
+        command: ['sh', '-c']
+        args:
+        - |
+          source /shared/.env
+          npm start
+        volumeMounts:
+        - name: shared-secrets
+          mountPath: /shared
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: vault-secrets
+        emptyDir: {}
+      - name: shared-secrets
+        emptyDir: {}

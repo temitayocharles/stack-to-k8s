@@ -37,11 +37,7 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['svelte', '@sveltejs/kit'],
-          ui: ['@floating-ui/dom', 'lucide-svelte'],
-          utils: ['date-fns', 'clsx']
-        }
+        manualChunks: undefined
       }
     },
     chunkSizeWarningLimit: 1000

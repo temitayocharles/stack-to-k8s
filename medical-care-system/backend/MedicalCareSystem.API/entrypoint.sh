@@ -1,20 +1,20 @@
 #!/bin/bash
+set -e
 
 echo "Starting Medical Care System API..."
 
-# Wait for SQL Server to be ready
+# Wait for database to be ready (simplified check)
 echo "Waiting for SQL Server to be ready..."
-while ! /opt/mssql-tools/bin/sqlcmd -S medical-care-db -U sa -P MedicalCare2025! -Q "SELECT 1" > /dev/null 2>&1; do
-    echo "SQL Server is not ready yet. Waiting..."
-    sleep 5
+for i in {1..30}; do
+    if nc -z medical-care-db 1433 2>/dev/null; then
+        echo "SQL Server is ready!"
+        break
+    fi
+    echo "SQL Server is not ready yet. Waiting... ($i/30)"
+    sleep 3
 done
 
-echo "SQL Server is ready. Running database migrations..."
+echo "Starting the application (database will be auto-created)..."
 
-# Run Entity Framework migrations
-dotnet ef database update --no-build
-
-echo "Database migrations completed. Starting the application..."
-
-# Start the application
+# Start the application - EF will create the database via Program.cs
 exec dotnet MedicalCareSystem.API.dll

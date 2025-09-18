@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { user } from '../../lib/stores/user';
+  import { userStore } from '../../lib/stores/user';
   import { toast } from '../../lib/stores/toast';
   import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
   
@@ -15,14 +15,14 @@
   };
 
   async function loadProjects() {
-    if (!$user.isAuthenticated) {
+    if (!$userStore.isAuthenticated) {
       isLoading = false;
       return;
     }
 
     try {
       const response = await fetch('/api/projects', {
-        headers: { 'Authorization': `Bearer ${$user.token}` }
+        headers: { 'Authorization': `Bearer ${$userStore.token}` }
       });
 
       if (!response.ok) throw new Error('Failed to load projects');
@@ -68,7 +68,7 @@
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${$user.token}`
+          'Authorization': `Bearer ${$userStore.token}`
         },
         body: JSON.stringify(formData)
       });
@@ -98,7 +98,7 @@
     try {
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${$user.token}` }
+        headers: { 'Authorization': `Bearer ${$userStore.token}` }
       });
 
       if (!response.ok) throw new Error('Failed to delete project');
@@ -166,7 +166,7 @@
       <LoadingSpinner />
       <p>Loading projects...</p>
     </div>
-  {:else if !$user.isAuthenticated}
+  {:else if !$userStore.isAuthenticated}
     <div class="auth-required">
       <h2>Please Log In</h2>
       <p>You need to log in to view your projects.</p>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { user } from '../../lib/stores/user';
+  import { userStore } from '../../lib/stores/user';
   import { toast } from '../../lib/stores/toast';
   import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
   
@@ -15,14 +15,14 @@
   };
 
   async function loadUsers() {
-    if (!$user.isAuthenticated) {
+    if (!$userStore.isAuthenticated) {
       isLoading = false;
       return;
     }
 
     try {
       const response = await fetch('/api/users', {
-        headers: { 'Authorization': `Bearer ${$user.token}` }
+        headers: { 'Authorization': `Bearer ${$userStore.token}` }
       });
 
       if (!response.ok) throw new Error('Failed to load users');
@@ -68,7 +68,7 @@
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${$user.token}`
+          'Authorization': `Bearer ${$userStore.token}`
         },
         body: JSON.stringify(formData)
       });
@@ -98,7 +98,7 @@
     try {
       const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${$user.token}` }
+        headers: { 'Authorization': `Bearer ${$userStore.token}` }
       });
 
       if (!response.ok) throw new Error('Failed to delete user');
@@ -184,7 +184,7 @@
       <LoadingSpinner />
       <p>Loading team members...</p>
     </div>
-  {:else if !$user.isAuthenticated}
+  {:else if !$userStore.isAuthenticated}
     <div class="auth-required">
       <h2>Please Log In</h2>
       <p>You need to log in to view your team.</p>
@@ -237,7 +237,7 @@
                       <path d="M12.146.146a.5.5 0 01.708 0l3 3a.5.5 0 010 .708L4.707 15H1v-3.707L12.146.146zM11 2.207L2 11.207V14h2.793L14 5.793 11 2.207z"/>
                     </svg>
                   </button>
-                  {#if userItem.id !== $user.id}
+                  {#if userItem.id !== $userStore.id}
                     <button class="action-btn delete-btn" on:click={() => deleteUser(userItem.id)}>
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path fill-rule="evenodd" d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z" clip-rule="evenodd"/>
@@ -269,7 +269,7 @@
                 {/if}
               </div>
 
-              {#if userItem.id === $user.id}
+              {#if userItem.id === $userStore.id}
                 <div class="current-user-badge">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M8 8a3 3 0 100-6 3 3 0 000 6zM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 00-11.215 0c-.22.578.254 1.139.872 1.139h9.47z"/>

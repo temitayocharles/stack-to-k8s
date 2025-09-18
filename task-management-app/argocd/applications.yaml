@@ -1,0 +1,153 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: task-management-staging
+  namespace: argocd
+  labels:
+    environment: staging
+    team: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/task-management-app
+    targetRevision: develop
+    path: k8s
+    helm:
+      valueFiles:
+      - values-staging.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: task-management
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: task-management-production
+  namespace: argocd
+  labels:
+    environment: production
+    team: platform
+spec:
+  project: production
+  source:
+    repoURL: https://github.com/your-org/task-management-app
+    targetRevision: main
+    path: k8s
+    helm:
+      valueFiles:
+      - values-production.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: taskmanagement-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 20
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: production
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: taskmanagement-prod
+    server: https://kubernetes.default.svc
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  - namespace: ingress-nginx
+    server: https://kubernetes.default.svc
+  sourceRepos:
+  - https://github.com/your-org/task-management-app
+  - https://github.com/your-org/infrastructure
+  roles:
+  - name: developer
+    description: Developer role for task management app
+    policies:
+    - p, proj:production:developer, applications, get, production/task-management-production, allow
+    - p, proj:production:developer, applications, sync, production/task-management-production, allow
+    - p, proj:production:developer, applications, update, production/task-management-production, allow
+  - name: admin
+    description: Admin role with full access
+    policies:
+    - p, proj:production:admin, applications, *, production/*, allow
+    - p, proj:production:admin, clusters, *, production/*, allow
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: task-management-environments
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - env: staging
+        branch: develop
+        namespace: task-management
+        valuesFile: values-staging.yaml
+      - env: production
+        branch: main
+        namespace: taskmanagement-prod
+        valuesFile: values-production.yaml
+  template:
+    metadata:
+      name: 'task-management-{{env}}'
+      labels:
+        environment: '{{env}}'
+        team: platform
+    spec:
+      project: '{{env}}'
+      source:
+        repoURL: https://github.com/your-org/task-management-app
+        targetRevision: '{{branch}}'
+        path: k8s
+        helm:
+          valueFiles:
+          - '{{valuesFile}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        retry:
+          limit: 3
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

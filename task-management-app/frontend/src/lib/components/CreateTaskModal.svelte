@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { user } from '../stores/user';
+  import { userStore } from '../stores/user';
   import { toast } from '../stores/toast';
   import LoadingSpinner from './LoadingSpinner.svelte';
   
@@ -60,7 +60,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${$user.token}`
+          'Authorization': `Bearer ${$userStore.token}`
         },
         body: JSON.stringify({
           ...formData,
@@ -91,7 +91,7 @@
     try {
       const response = await fetch('/api/projects', {
         headers: {
-          'Authorization': `Bearer ${$user.token}`
+          'Authorization': `Bearer ${$userStore.token}`
         }
       });
       
@@ -107,7 +107,7 @@
     try {
       const response = await fetch('/api/users', {
         headers: {
-          'Authorization': `Bearer ${$user.token}`
+          'Authorization': `Bearer ${$userStore.token}`
         }
       });
       

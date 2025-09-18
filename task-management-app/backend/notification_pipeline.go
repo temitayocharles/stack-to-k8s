@@ -22,6 +22,18 @@ import (
 	"github.com/google/uuid"
 )
 
+// NotificationPipeline - Main notification pipeline
+type NotificationPipeline struct {
+	slackClient     *SlackNotifier
+	mattermostClient *MattermostNotifier
+	smtpClient      *SMTPNotifier
+	webhookClient   *WebhookNotifier
+	templateEngine  *NotificationTemplateEngine
+	router          *NotificationRouter
+	analytics       *NotificationAnalytics
+	queue           *NotificationQueue
+}
+
 // NotificationMessage - Universal notification message structure
 type NotificationMessage struct {
 	ID          string                 `json:"id"`
@@ -132,6 +144,12 @@ type SlackField struct {
 	Short bool   `json:"short,omitempty"`
 }
 
+type MattermostField struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short,omitempty"`
+}
+
 // MattermostNotifier - Mattermost notification client
 type MattermostNotifier struct {
 	webhookURL string
@@ -215,13 +233,6 @@ type RoutingRule struct {
 	Channels   []NotificationChannel
 	Priority   NotificationPriority
 	Recipients []string
-}
-
-type EscalationRule struct {
-	Condition     func(*NotificationMessage) bool
-	EscalateAfter time.Duration
-	EscalateTo    []string
-	NewPriority   NotificationPriority
 }
 
 // NotificationQueue - Queue for processing notifications

@@ -1,0 +1,69 @@
+# 📊 RESOURCE MANAGEMENT & QUOTAS
+# Prevent resource starvation for ecommerce-app
+
+---
+# Resource Quotas for Production Namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ecommerce-production-quota
+  namespace: ecommerce-production
+  labels:
+    tier: production
+    component: resource-management
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    pods: "20"
+    persistentvolumeclaims: "10"
+    services: "10"
+    secrets: "20"
+    configmaps: "20"
+
+---
+# Limit Range for Production Namespace
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: ecommerce-production-limits
+  namespace: ecommerce-production
+  labels:
+    tier: production
+    component: resource-management
+spec:
+  limits:
+  - default:
+      cpu: 500m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    type: Container
+  - max:
+      cpu: 2
+      memory: 4Gi
+    min:
+      cpu: 50m
+      memory: 64Mi
+    type: Container
+  - max:
+      storage: 10Gi
+    min:
+      storage: 1Gi
+    type: PersistentVolumeClaim
+
+---
+# Priority Class for Critical Workloads
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: ecommerce-critical
+  labels:
+    tier: production
+    component: resource-management
+value: 1000
+globalDefault: false
+description: "Critical ecommerce-app workloads with high priority"
