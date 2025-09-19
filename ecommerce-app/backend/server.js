@@ -62,6 +62,12 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/payments', require('./routes/payments'));
 
+// Advanced Features Routes
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/inventory', require('./routes/inventory'));
+app.use('/api/search', require('./routes/search'));
+app.use('/api/realtime', require('./routes/realtime'));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
