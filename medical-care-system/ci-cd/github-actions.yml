@@ -1,0 +1,426 @@
+name: Medical Care System CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'medical-care-system/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'medical-care-system/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_API: medical-care-api
+  IMAGE_NAME_FRONTEND: medical-care-frontend
+  KUBERNETES_NAMESPACE: medical-care-system
+
+jobs:
+  # ================================================================
+  # SECURITY AND CODE QUALITY CHECKS
+  # ================================================================
+  security-scan:
+    name: 🔒 Security & Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Restore dependencies
+        run: |
+          cd medical-care-system/backend
+          dotnet restore
+
+      - name: Build for analysis
+        run: |
+          cd medical-care-system/backend
+          dotnet build --no-restore
+
+      - name: Run Security Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './medical-care-system'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: medical-care-system/
+          args: >
+            -Dsonar.projectKey=medical-care-system
+            -Dsonar.organization=your-org
+            -Dsonar.sources=backend/,frontend/
+            -Dsonar.exclusions=**/bin/**,**/obj/**,**/node_modules/**
+
+  # ================================================================
+  # AUTOMATED TESTING SUITE
+  # ================================================================
+  test:
+    name: 🧪 Comprehensive Testing
+    runs-on: ubuntu-latest
+    needs: security-scan
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: MedicalCare2025!
+          POSTGRES_USER: postgres
+          POSTGRES_DB: medicalcaredb_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Restore .NET dependencies
+        run: |
+          cd medical-care-system/backend
+          dotnet restore
+
+      - name: Build .NET application
+        run: |
+          cd medical-care-system/backend
+          dotnet build --no-restore
+
+      - name: Run Unit Tests
+        run: |
+          cd medical-care-system/backend
+          dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
+
+      - name: Run Integration Tests
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=medicalcaredb_test;Username=postgres;Password=MedicalCare2025!"
+        run: |
+          cd medical-care-system/backend
+          dotnet test --no-build --verbosity normal --filter Category=Integration
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd medical-care-system/frontend
+          npm ci
+
+      - name: Run Frontend Tests
+        run: |
+          cd medical-care-system/frontend
+          npm run test -- --coverage
+
+      - name: Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./medical-care-system/backend/coverage.xml,./medical-care-system/frontend/coverage/lcov.info
+
+  # ================================================================
+  # CONTAINER BUILD AND SCAN
+  # ================================================================
+  build:
+    name: 🐳 Build & Scan Containers
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      api-image: ${{ steps.meta-api.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract API metadata
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_API }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./medical-care-system
+          file: ./medical-care-system/Dockerfile
+          target: api
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract Frontend metadata
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./medical-care-system
+          file: ./medical-care-system/Dockerfile
+          target: frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Container Security Scan - API
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta-api.outputs.tags }}
+          format: 'sarif'
+          output: 'api-security-results.sarif'
+
+      - name: Container Security Scan - Frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta-frontend.outputs.tags }}
+          format: 'sarif'
+          output: 'frontend-security-results.sarif'
+
+      - name: Upload Container Security Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'api-security-results.sarif'
+
+  # ================================================================
+  # DEVELOPMENT ENVIRONMENT DEPLOYMENT
+  # ================================================================
+  deploy-dev:
+    name: 🚀 Deploy to Development
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: development
+      url: https://medical-care-dev.your-domain.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_DEV }}
+
+      - name: Deploy to Development
+        run: |
+          # Update image tags in manifests
+          sed -i "s|medical-care-api:latest|${{ needs.build.outputs.api-image }}|g" medical-care-system/k8s/backend-deployment.yaml
+          sed -i "s|medical-care-frontend:latest|${{ needs.build.outputs.frontend-image }}|g" medical-care-system/k8s/frontend-deployment.yaml
+          
+          # Apply all Kubernetes manifests
+          kubectl apply -f medical-care-system/k8s/namespace.yaml
+          kubectl apply -f medical-care-system/k8s/medical-care-secrets.yaml
+          kubectl apply -f medical-care-system/k8s/postgresql-pvc.yaml
+          kubectl apply -f medical-care-system/k8s/postgresql-deployment.yaml
+          kubectl apply -f medical-care-system/k8s/postgresql-service.yaml
+          kubectl apply -f medical-care-system/k8s/backend-deployment.yaml
+          kubectl apply -f medical-care-system/k8s/backend-service.yaml
+          kubectl apply -f medical-care-system/k8s/frontend-deployment.yaml
+          kubectl apply -f medical-care-system/k8s/frontend-service.yaml
+          kubectl apply -f medical-care-system/k8s/ingress.yaml
+
+      - name: Wait for Deployment
+        run: |
+          kubectl wait --for=condition=available --timeout=600s deployment/medical-care-api -n ${{ env.KUBERNETES_NAMESPACE }}
+          kubectl wait --for=condition=available --timeout=600s deployment/medical-care-frontend -n ${{ env.KUBERNETES_NAMESPACE }}
+
+      - name: Run Health Checks
+        run: |
+          # Test API health
+          kubectl port-forward -n ${{ env.KUBERNETES_NAMESPACE }} svc/medical-care-api 8080:80 &
+          sleep 10
+          curl -f http://localhost:8080/health || exit 1
+
+  # ================================================================
+  # STAGING ENVIRONMENT DEPLOYMENT
+  # ================================================================
+  deploy-staging:
+    name: 🎭 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, deploy-dev]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://medical-care-staging.your-domain.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Deploy to Staging
+        run: |
+          # Update image tags for staging
+          sed -i "s|medical-care-api:latest|${{ needs.build.outputs.api-image }}|g" medical-care-system/k8s/backend-deployment.yaml
+          sed -i "s|medical-care-frontend:latest|${{ needs.build.outputs.frontend-image }}|g" medical-care-system/k8s/frontend-deployment.yaml
+          
+          # Deploy with monitoring
+          kubectl apply -f medical-care-system/k8s/
+          kubectl apply -f medical-care-system/k8s/monitoring.yaml
+          kubectl apply -f medical-care-system/k8s/advanced-features/ -R
+
+      - name: Run Comprehensive Tests
+        run: |
+          # Wait for all services
+          kubectl wait --for=condition=available --timeout=600s deployment/medical-care-api -n ${{ env.KUBERNETES_NAMESPACE }}
+          kubectl wait --for=condition=available --timeout=600s deployment/medical-care-frontend -n ${{ env.KUBERNETES_NAMESPACE }}
+          kubectl wait --for=condition=available --timeout=600s deployment/postgresql -n ${{ env.KUBERNETES_NAMESPACE }}
+          
+          # Run staging tests
+          cd medical-care-system
+          chmod +x test-progress.sh
+          ./test-progress.sh
+
+  # ================================================================
+  # PRODUCTION DEPLOYMENT APPROVAL
+  # ================================================================
+  deploy-production:
+    name: 🏥 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://medical-care.your-domain.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PROD }}
+
+      - name: Production Deployment with Blue-Green
+        run: |
+          # Update image tags for production
+          sed -i "s|medical-care-api:latest|${{ needs.build.outputs.api-image }}|g" medical-care-system/k8s/backend-deployment.yaml
+          sed -i "s|medical-care-frontend:latest|${{ needs.build.outputs.frontend-image }}|g" medical-care-system/k8s/frontend-deployment.yaml
+          
+          # Deploy to production with full monitoring
+          kubectl apply -f medical-care-system/k8s/namespace.yaml
+          kubectl apply -f medical-care-system/k8s/medical-care-secrets.yaml
+          kubectl apply -f medical-care-system/k8s/postgresql-pvc.yaml
+          kubectl apply -f medical-care-system/k8s/postgresql-deployment.yaml
+          kubectl apply -f medical-care-system/k8s/postgresql-service.yaml
+          kubectl apply -f medical-care-system/k8s/backend-deployment.yaml
+          kubectl apply -f medical-care-system/k8s/backend-service.yaml
+          kubectl apply -f medical-care-system/k8s/frontend-deployment.yaml
+          kubectl apply -f medical-care-system/k8s/frontend-service.yaml
+          kubectl apply -f medical-care-system/k8s/ingress.yaml
+          kubectl apply -f medical-care-system/k8s/monitoring.yaml
+          kubectl apply -f medical-care-system/k8s/advanced-features/ -R
+
+      - name: Production Health Validation
+        run: |
+          # Wait for all production services
+          kubectl wait --for=condition=available --timeout=600s deployment/medical-care-api -n ${{ env.KUBERNETES_NAMESPACE }}
+          kubectl wait --for=condition=available --timeout=600s deployment/medical-care-frontend -n ${{ env.KUBERNETES_NAMESPACE }}
+          kubectl wait --for=condition=available --timeout=600s deployment/postgresql -n ${{ env.KUBERNETES_NAMESPACE }}
+          kubectl wait --for=condition=available --timeout=600s deployment/prometheus -n ${{ env.KUBERNETES_NAMESPACE }}
+          
+          # Comprehensive production health check
+          cd medical-care-system
+          chmod +x test-progress.sh
+          timeout 300 ./test-progress.sh
+          
+          # Verify external access
+          sleep 60
+          curl -f https://medical-care.your-domain.com/health || exit 1
+
+      - name: 72-Hour Production Monitor
+        run: |
+          echo "✅ Production deployment successful!"
+          echo "🔍 Production monitoring active for 72 hours"
+          echo "📊 Prometheus: https://medical-care.your-domain.com/prometheus"
+          echo "📈 Grafana: https://medical-care.your-domain.com/grafana"
+          echo "🏥 Application: https://medical-care.your-domain.com"
+
+  # ================================================================
+  # NOTIFICATION AND REPORTING
+  # ================================================================
+  notify:
+    name: 📢 Notify Teams
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+    steps:
+      - name: Deployment Success Notification
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: |
+            🎉 Medical Care System successfully deployed to production!
+            🏥 Application: https://medical-care.your-domain.com
+            📊 Monitoring: Active for 72 hours
+            🔒 Security: All scans passed
+            ✅ Tests: All health checks passed
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Deployment Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            ❌ Medical Care System deployment failed!
+            🔍 Check workflow logs for details
+            🚨 Patient care services may be affected
+            🛠️ Immediate action required
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

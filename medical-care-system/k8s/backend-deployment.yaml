@@ -6,6 +6,7 @@ metadata:
   labels:
     app: medical-care-api
     component: backend
+    version: v1.0.0
 spec:
   replicas: 2
   selector:
@@ -16,39 +17,64 @@ spec:
       labels:
         app: medical-care-api
         component: backend
+        version: v1.0.0
     spec:
       containers:
       - name: medical-care-api
         image: medical-care-api:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 5170
           name: http
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Production"
         - name: ASPNETCORE_URLS
-          value: "http://+:8080"
+          value: "http://+:5170"
         - name: ConnectionStrings__DefaultConnection
-          value: "Server=sql-server-service,1433;Database=MedicalCareDB;User=sa;Password=MedicalCare2025!;TrustServerCertificate=true;MultipleActiveResultSets=true"
+          valueFrom:
+            secretKeyRef:
+              name: medical-care-secrets
+              key: database-connection-string
+        - name: HealthCheck__Enabled
+          value: "true"
+        - name: HealthCheck__Port
+          value: "5170"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "200m"
-          limits:
             memory: "512Mi"
-            cpu: "500m"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "750m"
         livenessProbe:
           httpGet:
             path: /health
-            port: 8080
-          initialDelaySeconds: 60
+            port: 5170
+          initialDelaySeconds: 90
           periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /health
-            port: 8080
+            path: /health/ready
+            port: 5170
           initialDelaySeconds: 30
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: 5170
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
         securityContext:
           allowPrivilegeEscalation: false
-          runAsNonRoot: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL

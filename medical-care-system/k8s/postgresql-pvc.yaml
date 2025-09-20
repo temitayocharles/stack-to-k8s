@@ -1,12 +1,15 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: sql-server-pvc
+  name: postgresql-pvc
   namespace: medical-care-system
+  labels:
+    app: postgresql
+    component: database
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 10Gi
   storageClassName: standard
