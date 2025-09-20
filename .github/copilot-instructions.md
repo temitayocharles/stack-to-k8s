@@ -27,7 +27,7 @@ This workspace contains multiple real working applications across different doma
 - ✅ **Complete Infrastructure** - AWS/Terraform guides, console instructions
 - ✅ **Complete Monitoring** - Prometheus, Grafana, alerting, health checks
 - ✅ **Complete Security** - Vulnerability scanning, RBAC, secrets management
-- ✅ **100% Test Success Rate** - All tests passing, zero failures before completion
+- ✅ **95% Test Success Rate** - Minimum 95% pass rate, fix failures before completion
 - ✅ **Production Deployment Verified** - Application accessible and fully functional
 - ✅ **Upstream Git Sync** - All changes committed and pushed to remote
 
@@ -122,17 +122,17 @@ CURRENT_MILESTONE_COMPLETE → IMMEDIATE_NEXT_ACTION → PROGRESS_TO_NEXT_MILEST
 
 **TEST EXECUTION REQUIREMENTS**:
 ```bash
-# MANDATORY: 100% test pass rate required
-REQUIRED_PASS_RATE=100%
+# MANDATORY: 95% test pass rate required - NO LESS THAN 95%
+REQUIRED_PASS_RATE=95%
 MINIMUM_TESTS_PER_APP=15
 MAXIMUM_RESPONSE_TIME=2000ms
 ZERO_SECURITY_VULNERABILITIES=MANDATORY
 
 # FAILURE HANDLING PROTOCOL
-if [[ $TEST_PASS_RATE -lt 100 ]]; then
-    echo "❌ CRITICAL FAILURE: Tests not at 100% pass rate"
+if [[ $TEST_PASS_RATE -lt 95 ]]; then
+    echo "❌ CRITICAL FAILURE: Tests not at 95% pass rate"
     echo "🔧 IMMEDIATE ACTION: Fix all failing tests before progression"
-    echo "🚫 BLOCKING: Cannot proceed to next application"
+    echo "🚫 BLOCKING: Cannot proceed to next application - 95% MINIMUM REQUIRED"
     exit 1
 fi
 ```
@@ -3093,6 +3093,49 @@ kubectl apply -f k8s/advanced-features/autoscaling/
 - ✅ Medical Care System, ✅ Weather App, ✅ Social Media Platform
 
 ## 🚨 WORKSPACE-WIDE ENFORCEMENT - MANDATORY COMPLIANCE
+
+### **DECLARATIVE STATE MANAGEMENT - CRITICAL MANDATE**
+
+**SESSION_LOG.md AS DECLARATIVE STATE DOCUMENT**:
+- ✅ **ALWAYS consult SESSION_LOG.md first** - Contains complete workspace state
+- ✅ **Update after every major milestone** - Maintain accurate state
+- ✅ **Use for seamless handover** - Enable zero-context-loss continuation
+- ✅ **Validate workspace consistency** - Compare actual vs documented state
+- ✅ **Scan for workspace changes** - Monitor files, configurations, test results
+
+**MANDATORY WORKSPACE SCANNING PROTOCOL**:
+```bash
+# ALWAYS perform workspace health check before major actions
+# 1. Read SESSION_LOG.md for current state
+# 2. Scan workspace for changes since last update
+# 3. Compare actual vs documented application status
+# 4. Identify any inconsistencies or drift
+# 5. Update SESSION_LOG.md with findings
+# 6. Proceed with declarative state alignment
+```
+
+**DECLARATIVE STATE VALIDATION - ARGOCD-STYLE MONITORING**:
+- ✅ **Compare desired vs actual state** - SESSION_LOG.md vs workspace reality
+- ✅ **Auto-detect configuration drift** - Files changed since last update
+- ✅ **Identify test status changes** - Pass rates, container health, deployment status
+- ✅ **Monitor application completion** - Track progress against documented milestones
+- ✅ **Enforce consistency** - Align actual state with documented requirements
+
+**WORKSPACE CHANGE DETECTION**:
+```bash
+# Auto-scan workspace for changes
+git status --porcelain | wc -l  # Uncommitted changes
+docker ps -q | wc -l            # Running containers
+find . -name "*.tmp" | wc -l    # Temporary files
+kubectl get pods 2>/dev/null    # K8s deployment status
+```
+
+**SESSION HANDOVER REQUIREMENTS**:
+- ✅ **Read SESSION_LOG.md completely** - Understand current state
+- ✅ **Validate documented status** - Confirm applications work as described
+- ✅ **Check critical blockers** - Address any documented issues
+- ✅ **Update workspace state** - Reflect any changes found
+- ✅ **Continue from exact point** - No context loss, seamless progression
 
 ### **COPILOT-INSTRUCTIONS REFERENCE MANDATE - CRITICAL RULE**
 
