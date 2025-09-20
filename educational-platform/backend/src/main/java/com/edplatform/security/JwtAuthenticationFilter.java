@@ -78,6 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                path.startsWith("/swagger-ui/") ||
                path.startsWith("/v3/api-docs/") ||
                path.equals("/api/health") ||
-               path.equals("/actuator/health");
+               path.equals("/actuator/health") ||
+               path.equals("/error");
     }
 }

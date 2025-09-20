@@ -19,7 +19,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/src/main/resources/db/migration:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - edu-network
     healthcheck:
@@ -77,7 +77,7 @@ services:
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: INFO
       
       # JWT Configuration
-      JWT_SECRET: your-super-secret-jwt-key-for-production-use-256-bit-key
+      JWT_SECRET: your-super-secret-jwt-key-for-production-use-512-bit-key-that-is-long-enough-for-HS512-algorithm-security-requirements
       JWT_EXPIRATION: 86400000
       JWT_REFRESH_EXPIRATION: 604800000
       
@@ -141,7 +141,7 @@ services:
       ENABLE_ANALYTICS: true
       ENABLE_DARK_MODE: true
     ports:
-      - "80:80"
+      - "3001:80"
       - "443:443"
     depends_on:
       backend:
@@ -149,7 +149,7 @@ services:
     networks:
       - edu-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3

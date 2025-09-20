@@ -521,16 +521,16 @@ docker-compose logs -f
 ### 4.2 Access Your Application
 
 ```
-🌐 Frontend: http://localhost:8080
-🔗 Backend API: http://localhost:5000
-📊 API Docs: http://localhost:5000/api/docs
+🌐 Frontend: http://localhost:3001
+🔗 Backend API: http://localhost:8080
+📊 API Docs: http://localhost:8080/actuator
 ```
 
 ### 4.3 Test Basic Functionality
 
 ```bash
 # Test backend health
-curl http://localhost:5000/api/health
+curl http://localhost:8080/actuator/health
 
 # Test frontend
 curl http://localhost:8080

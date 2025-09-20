@@ -18,6 +18,9 @@ if [ ! -z "$WS_URL" ]; then
     sed -i "s|ws://backend:8080|$WS_URL|g" /etc/nginx/nginx.conf
 fi
 
+# Create assets directory if it doesn't exist
+mkdir -p /usr/share/nginx/html/assets
+
 # Create environment configuration for Angular at runtime
 cat > /usr/share/nginx/html/assets/env.js << EOF
 window['env'] = {

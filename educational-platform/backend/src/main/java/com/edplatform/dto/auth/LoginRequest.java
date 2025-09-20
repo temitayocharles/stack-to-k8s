@@ -32,4 +32,8 @@ public class LoginRequest {
 
     // Optional: User agent for tracking
     private String userAgent;
+
+    // Manual getters for compile-time safety
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
 }

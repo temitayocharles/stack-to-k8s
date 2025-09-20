@@ -33,4 +33,9 @@ public class ChangePasswordRequest {
     public boolean isPasswordsMatch() {
         return newPassword != null && newPassword.equals(confirmPassword);
     }
+
+    // Manual getters for compile-time safety
+    public String getCurrentPassword() { return currentPassword; }
+    public String getNewPassword() { return newPassword; }
+    public String getConfirmPassword() { return confirmPassword; }
 }

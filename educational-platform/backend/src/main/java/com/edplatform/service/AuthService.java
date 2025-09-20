@@ -68,7 +68,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .roles(roles)
                 .isActive(true)
-                .isEmailVerified(false) // Email verification required
+                .isEmailVerified(true) // Auto-verify for testing (production should implement email verification)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -137,7 +137,8 @@ public class AuthService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Authentication failed for user: {}", request.getEmail(), e);
+            log.error("Authentication failed for user: {} - Exception type: {} - Message: {}", 
+                request.getEmail(), e.getClass().getSimpleName(), e.getMessage(), e);
             throw new BusinessException("Invalid email or password");
         }
     }

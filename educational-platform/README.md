@@ -107,9 +107,9 @@ docker-compose up -d
 docker-compose ps
 
 # Access the application
-# Frontend: http://localhost:4200
-# Backend API: http://localhost:8080/api/health
-# Database: localhost:5432
+# Frontend: http://localhost:3001
+# Backend API: http://localhost:8080/actuator/health
+# Database: localhost:5433
 
 # Stop everything
 docker-compose down

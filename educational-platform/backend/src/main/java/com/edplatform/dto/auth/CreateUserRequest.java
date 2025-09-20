@@ -82,4 +82,11 @@ public class CreateUserRequest {
     public boolean isPrivacyAccepted() {
         return acceptPrivacy != null && acceptPrivacy;
     }
+
+    // Manual getters for compile-time safety
+    public String getEmail() { return email; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public String getPassword() { return password; }
+    public String getPhoneNumber() { return phoneNumber; }
 }

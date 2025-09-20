@@ -49,4 +49,11 @@ public class UpdateUserRequest {
     private Boolean profilePublic;
     private Boolean showEmail;
     private Boolean showPhone;
+
+    // Manual getters for compile-time safety
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public String getBio() { return bio; }
 }
