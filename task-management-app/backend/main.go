@@ -24,6 +24,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,6 +47,9 @@ var (
 	aiEngine          *AIEngine
 	aiHandler         *SimpleAIHandler
 	notificationSystem *NotificationSystem
+	prioritizationEngine *SimplePrioritizationEngine
+	timeTrackingEngine *SimpleTimeTrackingEngine
+	analyticsEngine   *SimpleAnalyticsEngine
 	upgrader          = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true // Allow all origins in development
@@ -101,22 +105,74 @@ type Comment struct {
 	Type      string    `json:"type"`
 }
 
-// WebSocket connection management
+// Enhanced WebSocket message structures
+type WSMessageType string
+
+const (
+	// Task related messages
+	WSMsgTaskCreated  WSMessageType = "task_created"
+	WSMsgTaskUpdated  WSMessageType = "task_updated"
+	WSMsgTaskDeleted  WSMessageType = "task_deleted"
+	WSMsgTaskAssigned WSMessageType = "task_assigned"
+	
+	// Collaboration messages
+	WSMsgUserTyping     WSMessageType = "user_typing"
+	WSMsgUserPresence   WSMessageType = "user_presence"
+	WSMsgCursorPosition WSMessageType = "cursor_position"
+	WSMsgDocumentEdit   WSMessageType = "document_edit"
+	
+	// System messages
+	WSMsgUserJoined    WSMessageType = "user_joined"
+	WSMsgUserLeft      WSMessageType = "user_left"
+	WSMsgRoomJoined    WSMessageType = "room_joined"
+	WSMsgRoomLeft      WSMessageType = "room_left"
+	WSMsgNotification  WSMessageType = "notification"
+	WSMsgHeartbeat     WSMessageType = "heartbeat"
+	WSMsgError         WSMessageType = "error"
+	WSMsgAcknowledgment WSMessageType = "acknowledgment"
+)
+
+type WSMessage struct {
+	ID        string        `json:"id"`
+	Type      WSMessageType `json:"type"`
+	Data      interface{}   `json:"data"`
+	UserID    string        `json:"user_id"`
+	Username  string        `json:"username"`
+	Room      string        `json:"room,omitempty"`
+	Timestamp int64         `json:"timestamp"`
+	RequiresAck bool         `json:"requires_ack,omitempty"`
+}
+
+type TypingIndicator struct {
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	TaskID   string `json:"task_id"`
+	IsTyping bool   `json:"is_typing"`
+}
+
+// Enhanced WebSocket connection management
 type Hub struct {
-	clients    map[*websocket.Conn]bool
-	broadcast  chan []byte
-	register   chan *websocket.Conn
-	unregister chan *websocket.Conn
-	mutex      sync.RWMutex
+	clients         map[*websocket.Conn]*Client
+	rooms           map[string]map[*Client]bool
+	broadcast       chan WSMessage
+	register        chan *Client
+	unregister      chan *Client
+	userPresence    map[string]*UserPresence
+	pendingAcks     map[string]WSMessage
+	mutex           sync.RWMutex
+	presenceMutex   sync.RWMutex
 }
 
 type Client struct {
-	hub      *Hub
-	conn     *websocket.Conn
-	send     chan []byte
-	userID   string
-	username string
-	rooms    map[string]bool
+	hub        *Hub
+	conn       *websocket.Conn
+	send       chan WSMessage
+	userID     string
+	username   string
+	rooms      map[string]bool
+	isActive   bool
+	lastPing   time.Time
+	mutex      sync.RWMutex
 }
 
 // Analytics Engine for monitoring
@@ -156,18 +212,34 @@ func main() {
 	collaborationEngine = NewCollaborationEngine()
 	log.Println("🤝 Real-time Collaboration Engine initialized")
 
+	// Initialize Enhanced AI Prioritization Engine
+	prioritizationEngine = NewSimplePrioritizationEngine()
+	log.Println("🎯 Enhanced AI Prioritization Engine initialized")
+
+	// Initialize Time Tracking Engine
+	timeTrackingEngine = NewSimpleTimeTrackingEngine()
+	log.Println("⏱️ Time Tracking Engine initialized")
+
+	// Initialize Project Analytics Engine
+	analyticsEngine = NewSimpleAnalyticsEngine()
+	log.Println("📊 Project Analytics Engine initialized")
+
+	// Initialize Enhanced WebSocket hub for real-time collaboration
+	hub = &Hub{
+		clients:      make(map[*websocket.Conn]*Client),
+		rooms:        make(map[string]map[*Client]bool),
+		broadcast:    make(chan WSMessage, 256),
+		register:     make(chan *Client, 256),
+		unregister:   make(chan *Client, 256),
+		userPresence: make(map[string]*UserPresence),
+		pendingAcks:  make(map[string]WSMessage),
+	}
+	go hub.run()
+	log.Println("🔗 Enhanced WebSocket Hub initialized")
+
 	// Initialize Comprehensive Health Check Service
 	initHealthCheckService(db, hub)
 	log.Println("🏥 Comprehensive Health Check Service initialized")
-
-	// Initialize WebSocket hub for basic real-time features
-	hub = &Hub{
-		clients:    make(chan *websocket.Conn, 256),
-		broadcast:  make(chan []byte, 256),
-		register:   make(chan *websocket.Conn, 256),
-		unregister: make(chan *websocket.Conn, 256),
-	}
-	go hub.run()
 
 	// Create router
 	r := mux.NewRouter()
@@ -201,6 +273,27 @@ func main() {
 	api.HandleFunc("/ai/tasks", aiHandler.CreateTaskWithBasicAI()).Methods("POST")
 	api.HandleFunc("/ai/tasks/{id}/suggestions", aiHandler.GetTaskSuggestions()).Methods("GET")
 	api.HandleFunc("/ai/users/{id}/tips", aiHandler.GetProductivityTips()).Methods("GET")
+
+	// Enhanced AI Prioritization routes
+	api.HandleFunc("/ai/prioritize", prioritizeTasksHandler).Methods("POST")
+	api.HandleFunc("/ai/prioritize/user/{userID}", prioritizeUserTasksHandler).Methods("GET")
+	api.HandleFunc("/ai/prioritize/context", getPrioritizationContextHandler).Methods("GET")
+
+	// Time Tracking routes
+	api.HandleFunc("/time/start", startTimeTrackingHandler).Methods("POST")
+	api.HandleFunc("/time/stop", stopTimeTrackingHandler).Methods("POST")
+	api.HandleFunc("/time/entries", getTimeEntriesHandler).Methods("GET")
+	api.HandleFunc("/time/entries/{userID}", getUserTimeEntriesHandler).Methods("GET")
+	api.HandleFunc("/time/analytics", getTimeAnalyticsHandler).Methods("GET")
+	api.HandleFunc("/time/productivity/{userID}", getProductivityAnalysisHandler).Methods("GET")
+	api.HandleFunc("/time/detect/{userID}", detectActivityHandler).Methods("POST")
+
+	// Project Analytics routes
+	api.HandleFunc("/analytics/project/{projectID}", getProjectAnalyticsHandler).Methods("GET")
+	api.HandleFunc("/analytics/dashboard/{userID}", getAnalyticsDashboardHandler).Methods("GET")
+	api.HandleFunc("/analytics/metrics", getProjectMetricsHandler).Methods("GET")
+	api.HandleFunc("/analytics/reports", generateAnalyticsReportHandler).Methods("POST")
+	api.HandleFunc("/analytics/realtime/{projectID}", getRealtimeMetricsHandler).Methods("GET")
 
 	// Notification routes
 	api.HandleFunc("/notifications", sendNotification).Methods("POST")
@@ -256,7 +349,28 @@ func initCouchDB() {
 func initDB() {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		databaseURL = "postgres://taskuser:taskpass@localhost:5432/taskmanagement?sslmode=disable"
+		// Use environment variables for container compatibility
+		dbHost := os.Getenv("DB_HOST")
+		if dbHost == "" {
+			dbHost = "localhost"
+		}
+		dbPort := os.Getenv("DB_PORT")
+		if dbPort == "" {
+			dbPort = "5432"
+		}
+		dbUser := os.Getenv("DB_USER")
+		if dbUser == "" {
+			dbUser = "taskuser"
+		}
+		dbPassword := os.Getenv("DB_PASSWORD")
+		if dbPassword == "" {
+			dbPassword = "taskpass"
+		}
+		dbName := os.Getenv("DB_NAME")
+		if dbName == "" {
+			dbName = "taskmanagement"
+		}
+		databaseURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
 	}
 
 	var err error
@@ -334,6 +448,24 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Send WebSocket notification for task creation
+	wsMessage := WSMessage{
+		ID:        generateID(),
+		Type:      WSMsgTaskCreated,
+		Data:      task,
+		UserID:    "system", // Could be extracted from auth context
+		Username:  "System",
+		Room:      "general", // Could be project-specific
+		Timestamp: time.Now().Unix(),
+	}
+	
+	select {
+	case hub.broadcast <- wsMessage:
+	default:
+		// Channel full, notification not sent
+		log.Printf("WebSocket channel full, task creation notification not sent")
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)
@@ -385,6 +517,24 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task.ID = id
+
+	// Send WebSocket notification for task update
+	wsMessage := WSMessage{
+		ID:        generateID(),
+		Type:      WSMsgTaskUpdated,
+		Data:      task,
+		UserID:    "system", // Could be extracted from auth context
+		Username:  "System",
+		Room:      "general", // Could be project-specific
+		Timestamp: time.Now().Unix(),
+	}
+	
+	select {
+	case hub.broadcast <- wsMessage:
+	default:
+		log.Printf("WebSocket channel full, task update notification not sent")
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(task)
 }
@@ -397,6 +547,23 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Send WebSocket notification for task deletion
+	wsMessage := WSMessage{
+		ID:        generateID(),
+		Type:      WSMsgTaskDeleted,
+		Data:      map[string]string{"id": id},
+		UserID:    "system", // Could be extracted from auth context
+		Username:  "System",
+		Room:      "general", // Could be project-specific
+		Timestamp: time.Now().Unix(),
+	}
+	
+	select {
+	case hub.broadcast <- wsMessage:
+	default:
+		log.Printf("WebSocket channel full, task deletion notification not sent")
 	}
 
 	w.WriteHeader(http.StatusNoContent)
@@ -668,74 +835,403 @@ func getDashboardStats(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(stats)
 }
 
-// WebSocket handler
+// Enhanced WebSocket handler with authentication and structured messaging
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("WebSocket upgrade failed: %v", err)
 		return
 	}
-	defer conn.Close()
+
+	// Extract user info from query parameters or headers
+	userID := r.URL.Query().Get("user_id")
+	username := r.URL.Query().Get("username")
+	
+	// Use defaults if not provided
+	if userID == "" {
+		userID = "anonymous_" + generateID()
+	}
+	if username == "" {
+		username = "Anonymous User"
+	}
+
+	// Create client
+	client := &Client{
+		hub:      hub,
+		conn:     conn,
+		send:     make(chan WSMessage, 256),
+		userID:   userID,
+		username: username,
+		rooms:    make(map[string]bool),
+		isActive: true,
+		lastPing: time.Now(),
+	}
 
 	// Register client
-	hub.register <- conn
+	hub.register <- client
 
-	// Handle messages
+	// Join general room by default
+	hub.addToRoom(client, "general")
+
+	// Start goroutines for reading and writing
+	go client.writePump()
+	go client.readPump()
+}
+
+// Client read pump - handles incoming messages
+func (c *Client) readPump() {
+	defer func() {
+		c.hub.unregister <- c
+		c.conn.Close()
+	}()
+
+	// Set read deadline and pong handler
+	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.conn.SetPongHandler(func(string) error {
+		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		c.lastPing = time.Now()
+		return nil
+	})
+
 	for {
-		_, message, err := conn.ReadMessage()
+		_, messageBytes, err := c.conn.ReadMessage()
 		if err != nil {
-			log.Printf("WebSocket read error: %v", err)
-			hub.unregister <- conn
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("WebSocket error: %v", err)
+			}
 			break
 		}
 
-		// Broadcast message to all clients
-		select {
-		case hub.broadcast <- message:
-		default:
-			// Channel is full, skip this message
+		// Parse incoming message
+		var incomingMsg WSMessage
+		if err := json.Unmarshal(messageBytes, &incomingMsg); err != nil {
+			log.Printf("Error parsing WebSocket message: %v", err)
+			// Send error response
+			errorMsg := WSMessage{
+				ID:        generateID(),
+				Type:      WSMsgError,
+				Data:      map[string]string{"error": "Invalid message format"},
+				Timestamp: time.Now().Unix(),
+			}
+			select {
+			case c.send <- errorMsg:
+			default:
+				close(c.send)
+				return
+			}
+			continue
 		}
 
-		log.Printf("Received message: %s", message)
+		// Set user info and timestamp
+		incomingMsg.UserID = c.userID
+		incomingMsg.Username = c.username
+		incomingMsg.Timestamp = time.Now().Unix()
+
+		// Handle different message types
+		c.handleMessage(incomingMsg)
 	}
 }
 
-// Hub run method
-func (h *Hub) run() {
+// Client write pump - handles outgoing messages
+func (c *Client) writePump() {
+	ticker := time.NewTicker(54 * time.Second)
+	defer func() {
+		ticker.Stop()
+		c.conn.Close()
+	}()
+
 	for {
 		select {
-		case conn := <-h.register:
-			h.mutex.Lock()
-			h.clients[conn] = true
-			h.mutex.Unlock()
-			log.Printf("Client connected. Total clients: %d", len(h.clients))
-
-		case conn := <-h.unregister:
-			h.mutex.Lock()
-			if _, ok := h.clients[conn]; ok {
-				delete(h.clients, conn)
-				conn.Close()
+		case message, ok := <-c.send:
+			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if !ok {
+				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
 			}
-			h.mutex.Unlock()
-			log.Printf("Client disconnected. Total clients: %d", len(h.clients))
 
-		case message := <-h.broadcast:
-			h.mutex.RLock()
-			for conn := range h.clients {
-				select {
-				case <-time.After(time.Millisecond * 100):
-					// Timeout to prevent blocking
-				default:
-					if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-						log.Printf("WebSocket write error: %v", err)
-						conn.Close()
-						delete(h.clients, conn)
-					}
-				}
+			messageBytes, err := json.Marshal(message)
+			if err != nil {
+				log.Printf("Error marshaling message: %v", err)
+				continue
 			}
-			h.mutex.RUnlock()
+
+			if err := c.conn.WriteMessage(websocket.TextMessage, messageBytes); err != nil {
+				log.Printf("WebSocket write error: %v", err)
+				return
+			}
+
+		case <-ticker.C:
+			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
 		}
 	}
+}
+
+// Handle different types of WebSocket messages
+func (c *Client) handleMessage(message WSMessage) {
+	switch message.Type {
+	case WSMsgUserTyping:
+		// Handle typing indicator
+		c.handleTypingIndicator(message)
+	case WSMsgCursorPosition:
+		// Handle cursor position update
+		c.handleCursorPosition(message)
+	case WSMsgRoomJoined:
+		// Handle room join request
+		c.handleRoomJoin(message)
+	case WSMsgRoomLeft:
+		// Handle room leave request
+		c.handleRoomLeave(message)
+	case WSMsgUserPresence:
+		// Handle presence update
+		c.handlePresenceUpdate(message)
+	default:
+		// Default: broadcast to all in same rooms
+		c.hub.broadcast <- message
+	}
+}
+
+// Handle typing indicator
+func (c *Client) handleTypingIndicator(message WSMessage) {
+	// Broadcast typing indicator to room members
+	if message.Room != "" {
+		c.hub.broadcastToRoom(message.Room, message)
+	} else {
+		c.hub.broadcastToRoom("general", message)
+	}
+}
+
+// Handle cursor position update
+func (c *Client) handleCursorPosition(message WSMessage) {
+	// Broadcast cursor position to room members
+	if message.Room != "" {
+		c.hub.broadcastToRoom(message.Room, message)
+	} else {
+		c.hub.broadcastToRoom("general", message)
+	}
+}
+
+// Handle room join request
+func (c *Client) handleRoomJoin(message WSMessage) {
+	if roomData, ok := message.Data.(map[string]interface{}); ok {
+		if roomID, exists := roomData["room_id"].(string); exists {
+			c.hub.addToRoom(c, roomID)
+			
+			// Send confirmation
+			confirmMsg := WSMessage{
+				ID:        generateID(),
+				Type:      WSMsgRoomJoined,
+				Data:      map[string]string{"room_id": roomID, "status": "joined"},
+				UserID:    c.userID,
+				Username:  c.username,
+				Room:      roomID,
+				Timestamp: time.Now().Unix(),
+			}
+			
+			select {
+			case c.send <- confirmMsg:
+			default:
+			}
+		}
+	}
+}
+
+// Handle room leave request
+func (c *Client) handleRoomLeave(message WSMessage) {
+	if roomData, ok := message.Data.(map[string]interface{}); ok {
+		if roomID, exists := roomData["room_id"].(string); exists {
+			c.hub.removeFromRoom(c, roomID)
+			
+			// Send confirmation
+			confirmMsg := WSMessage{
+				ID:        generateID(),
+				Type:      WSMsgRoomLeft,
+				Data:      map[string]string{"room_id": roomID, "status": "left"},
+				UserID:    c.userID,
+				Username:  c.username,
+				Timestamp: time.Now().Unix(),
+			}
+			
+			select {
+			case c.send <- confirmMsg:
+			default:
+			}
+		}
+	}
+}
+
+// Handle presence update
+func (c *Client) handlePresenceUpdate(message WSMessage) {
+	c.hub.presenceMutex.Lock()
+	if presence, exists := c.hub.userPresence[c.userID]; exists {
+		if presenceData, ok := message.Data.(map[string]interface{}); ok {
+			if status, ok := presenceData["status"].(string); ok {
+				presence.Status = PresenceStatus(status)
+			}
+			if activity, ok := presenceData["activity"].(string); ok {
+				presence.Activity = activity
+			}
+			presence.LastSeen = time.Now()
+		}
+	}
+	c.hub.presenceMutex.Unlock()
+	
+	// Broadcast presence update
+	c.hub.broadcastToRoom("general", message)
+}
+
+// Enhanced Hub run method with room and presence management
+func (h *Hub) run() {
+	ticker := time.NewTicker(30 * time.Second) // Heartbeat ticker
+	defer ticker.Stop()
+
+	for {
+		select {
+		case client := <-h.register:
+			h.mutex.Lock()
+			h.clients[client.conn] = client
+			h.mutex.Unlock()
+			
+			// Update user presence with simplified structure
+			h.presenceMutex.Lock()
+			h.userPresence[client.userID] = &UserPresence{
+				Status:   PresenceOnline,
+				Activity: "Connected",
+				LastSeen: time.Now(),
+			}
+			h.presenceMutex.Unlock()
+			
+			log.Printf("Client connected: %s (%s). Total clients: %d", client.username, client.userID, len(h.clients))
+			
+			// Notify others of user joining
+			h.broadcastToRoom("general", WSMessage{
+				ID:        generateID(),
+				Type:      WSMsgUserJoined,
+				Data:      h.userPresence[client.userID],
+				UserID:    client.userID,
+				Username:  client.username,
+				Timestamp: time.Now().Unix(),
+			})
+
+		case client := <-h.unregister:
+			h.mutex.Lock()
+			if existingClient, ok := h.clients[client.conn]; ok {
+				delete(h.clients, client.conn)
+				close(existingClient.send)
+				
+				// Remove from all rooms
+				for room := range existingClient.rooms {
+					h.removeFromRoom(existingClient, room)
+				}
+			}
+			h.mutex.Unlock()
+			
+			// Update user presence to offline
+			h.presenceMutex.Lock()
+			if presence, ok := h.userPresence[client.userID]; ok {
+				presence.Status = PresenceOffline
+				presence.LastSeen = time.Now()
+			}
+			h.presenceMutex.Unlock()
+			
+			log.Printf("Client disconnected: %s (%s). Total clients: %d", client.username, client.userID, len(h.clients))
+			
+			// Notify others of user leaving
+			h.broadcastToRoom("general", WSMessage{
+				ID:        generateID(),
+				Type:      WSMsgUserLeft,
+				Data:      map[string]string{"user_id": client.userID, "username": client.username},
+				UserID:    client.userID,
+				Username:  client.username,
+				Timestamp: time.Now().Unix(),
+			})
+
+		case message := <-h.broadcast:
+			if message.Room != "" {
+				h.broadcastToRoom(message.Room, message)
+			} else {
+				h.broadcastToAll(message)
+			}
+
+		case <-ticker.C:
+			// Send heartbeat to all connected clients
+			heartbeat := WSMessage{
+				ID:        generateID(),
+				Type:      WSMsgHeartbeat,
+				Data:      map[string]interface{}{"timestamp": time.Now().Unix()},
+				Timestamp: time.Now().Unix(),
+			}
+			h.broadcastToAll(heartbeat)
+		}
+	}
+}
+
+// Broadcast message to all clients
+func (h *Hub) broadcastToAll(message WSMessage) {
+	h.mutex.RLock()
+	defer h.mutex.RUnlock()
+
+	for conn, client := range h.clients {
+		select {
+		case client.send <- message:
+		default:
+			close(client.send)
+			delete(h.clients, conn)
+		}
+	}
+}
+
+// Broadcast message to specific room
+func (h *Hub) broadcastToRoom(roomID string, message WSMessage) {
+	h.mutex.RLock()
+	defer h.mutex.RUnlock()
+	
+	if room, exists := h.rooms[roomID]; exists {
+		for client := range room {
+			select {
+			case client.send <- message:
+			default:
+				close(client.send)
+				delete(h.clients, client.conn)
+				delete(room, client)
+			}
+		}
+	}
+}
+
+// Add client to room
+func (h *Hub) addToRoom(client *Client, roomID string) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	
+	if h.rooms[roomID] == nil {
+		h.rooms[roomID] = make(map[*Client]bool)
+	}
+	
+	h.rooms[roomID][client] = true
+	client.mutex.Lock()
+	client.rooms[roomID] = true
+	client.mutex.Unlock()
+	
+	log.Printf("Client %s joined room %s", client.username, roomID)
+}
+
+// Remove client from room
+func (h *Hub) removeFromRoom(client *Client, roomID string) {
+	if room, exists := h.rooms[roomID]; exists {
+		delete(room, client)
+		if len(room) == 0 {
+			delete(h.rooms, roomID)
+		}
+	}
+	
+	client.mutex.Lock()
+	delete(client.rooms, roomID)
+	client.mutex.Unlock()
+	
+	log.Printf("Client %s left room %s", client.username, roomID)
 }
 
 // Notification system
@@ -839,4 +1335,424 @@ func sendNotification(w http.ResponseWriter, r *http.Request) {
 		"message": "Notification sent successfully",
 		"id":      notification.ID,
 	})
+}
+
+// ========================================
+// ENHANCED AI PRIORITIZATION HANDLERS
+// ========================================
+
+// prioritizeTasksHandler - Prioritize a list of tasks using AI
+func prioritizeTasksHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Tasks  []*Task      `json:"tasks"`
+		UserID string       `json:"user_id"`
+		Context *SimpleTaskContext `json:"context,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Use default context if none provided
+	if request.Context == nil {
+		request.Context = &SimpleTaskContext{
+			TemporalContext: &SimpleTemporalContext{
+				CurrentTime: time.Now(),
+				TimeOfDay:   getCurrentTimeOfDay(),
+			},
+		}
+	}
+
+	prioritizedTasks, err := prioritizationEngine.PrioritizeTasks(request.Tasks, request.UserID, request.Context)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"prioritized_tasks": prioritizedTasks,
+		"total_tasks":      len(prioritizedTasks),
+		"timestamp":        time.Now(),
+	})
+}
+
+// prioritizeUserTasksHandler - Get prioritized tasks for a specific user
+func prioritizeUserTasksHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+
+	// Get user's tasks from database
+	tasks, err := getUserTasks(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create default context
+	context := &SimpleTaskContext{
+		TemporalContext: &SimpleTemporalContext{
+			CurrentTime: time.Now(),
+			TimeOfDay:   getCurrentTimeOfDay(),
+		},
+	}
+
+	prioritizedTasks, err := prioritizationEngine.PrioritizeTasks(tasks, userID, context)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user_id":          userID,
+		"prioritized_tasks": prioritizedTasks,
+		"total_tasks":      len(prioritizedTasks),
+		"timestamp":        time.Now(),
+	})
+}
+
+// getPrioritizationContextHandler - Get current prioritization context
+func getPrioritizationContextHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	
+	// Build comprehensive context
+	context := &SimpleTaskContext{
+		TemporalContext: &SimpleTemporalContext{
+			CurrentTime: time.Now(),
+			TimeOfDay:   getCurrentTimeOfDay(),
+		},
+		UserContext: &SimpleUserContext{
+			CurrentWorkload: 0.7, // Default
+			EnergyLevel:     0.8, // Default
+			StressLevel:     0.3, // Default
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"context":    context,
+		"user_id":    userID,
+		"timestamp":  time.Now(),
+	})
+}
+
+// ========================================
+// TIME TRACKING HANDLERS
+// ========================================
+
+// startTimeTrackingHandler - Start time tracking for a task
+func startTimeTrackingHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		UserID      string `json:"user_id"`
+		TaskID      string `json:"task_id"`
+		ActivityType string `json:"activity_type"`
+		Description string `json:"description,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	entry, err := timeTrackingEngine.StartTimeEntry(request.UserID, request.TaskID, request.ActivityType, request.Description)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":    "Time tracking started",
+		"entry":      entry,
+		"timestamp":  time.Now(),
+	})
+}
+
+// stopTimeTrackingHandler - Stop time tracking
+func stopTimeTrackingHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		UserID  string `json:"user_id"`
+		EntryID string `json:"entry_id"`
+		Notes   string `json:"notes,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	entry, err := timeTrackingEngine.StopTimeEntry(request.UserID, request.EntryID, request.Notes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":    "Time tracking stopped",
+		"entry":      entry,
+		"duration":   entry.Duration,
+		"timestamp":  time.Now(),
+	})
+}
+
+// getTimeEntriesHandler - Get time entries
+func getTimeEntriesHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	taskID := r.URL.Query().Get("task_id")
+	
+	entries, err := timeTrackingEngine.GetTimeEntries(userID, taskID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"entries":     entries,
+		"total_count": len(entries),
+		"timestamp":   time.Now(),
+	})
+}
+
+// getUserTimeEntriesHandler - Get time entries for a specific user
+func getUserTimeEntriesHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+
+	entries, err := timeTrackingEngine.GetTimeEntries(userID, "")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user_id":     userID,
+		"entries":     entries,
+		"total_count": len(entries),
+		"timestamp":   time.Now(),
+	})
+}
+
+// getTimeAnalyticsHandler - Get time analytics
+func getTimeAnalyticsHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	period := r.URL.Query().Get("period") // "day", "week", "month"
+	
+	if period == "" {
+		period = "week"
+	}
+
+	analytics, err := timeTrackingEngine.GetTimeAnalytics(userID, period)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"analytics":  analytics,
+		"period":     period,
+		"user_id":    userID,
+		"timestamp":  time.Now(),
+	})
+}
+
+// getProductivityAnalysisHandler - Get productivity analysis for a user
+func getProductivityAnalysisHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+
+	analysis, err := timeTrackingEngine.GetProductivityAnalysis(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user_id":     userID,
+		"analysis":    analysis,
+		"timestamp":   time.Now(),
+	})
+}
+
+// detectActivityHandler - Detect current activity for a user
+func detectActivityHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+
+	var request struct {
+		Context map[string]interface{} `json:"context"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	activity, err := timeTrackingEngine.DetectActivity(userID, request.Context)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user_id":    userID,
+		"activity":   activity,
+		"timestamp":  time.Now(),
+	})
+}
+
+// ========================================
+// PROJECT ANALYTICS HANDLERS
+// ========================================
+
+// getProjectAnalyticsHandler - Get analytics for a specific project
+func getProjectAnalyticsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projectID := vars["projectID"]
+
+	metrics, err := analyticsEngine.GetProjectMetrics(projectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"project_id": projectID,
+		"metrics":    metrics,
+		"timestamp":  time.Now(),
+	})
+}
+
+// getAnalyticsDashboardHandler - Get analytics dashboard for a user
+func getAnalyticsDashboardHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+
+	dashboard, err := analyticsEngine.GetDashboard(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user_id":    userID,
+		"dashboard":  dashboard,
+		"timestamp":  time.Now(),
+	})
+}
+
+// getProjectMetricsHandler - Get comprehensive project metrics
+func getProjectMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	projectID := r.URL.Query().Get("project_id")
+	userID := r.URL.Query().Get("user_id")
+
+	var metrics interface{}
+	var err error
+
+	if projectID != "" {
+		metrics, err = analyticsEngine.GetProjectMetrics(projectID)
+	} else if userID != "" {
+		metrics, err = analyticsEngine.GetDashboard(userID)
+	} else {
+		// Get overall metrics
+		metrics = map[string]interface{}{
+			"message": "Please specify project_id or user_id parameter",
+		}
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"metrics":    metrics,
+		"project_id": projectID,
+		"user_id":    userID,
+		"timestamp":  time.Now(),
+	})
+}
+
+// generateAnalyticsReportHandler - Generate comprehensive analytics report
+func generateAnalyticsReportHandler(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		ProjectID   string `json:"project_id"`
+		UserID      string `json:"user_id"`
+		ReportType  string `json:"report_type"`  // "summary", "detailed", "executive"
+		Period      string `json:"period"`       // "week", "month", "quarter"
+		Format      string `json:"format"`       // "json", "pdf", "csv"
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	report, err := analyticsEngine.GenerateReport(request.ProjectID, request.UserID, request.ReportType, request.Period)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"report":      report,
+		"report_type": request.ReportType,
+		"period":      request.Period,
+		"format":      request.Format,
+		"generated_at": time.Now(),
+	})
+}
+
+// getRealtimeMetricsHandler - Get real-time metrics for a project
+func getRealtimeMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projectID := vars["projectID"]
+
+	metrics, err := analyticsEngine.GetRealtimeMetrics(projectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"project_id":       projectID,
+		"realtime_metrics": metrics,
+		"timestamp":        time.Now(),
+		"refresh_interval": "30s",
+	})
+}
+
+// ========================================
+// HELPER FUNCTIONS
+// ========================================
+
+// getUserTasks - Helper function to get tasks for a user (placeholder implementation)
+func getUserTasks(userID string) ([]*Task, error) {
+	// This would typically query the database
+	// For now, return empty slice
+	return []*Task{}, nil
+}
+
+// getCurrentTimeOfDay - Helper function to get current time of day
+func getCurrentTimeOfDay() string {
+	hour := time.Now().Hour()
+	if hour < 12 {
+		return "morning"
+	} else if hour < 18 {
+		return "afternoon"
+	} else {
+		return "evening"
+	}
 }

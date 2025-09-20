@@ -3,6 +3,10 @@ import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
 import ForecastView from '../views/ForecastView.vue'
 import FavoritesView from '../views/FavoritesView.vue'
+import MLForecast from '../views/MLForecast.vue'
+import AirQuality from '../views/AirQuality.vue'
+import WeatherAlerts from '../views/WeatherAlerts.vue'
+import Analytics from '../views/Analytics.vue'
 
 const routes = [
   {
@@ -27,6 +31,38 @@ const routes = [
     component: ForecastView,
     meta: {
       title: 'Weather Forecast - WeatherVue'
+    }
+  },
+  {
+    path: '/ml-forecast',
+    name: 'MLForecast',
+    component: MLForecast,
+    meta: {
+      title: 'ML Weather Forecast - WeatherVue'
+    }
+  },
+  {
+    path: '/air-quality',
+    name: 'AirQuality',
+    component: AirQuality,
+    meta: {
+      title: 'Air Quality Monitor - WeatherVue'
+    }
+  },
+  {
+    path: '/alerts',
+    name: 'WeatherAlerts',
+    component: WeatherAlerts,
+    meta: {
+      title: 'Weather Alerts - WeatherVue'
+    }
+  },
+  {
+    path: '/analytics',
+    name: 'Analytics',
+    component: Analytics,
+    meta: {
+      title: 'Weather Analytics - WeatherVue'
     }
   },
   {

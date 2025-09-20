@@ -27,6 +27,13 @@ namespace MedicalCareSystem.API.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
 
+        // Advanced Medical Features
+        public DbSet<AIAnalysis> AIAnalyses { get; set; }
+        public DbSet<PatientMonitoring> PatientMonitorings { get; set; }
+        public DbSet<TelemedicineSession> TelemedicineSessions { get; set; }
+        public DbSet<HealthAnalytics> HealthAnalytics { get; set; }
+        public DbSet<MedicalAlert> MedicalAlerts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -35,8 +42,8 @@ namespace MedicalCareSystem.API.Data
             modelBuilder.Entity<Patient>(entity =>
             {
                 entity.HasIndex(e => e.Email).IsUnique();
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
             });
 
             // Configure Doctor entity
@@ -44,15 +51,15 @@ namespace MedicalCareSystem.API.Data
             {
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.LicenseNumber).IsUnique();
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
             });
 
             // Configure Appointment entity
             modelBuilder.Entity<Appointment>(entity =>
             {
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
 
                 // Relationships
                 entity.HasOne(e => e.Patient)
@@ -69,8 +76,8 @@ namespace MedicalCareSystem.API.Data
             // Configure MedicalRecord entity
             modelBuilder.Entity<MedicalRecord>(entity =>
             {
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
 
                 // Relationships
                 entity.HasOne(e => e.Patient)

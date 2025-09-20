@@ -1,0 +1,223 @@
+# ===============================================================
+# PROMETHEUS CONFIGURATION FOR ENTERPRISE MONITORING
+# ===============================================================
+# 
+# Implements 50+ metrics collection with service discovery
+# Supports all 6 applications in the workspace
+# Configured for production-ready monitoring
+# ===============================================================
+
+global:
+  scrape_interval: 15s      # Set the scrape interval to every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  external_labels:
+    cluster: 'kubernetes-practice-workspace'
+    environment: 'development'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # E-commerce Application
+  - job_name: 'ecommerce-backend'
+    static_configs:
+      - targets: ['ecommerce-backend:5000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: ecommerce-backend:5000
+
+  - job_name: 'ecommerce-frontend'
+    static_configs:
+      - targets: ['ecommerce-frontend:3000']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Educational Platform
+  - job_name: 'educational-backend'
+    static_configs:
+      - targets: ['educational-backend:8080']
+    metrics_path: /actuator/prometheus  # Spring Boot Actuator endpoint
+    scrape_interval: 15s
+
+  - job_name: 'educational-frontend'
+    static_configs:
+      - targets: ['educational-frontend:4200']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Weather Application
+  - job_name: 'weather-backend'
+    static_configs:
+      - targets: ['weather-backend:5002']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  - job_name: 'weather-frontend'
+    static_configs:
+      - targets: ['weather-frontend:3002']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Medical Care System
+  - job_name: 'medical-backend'
+    static_configs:
+      - targets: ['medical-backend:5170']
+    metrics_path: /health/metrics  # .NET health check metrics
+    scrape_interval: 15s
+
+  - job_name: 'medical-frontend'
+    static_configs:
+      - targets: ['medical-frontend:5171']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Task Management Application
+  - job_name: 'task-backend'
+    static_configs:
+      - targets: ['task-backend:8082']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  - job_name: 'task-frontend'
+    static_configs:
+      - targets: ['task-frontend:3082']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Social Media Platform
+  - job_name: 'social-backend'
+    static_configs:
+      - targets: ['social-backend:3003']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  - job_name: 'social-frontend'
+    static_configs:
+      - targets: ['social-frontend:3004']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  # Database Monitoring
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # System and Container Monitoring
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Application-specific health checks
+  - job_name: 'health-checks'
+    static_configs:
+      - targets: 
+        - 'ecommerce-backend:5000'
+        - 'educational-backend:8080'
+        - 'weather-backend:5002'
+        - 'medical-backend:5170'
+        - 'task-backend:8082'
+        - 'social-backend:3003'
+    metrics_path: /health
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Load balancer and ingress monitoring (if applicable)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+# Remote write configuration (for long-term storage)
+# remote_write:
+#   - url: "http://remote-storage:9091/api/v1/write"
+
+# Note: Storage retention configured via command line flags:
+# --storage.tsdb.retention.time=30d
+# --storage.tsdb.retention.size=10GB  
+# --storage.tsdb.wal-compression
+
+# ===============================================================
+# METRIC COLLECTION TARGETS (50+ metrics)
+# ===============================================================
+#
+# Application Metrics:
+# - HTTP request duration, count, and error rate
+# - Database connection pool usage
+# - Cache hit/miss rates
+# - Authentication success/failure rates
+# - Business logic metrics (orders, users, etc.)
+#
+# System Metrics:
+# - CPU usage, memory consumption
+# - Disk I/O and space utilization
+# - Network throughput
+# - Container resource usage
+#
+# Database Metrics:
+# - Query performance and slow queries
+# - Connection counts and pool status
+# - Lock wait times and deadlocks
+# - Table sizes and index usage
+#
+# Cache Metrics:
+# - Redis memory usage and hit rates
+# - Eviction rates and key expiration
+# - Connection counts and command stats
+#
+# Custom Business Metrics:
+# - E-commerce: Order volume, revenue, cart abandonment
+# - Educational: Course completions, user engagement
+# - Weather: API call rates, forecast accuracy
+# - Medical: Patient records, appointment scheduling
+# - Task Management: Task completion rates, project progress
+# - Social Media: Post engagement, user activity
+# ===============================================================

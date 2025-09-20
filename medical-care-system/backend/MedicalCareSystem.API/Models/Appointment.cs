@@ -8,7 +8,6 @@ namespace MedicalCareSystem.API.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
         [StringLength(20)]
         public string AppointmentNumber { get; set; } = string.Empty;
 

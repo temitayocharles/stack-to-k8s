@@ -19,6 +19,11 @@ gem 'rackup'
 # Utilities
 gem 'rack-cors'
 
+# AI and ML dependencies
+gem 'httparty'        # For making HTTP requests to AI APIs
+gem 'nokogiri'        # For HTML parsing if needed
+gem 'set'            # For Set data structure used in recommendation engine
+
 group :development do
   gem 'rerun'
 end

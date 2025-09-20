@@ -42,7 +42,7 @@ services:
       - POSTGRES_USER=taskuser
       - POSTGRES_PASSWORD=taskpass
     ports:
-      - "5434:5432"
+      - "5439:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql/init.sql:/docker-entrypoint-initdb.d/init.sql

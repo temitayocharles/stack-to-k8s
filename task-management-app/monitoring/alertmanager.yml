@@ -1,0 +1,114 @@
+# Alertmanager Configuration for Task Management Application
+
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@taskmanagement.local'
+  smtp_auth_username: 'your-email@gmail.com'
+  smtp_auth_password: 'your-app-password'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default-receiver'
+  routes:
+  - match:
+      alertname: InstanceDown
+    receiver: 'critical-alerts'
+  - match:
+      severity: critical
+    receiver: 'critical-alerts'
+  - match:
+      severity: warning
+    receiver: 'warning-alerts'
+  - match:
+      alertname: WebSocketConnectionFailure
+    receiver: 'websocket-alerts'
+
+receivers:
+- name: 'default-receiver'
+  email_configs:
+  - to: 'admin@taskmanagement.local'
+    subject: 'Task Management Alert: {{ .GroupLabels.alertname }}'
+    body: |
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Instance: {{ .Labels.instance }}
+      Severity: {{ .Labels.severity }}
+      Time: {{ .StartsAt }}
+      {{ end }}
+
+- name: 'critical-alerts'
+  email_configs:
+  - to: 'admin@taskmanagement.local,oncall@taskmanagement.local'
+    subject: '🚨 CRITICAL: Task Management Alert'
+    body: |
+      🚨 CRITICAL ALERT 🚨
+      
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Instance: {{ .Labels.instance }}
+      Severity: {{ .Labels.severity }}
+      Time: {{ .StartsAt }}
+      
+      Immediate action required!
+      {{ end }}
+
+- name: 'warning-alerts'
+  email_configs:
+  - to: 'admin@taskmanagement.local'
+    subject: '⚠️ WARNING: Task Management Alert'
+    body: |
+      ⚠️ WARNING ALERT ⚠️
+      
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Instance: {{ .Labels.instance }}
+      Severity: {{ .Labels.severity }}
+      Time: {{ .StartsAt }}
+      
+      Please investigate when possible.
+      {{ end }}
+
+- name: 'websocket-alerts'
+  email_configs:
+  - to: 'admin@taskmanagement.local,websocket-team@taskmanagement.local'
+    subject: '🔌 WebSocket Alert: Real-time Features Affected'
+    body: |
+      🔌 WEBSOCKET ALERT 🔌
+      
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Instance: {{ .Labels.instance }}
+      Time: {{ .StartsAt }}
+      
+      Real-time collaboration features may be affected.
+      Users may experience delays in live updates.
+      {{ end }}
+
+# Slack Integration (optional)
+# - name: 'slack-alerts'
+#   slack_configs:
+#   - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+#     channel: '#alerts'
+#     title: 'Task Management Alert'
+#     text: |
+#       {{ range .Alerts }}
+#       Alert: {{ .Annotations.summary }}
+#       Description: {{ .Annotations.description }}
+#       Instance: {{ .Labels.instance }}
+#       Severity: {{ .Labels.severity }}
+#       {{ end }}
+
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname', 'instance']

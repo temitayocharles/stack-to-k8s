@@ -232,20 +232,17 @@ func couchDBRequest(method, path string, data interface{}) (*http.Response, erro
 
 // broadcastUpdate broadcasts a message to all WebSocket clients
 func broadcastUpdate(eventType string, data interface{}) {
-	message := map[string]interface{}{
-		"type": eventType,
-		"data": data,
-		"timestamp": time.Now(),
-	}
-
-	jsonMessage, err := json.Marshal(message)
-	if err != nil {
-		log.Printf("Error marshaling broadcast message: %v", err)
-		return
+	wsMessage := WSMessage{
+		ID:        generateID(),
+		Type:      WSMessageType(eventType),
+		Data:      data,
+		UserID:    "system",
+		Username:  "AI System",
+		Timestamp: time.Now().Unix(),
 	}
 
 	select {
-	case hub.broadcast <- jsonMessage:
+	case hub.broadcast <- wsMessage:
 		log.Printf("Broadcasted %s event", eventType)
 	default:
 		log.Printf("Broadcast channel full, skipping %s event", eventType)

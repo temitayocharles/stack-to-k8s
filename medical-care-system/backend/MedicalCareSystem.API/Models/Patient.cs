@@ -50,6 +50,9 @@ namespace MedicalCareSystem.API.Models
         [StringLength(500)]
         public string MedicalConditions { get; set; }
 
+        [StringLength(100)]
+        public string Department { get; set; } = "General";
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

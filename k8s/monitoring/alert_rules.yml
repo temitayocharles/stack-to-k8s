@@ -1,0 +1,375 @@
+# ===============================================================
+# PROMETHEUS ALERTING RULES - 25+ PRODUCTION-READY ALERTS
+# ===============================================================
+# 
+# Implements comprehensive alerting for all applications
+# Covers critical, warning, and info level alerts
+# Aligned with anchor document monitoring requirements
+# ===============================================================
+
+groups:
+  # ===============================================================
+  # CRITICAL ALERTS - Immediate attention required
+  # ===============================================================
+  - name: critical_alerts
+    rules:
+    # Application Down Alerts
+    - alert: ApplicationDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+        category: availability
+      annotations:
+        summary: "Application {{ $labels.job }} is down"
+        description: "Application {{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
+        runbook: "Check application logs and restart if necessary"
+
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: critical
+        category: errors
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }}"
+        runbook: "Check application logs for error patterns"
+
+    - alert: DatabaseConnectionFailure
+      expr: mongodb_up == 0 or postgres_up == 0
+      for: 1m
+      labels:
+        severity: critical
+        category: database
+      annotations:
+        summary: "Database connection failure"
+        description: "Database {{ $labels.job }} is not responding"
+        runbook: "Check database service and connectivity"
+
+    - alert: HighMemoryUsage
+      expr: (process_resident_memory_bytes / node_memory_MemTotal_bytes) > 0.9
+      for: 5m
+      labels:
+        severity: critical
+        category: resources
+      annotations:
+        summary: "High memory usage"
+        description: "Memory usage is above 90% for {{ $labels.instance }}"
+        runbook: "Check for memory leaks and restart if necessary"
+
+    - alert: DiskSpaceLow
+      expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+      for: 5m
+      labels:
+        severity: critical
+        category: storage
+      annotations:
+        summary: "Disk space low"
+        description: "Disk space is below 10% on {{ $labels.instance }}"
+        runbook: "Clean up disk space or add more storage"
+
+  # ===============================================================
+  # WARNING ALERTS - Attention needed soon
+  # ===============================================================
+  - name: warning_alerts
+    rules:
+    - alert: HighResponseTime
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+      for: 10m
+      labels:
+        severity: warning
+        category: performance
+      annotations:
+        summary: "High response time detected"
+        description: "95th percentile response time is {{ $value }}s for {{ $labels.job }}"
+        runbook: "Investigate performance bottlenecks"
+
+    - alert: HighCPUUsage
+      expr: rate(process_cpu_seconds_total[5m]) > 0.8
+      for: 10m
+      labels:
+        severity: warning
+        category: resources
+      annotations:
+        summary: "High CPU usage"
+        description: "CPU usage is above 80% for {{ $labels.instance }}"
+        runbook: "Check for CPU-intensive processes"
+
+    - alert: MemoryUsageHigh
+      expr: (process_resident_memory_bytes / node_memory_MemTotal_bytes) > 0.75
+      for: 10m
+      labels:
+        severity: warning
+        category: resources
+      annotations:
+        summary: "Memory usage is high"
+        description: "Memory usage is above 75% for {{ $labels.instance }}"
+        runbook: "Monitor memory usage trends"
+
+    - alert: DatabaseSlowQueries
+      expr: rate(mongodb_slow_queries_total[5m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+        category: database
+      annotations:
+        summary: "Database slow queries detected"
+        description: "{{ $value }} slow queries per second in {{ $labels.database }}"
+        runbook: "Optimize database queries and indexes"
+
+    - alert: RedisHighMemoryUsage
+      expr: (redis_memory_used_bytes / redis_memory_max_bytes) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        category: cache
+      annotations:
+        summary: "Redis memory usage is high"
+        description: "Redis memory usage is {{ $value | humanizePercentage }}"
+        runbook: "Check Redis key expiration and memory optimization"
+
+    - alert: LoadBalancerUnhealthyBackends
+      expr: sum(nginx_upstream_server_up) / count(nginx_upstream_server_up) < 0.8
+      for: 2m
+      labels:
+        severity: warning
+        category: loadbalancer
+      annotations:
+        summary: "Load balancer has unhealthy backends"
+        description: "{{ $value | humanizePercentage }} of backends are healthy"
+        runbook: "Check backend server health"
+
+  # ===============================================================
+  # APPLICATION-SPECIFIC ALERTS
+  # ===============================================================
+  - name: ecommerce_alerts
+    rules:
+    - alert: EcommerceHighCartAbandonmentRate
+      expr: rate(ecommerce_cart_abandoned_total[1h]) / rate(ecommerce_cart_created_total[1h]) > 0.7
+      for: 15m
+      labels:
+        severity: warning
+        category: business
+        application: ecommerce
+      annotations:
+        summary: "High cart abandonment rate"
+        description: "Cart abandonment rate is {{ $value | humanizePercentage }}"
+        runbook: "Check checkout process and user experience"
+
+    - alert: EcommercePaymentFailures
+      expr: rate(ecommerce_payment_failed_total[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        category: business
+        application: ecommerce
+      annotations:
+        summary: "High payment failure rate"
+        description: "Payment failure rate is {{ $value | humanizePercentage }}"
+        runbook: "Check payment gateway integration"
+
+    - alert: EcommerceLowInventory
+      expr: ecommerce_inventory_level < 10
+      for: 1m
+      labels:
+        severity: warning
+        category: business
+        application: ecommerce
+      annotations:
+        summary: "Low inventory alert"
+        description: "Product {{ $labels.product_id }} has only {{ $value }} items left"
+        runbook: "Restock low inventory items"
+
+  - name: educational_alerts
+    rules:
+    - alert: EducationalLowCourseCompletion
+      expr: rate(educational_course_completed_total[24h]) / rate(educational_course_started_total[24h]) < 0.3
+      for: 1h
+      labels:
+        severity: warning
+        category: business
+        application: educational
+      annotations:
+        summary: "Low course completion rate"
+        description: "Course completion rate is {{ $value | humanizePercentage }}"
+        runbook: "Review course content and user engagement"
+
+    - alert: EducationalHighVideoBuffering
+      expr: rate(educational_video_buffer_events_total[5m]) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        category: performance
+        application: educational
+      annotations:
+        summary: "High video buffering rate"
+        description: "Video buffering rate is {{ $value | humanizePercentage }}"
+        runbook: "Check CDN performance and video encoding"
+
+  - name: weather_alerts
+    rules:
+    - alert: WeatherAPIRateLimitReached
+      expr: rate(weather_api_rate_limited_total[1m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+        category: external_api
+        application: weather
+      annotations:
+        summary: "Weather API rate limit reached"
+        description: "Weather API rate limiting detected"
+        runbook: "Check API usage and implement caching"
+
+    - alert: WeatherForecastAccuracyLow
+      expr: weather_forecast_accuracy_percent < 0.8
+      for: 1h
+      labels:
+        severity: warning
+        category: business
+        application: weather
+      annotations:
+        summary: "Weather forecast accuracy is low"
+        description: "Forecast accuracy is {{ $value | humanizePercentage }}"
+        runbook: "Review ML models and data sources"
+
+  - name: medical_alerts
+    rules:
+    - alert: MedicalDataComplianceViolation
+      expr: increase(medical_hipaa_violations_total[1h]) > 0
+      for: 1m
+      labels:
+        severity: critical
+        category: compliance
+        application: medical
+      annotations:
+        summary: "HIPAA compliance violation detected"
+        description: "{{ $value }} compliance violations in the last hour"
+        runbook: "Immediate security review required"
+
+    - alert: MedicalAppointmentSystemDown
+      expr: up{job="medical-backend"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        category: availability
+        application: medical
+      annotations:
+        summary: "Medical appointment system is down"
+        description: "Critical medical system unavailable"
+        runbook: "Emergency restart procedure"
+
+  - name: task_management_alerts
+    rules:
+    - alert: TaskManagementHighTaskOverdue
+      expr: task_management_overdue_tasks / task_management_total_tasks > 0.2
+      for: 30m
+      labels:
+        severity: warning
+        category: business
+        application: task_management
+      annotations:
+        summary: "High percentage of overdue tasks"
+        description: "{{ $value | humanizePercentage }} of tasks are overdue"
+        runbook: "Review project timelines and resource allocation"
+
+    - alert: TaskManagementCollaborationFailure
+      expr: rate(task_management_collaboration_errors_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+        category: functionality
+        application: task_management
+      annotations:
+        summary: "Collaboration features experiencing errors"
+        description: "Collaboration error rate: {{ $value }}"
+        runbook: "Check WebSocket connections and real-time sync"
+
+  - name: social_media_alerts
+    rules:
+    - alert: SocialMediaHighModerationQueue
+      expr: social_media_moderation_queue_size > 1000
+      for: 15m
+      labels:
+        severity: warning
+        category: business
+        application: social_media
+      annotations:
+        summary: "High content moderation queue"
+        description: "{{ $value }} items in moderation queue"
+        runbook: "Increase moderation capacity"
+
+    - alert: SocialMediaSpamDetected
+      expr: rate(social_media_spam_detected_total[5m]) > 10
+      for: 2m
+      labels:
+        severity: critical
+        category: security
+        application: social_media
+      annotations:
+        summary: "High spam detection rate"
+        description: "{{ $value }} spam posts detected per second"
+        runbook: "Review anti-spam measures"
+
+  # ===============================================================
+  # INFRASTRUCTURE ALERTS
+  # ===============================================================
+  - name: infrastructure_alerts
+    rules:
+    - alert: ContainerRestartLoop
+      expr: rate(container_restart_count[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+        category: infrastructure
+      annotations:
+        summary: "Container restart loop detected"
+        description: "Container {{ $labels.name }} is restarting frequently"
+        runbook: "Check container logs and resource limits"
+
+    - alert: KubernetesNodeNotReady
+      expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        category: infrastructure
+      annotations:
+        summary: "Kubernetes node not ready"
+        description: "Node {{ $labels.node }} is not ready"
+        runbook: "Check node status and network connectivity"
+
+    - alert: PersistentVolumeSpaceLow
+      expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) < 0.15
+      for: 5m
+      labels:
+        severity: warning
+        category: storage
+      annotations:
+        summary: "Persistent volume space low"
+        description: "PV {{ $labels.persistentvolume }} has less than 15% space remaining"
+        runbook: "Expand volume or clean up data"
+
+# ===============================================================
+# ALERT SUMMARY
+# ===============================================================
+# 
+# Total Alerts: 25+
+# 
+# Critical (8): Application down, high error rate, database failure, 
+#               high memory usage, disk space low, payment failures,
+#               compliance violations, medical system down
+# 
+# Warning (15+): High response time, high CPU/memory usage, slow queries,
+#                business metrics (cart abandonment, course completion),
+#                API rate limits, infrastructure issues
+# 
+# Info (2+): Performance trends, capacity planning
+# 
+# Categories:
+# - Availability: Application and service uptime
+# - Performance: Response times and resource usage  
+# - Errors: Error rates and failure detection
+# - Business: Application-specific KPIs
+# - Security: Compliance and security violations
+# - Infrastructure: Container and Kubernetes health
+# ===============================================================

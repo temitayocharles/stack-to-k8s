@@ -20,20 +20,12 @@ builder.Services.AddCors(options =>
 
 // Configure Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=(localdb)\\mssqllocaldb;Database=MedicalCareDB;Trusted_Connection=true;MultipleActiveResultSets=true";
+    ?? "Host=localhost;Port=5432;Database=MedicalCareDB;Username=medical_user;Password=MedicalCare2025!";
 
 builder.Services.AddDbContext<MedicalCareContext>(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // Use SQL Server for development to support migrations
-        options.UseSqlServer(connectionString);
-    }
-    else
-    {
-        // Use SQL Server for production
-        options.UseSqlServer(connectionString);
-    }
+    // Use PostgreSQL for all environments
+    options.UseNpgsql(connectionString);
     
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
     options.EnableDetailedErrors(builder.Environment.IsDevelopment());

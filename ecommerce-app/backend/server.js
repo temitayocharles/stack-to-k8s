@@ -68,9 +68,62 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/realtime', require('./routes/realtime'));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+// Enterprise Health Check System - 5 Mandatory Endpoints
+const HealthCheckService = require('./services/healthCheck');
+const healthService = new HealthCheckService();
+
+// 1. Basic health status
+app.get('/health', async (req, res) => {
+  try {
+    const health = await healthService.getHealth();
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({ status: 'ERROR', error: error.message });
+  }
+});
+
+// 2. Readiness for traffic (Kubernetes readiness probe)
+app.get('/ready', async (req, res) => {
+  try {
+    const readiness = await healthService.getReadiness();
+    const statusCode = readiness.status === 'ready' ? 200 : 503;
+    res.status(statusCode).json(readiness);
+  } catch (error) {
+    res.status(503).json({ status: 'not_ready', error: error.message });
+  }
+});
+
+// 3. Liveness probe (Kubernetes liveness probe)
+app.get('/live', async (req, res) => {
+  try {
+    const liveness = await healthService.getLiveness();
+    const statusCode = liveness.status === 'alive' ? 200 : 503;
+    res.status(statusCode).json(liveness);
+  } catch (error) {
+    res.status(503).json({ status: 'unhealthy', error: error.message });
+  }
+});
+
+// 4. Dependencies health check
+app.get('/health/dependencies', async (req, res) => {
+  try {
+    const dependencies = await healthService.getDependencies();
+    const statusCode = dependencies.status === 'all_healthy' ? 200 : 206;
+    res.status(statusCode).json(dependencies);
+  } catch (error) {
+    res.status(503).json({ status: 'error', error: error.message });
+  }
+});
+
+// 5. Prometheus metrics
+app.get('/metrics', async (req, res) => {
+  try {
+    const metrics = await healthService.getMetrics();
+    res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    res.send(metrics);
+  } catch (error) {
+    res.status(500).send(`# Error generating metrics: ${error.message}`);
+  }
 });
 
 // Error handling middleware

@@ -364,18 +364,27 @@ namespace MedicalCareSystem.API.Services
             {
                 var endTime = appointmentDate.Add(duration);
                 
-                var query = _context.Appointments
+                // Use a more SQL-friendly approach by getting appointments and checking overlap in memory
+                var existingAppointments = await _context.Appointments
                     .Where(a => a.DoctorId == doctorId)
                     .Where(a => a.Status != "Cancelled")
-                    .Where(a => 
-                        (a.AppointmentDate < endTime && a.AppointmentDate.Add(a.Duration) > appointmentDate));
+                    .Where(a => a.AppointmentDate.Date == appointmentDate.Date) // Only get appointments on the same day
+                    .Select(a => new { a.Id, a.AppointmentDate, a.Duration })
+                    .ToListAsync();
 
                 if (excludeAppointmentId.HasValue)
                 {
-                    query = query.Where(a => a.Id != excludeAppointmentId.Value);
+                    existingAppointments = existingAppointments.Where(a => a.Id != excludeAppointmentId.Value).ToList();
                 }
 
-                return !await query.AnyAsync();
+                // Check for time overlap in memory
+                var hasConflict = existingAppointments.Any(a => 
+                {
+                    var appointmentEndTime = a.AppointmentDate.Add(a.Duration);
+                    return (a.AppointmentDate < endTime && appointmentEndTime > appointmentDate);
+                });
+
+                return !hasConflict;
             }
             catch (Exception ex)
             {

@@ -23,6 +23,27 @@
             <i class="fas fa-calendar-alt"></i>
             <span>Forecast</span>
           </router-link>
+
+          <!-- New ML Features -->
+          <router-link to="/ml-forecast" class="nav-link" active-class="active">
+            <i class="fas fa-brain"></i>
+            <span>ML Forecast</span>
+          </router-link>
+
+          <router-link to="/air-quality" class="nav-link" active-class="active">
+            <i class="fas fa-lungs"></i>
+            <span>Air Quality</span>
+          </router-link>
+
+          <router-link to="/alerts" class="nav-link" active-class="active">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Alerts</span>
+          </router-link>
+
+          <router-link to="/analytics" class="nav-link" active-class="active">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+          </router-link>
           
           <router-link to="/favorites" class="nav-link" active-class="active">
             <i class="fas fa-heart"></i>

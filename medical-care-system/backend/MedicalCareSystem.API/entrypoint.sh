@@ -4,13 +4,13 @@ set -e
 echo "Starting Medical Care System API..."
 
 # Wait for database to be ready (simplified check)
-echo "Waiting for SQL Server to be ready..."
+echo "Waiting for PostgreSQL to be ready..."
 for i in {1..30}; do
-    if nc -z medical-care-db 1433 2>/dev/null; then
-        echo "SQL Server is ready!"
+    if nc -z medical-care-db 5432 2>/dev/null; then
+        echo "PostgreSQL is ready!"
         break
     fi
-    echo "SQL Server is not ready yet. Waiting... ($i/30)"
+    echo "PostgreSQL is not ready yet. Waiting... ($i/30)"
     sleep 3
 done
 
