@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -27,15 +28,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "webpack",
-      "output": "static",
-      "build": {
-        "babel": {
-          "include": [
-            "@expo/vector-icons"
-          ]
-        }
-      }
+      "bundler": "webpack"
     },
     "plugins": [
       [
@@ -58,9 +51,6 @@
           "cameraPermission": "Allow access to camera for taking photos."
         }
       ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    ]
   }
 }
