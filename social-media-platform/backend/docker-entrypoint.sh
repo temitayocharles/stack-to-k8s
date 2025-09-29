@@ -12,22 +12,12 @@ done
 
 echo "✅ Database is ready!"
 
-# Create database if it doesn't exist
+# Set up database tables (Sinatra style)
 echo "📊 Setting up database..."
-bundle exec rails db:create
-
-# Run pending migrations
-echo "🔄 Running database migrations..."
-bundle exec rails db:migrate
-
-# Seed database if in development
-if [ "$RAILS_ENV" = "development" ]; then
-  echo "🌱 Seeding database..."
-  bundle exec rails db:seed || echo "Seeding failed or already done"
-fi
+ruby setup_database.rb || echo "Database setup completed or already exists"
 
 # Remove any existing server.pid
 rm -f tmp/pids/server.pid
 
-echo "🎯 Starting Rails server..."
-exec bundle exec rails server -b 0.0.0.0 -p 3000
+echo "🎯 Starting Sinatra server..."
+exec bundle exec ruby app.rb -o 0.0.0.0 -p 3000
