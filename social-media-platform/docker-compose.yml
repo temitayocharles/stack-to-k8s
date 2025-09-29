@@ -63,7 +63,7 @@ services:
       - DATABASE_PASSWORD=SocialMedia2025!
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-dummy-key-for-testing}
     ports:
-      - "3003:3000"
+      - "3005:3000"
     depends_on:
       social-media-db:
         condition: service_healthy
@@ -86,9 +86,9 @@ services:
     container_name: social-media-frontend
     restart: unless-stopped
     environment:
-      - REACT_APP_API_URL=http://localhost:3000/api
+      - REACT_APP_API_URL=http://localhost:3005/api
       - REACT_APP_ENV=development
-      - REACT_APP_WEBSOCKET_URL=ws://localhost:3000/cable
+      - REACT_APP_WEBSOCKET_URL=ws://localhost:3005/cable
     ports:
       - "3004:80"
     depends_on:
