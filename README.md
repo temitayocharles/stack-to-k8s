@@ -51,8 +51,28 @@
 ## **📚 Documentation**
 
 - **[📋 Documentation Index](./docs/README.md)** - Complete documentation guide
+- **[🚀 System Setup Guide](./docs/SYSTEM-SETUP-GUIDE.md)** - Optimize your development environment
 - **[🏗️ Workspace Structure](./docs/WORKSPACE-STRUCTURE.md)** - How everything is organized
 - **[☸️ Kubernetes Guide](./docs/kubernetes-orchestration-guide.md)** - Learn Kubernetes step-by-step
+
+## **⚡ Quick System Optimization**
+
+**🎯 Before starting, optimize your system for best performance:**
+
+### **Option 1: Automated Setup (5 minutes)**
+```bash
+# Download and run the intelligent optimizer
+curl -fsSL https://raw.githubusercontent.com/temitayocharles/full-stack-apps/main/scripts/setup-optimize.sh | bash
+```
+
+### **Option 2: Manual Setup (30 minutes)**
+Follow the [detailed manual guide](./docs/SYSTEM-SETUP-GUIDE.md#option-2-manual-setup-learning-mode)
+
+**💡 Benefits:**
+- 🚀 50-70% faster container operations
+- 💾 2-4GB memory savings  
+- 🔋 Better battery life
+- 🛠️ Modern GUI tools
 
 ---
 
