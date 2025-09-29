@@ -39,10 +39,12 @@
 ## 📖 **GUIDES & INSTRUCTIONS** (`guides/`)
 
 ### **📋 Master Documentation**
-- **[ANCHOR-DOCUMENT-DEFINITIVE-INSTRUCTIONS.md](guides/ANCHOR-DOCUMENT-DEFINITIVE-INSTRUCTIONS.md)** - Master instruction set and requirements
-- **[ABOUT-THE-CREATOR.md](guides/ABOUT-THE-CREATOR.md)** - Creator information and portfolio context
+- **[WORKSPACE-STRUCTURE.md](./WORKSPACE-STRUCTURE.md)** - Workspace organization guide
+- **[kubernetes-orchestration-guide.md](./kubernetes-orchestration-guide.md)** - Complete Kubernetes learning path
+- **[weather-app-k8s-guide.md](./weather-app-k8s-guide.md)** - Weather app Kubernetes deployment
+- **[APPLICATIONS_STATUS_REPORT.md](./APPLICATIONS_STATUS_REPORT.md)** - Application completion status
 
-**🎯 When to read**: Understanding requirements, learning about the creator, portfolio context
+**🎯 When to read**: Understanding workspace structure, Kubernetes learning, application status
 
 ---
 

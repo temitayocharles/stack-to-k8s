@@ -31,8 +31,6 @@
 
 ## **📁 Simple, User-Friendly Structure**
 
-**✅ CLEANED & ORGANIZED** - No confusing duplicates or complexity!
-
 ```
 📁 Each Application Contains:
 ├── 📄 README.md              # Start here!
@@ -44,10 +42,17 @@
 └── 📁 ci-cd/                 # GitHub/Jenkins/GitLab
 ```
 
-**✅ Shared Resources:**
+**📂 Shared Resources:**
 - `📁 shared-k8s/` - Global monitoring & infrastructure
 - `📁 scripts/` - Helpful utility scripts
 - `📁 vault/` - Enterprise secrets management
+- `📁 docs/` - Complete documentation library
+
+## **📚 Documentation**
+
+- **[📋 Documentation Index](./docs/README.md)** - Complete documentation guide
+- **[🏗️ Workspace Structure](./docs/WORKSPACE-STRUCTURE.md)** - How everything is organized
+- **[☸️ Kubernetes Guide](./docs/kubernetes-orchestration-guide.md)** - Learn Kubernetes step-by-step
 
 ---
 
