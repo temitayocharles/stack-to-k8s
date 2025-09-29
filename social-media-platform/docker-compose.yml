@@ -49,7 +49,7 @@ services:
   social-media-backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile
     container_name: social-media-backend
     restart: unless-stopped
     env_file:
@@ -82,7 +82,7 @@ services:
   social-media-frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile
     container_name: social-media-frontend
     restart: unless-stopped
     environment:

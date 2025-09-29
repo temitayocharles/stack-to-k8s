@@ -1,5 +1,3 @@
-version: '3.8'
-
 # 🐳 Easy Deployment Options:
 # 1. Use pre-built images: Change 'build: .' to 'image: temitayocharles/educational-backend:latest'
 # 2. Build yourself: Keep 'build: .' for learning Docker builds
@@ -141,8 +139,8 @@ services:
       ENABLE_ANALYTICS: true
       ENABLE_DARK_MODE: true
     ports:
-      - "3001:80"
-      - "443:443"
+      - "3003:80"
+      - "4443:443"
     depends_on:
       backend:
         condition: service_healthy
