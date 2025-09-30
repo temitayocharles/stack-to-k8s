@@ -2,7 +2,25 @@
 
 ## 🎯 Overview
 
+**🎯 NEW: Interactive Smart Setup (Recommended)**
+```bash
+# Run the intelligent setup script from the root directory
+cd .. && ./smart-setup.sh medical-care-system
+```
+
 A **production-ready healthcare management system** built with .NET Core API + Blazor WebAssembly frontend + PostgreSQL database. Features **HIPAA compliance**, **AI-powered health analytics**, **telemedicine capabilities**, and **enterprise-grade security**.
+
+## 🏥 DevOps Learning Opportunities
+
+**🔥 Progressive Healthcare Challenges Available!**
+- ⭐ **Level 1**: Healthcare container foundation (2-3 hours)
+- ⭐⭐ **Level 2**: Healthcare Kubernetes operations (4-5 hours)  
+- ⭐⭐⭐ **Level 3**: Healthcare CI/CD operations (6-8 hours)
+- ⭐⭐⭐⭐ **Level 4**: Production healthcare operations (8-10 hours)
+
+**📚 Detailed Challenge Guide**: [docs/devops-challenges.md](docs/devops-challenges.md)
+
+**🚨 Chaos Engineering**: Practice HIPAA compliance, patient data protection, and medical system failures
 
 ### 🚀 Key Features
 

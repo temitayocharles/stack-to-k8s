@@ -9,11 +9,35 @@ This is a complete learning management system with course creation, student trac
 
 ---
 
-## **🚀 Don't Get Overwhelmed - We'll Guide You!**
+## 🚀 Quick Start
+
+**🎯 NEW: Interactive Smart Setup (Recommended)**
+```bash
+# Run the intelligent setup script from the root directory
+cd .. && ./smart-setup.sh educational-platform
+```
+
+The smart setup automatically detects your system, installs required tools, and gets you running in minutes!
+
+**Manual Setup:**
 
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Journey**](./GET-STARTED.md)
 
 **We'll help you pick the right path based on your experience level.**
+
+---
+
+## 🎓 DevOps Learning Opportunities
+
+**🔥 Progressive Challenges Available!**
+- ⭐ **Level 1**: Educational service containerization (2-3 hours)
+- ⭐⭐ **Level 2**: Kubernetes deployment for learning platforms (4-5 hours)  
+- ⭐⭐⭐ **Level 3**: CI/CD for educational content delivery (6-8 hours)
+- ⭐⭐⭐⭐ **Level 4**: Enterprise educational operations (8-10 hours)
+
+**📚 Detailed Challenge Guide**: [docs/devops-challenges.md](docs/devops-challenges.md)
+
+**🚨 Chaos Engineering**: Practice handling Spring Boot failures, PostgreSQL outages, and student load surges
 
 ---
 

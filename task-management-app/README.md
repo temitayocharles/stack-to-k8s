@@ -11,9 +11,29 @@ This is a complete task management and collaboration platform with real-time upd
 
 ## **🚀 Advanced Go Development - We'll Guide You!**
 
+**🎯 NEW: Interactive Smart Setup (Recommended)**
+```bash
+# Run the intelligent setup script from the root directory
+cd .. && ./smart-setup.sh task-management-app
+```
+
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)
 
 **Go microservices are powerful - we'll show you how to master them.**
+
+---
+
+## 👥 DevOps Learning Opportunities
+
+**🔥 Progressive Team Collaboration Challenges Available!**
+- ⭐ **Level 1**: Productivity container foundation (2-3 hours)
+- ⭐⭐ **Level 2**: Team collaboration Kubernetes (4-5 hours)  
+- ⭐⭐⭐ **Level 3**: Team productivity CI/CD (6-8 hours)
+- ⭐⭐⭐⭐ **Level 4**: Enterprise team operations (8-10 hours)
+
+**📚 Detailed Challenge Guide**: [docs/devops-challenges.md](docs/devops-challenges.md)
+
+**🚨 Chaos Engineering**: Practice Go service failures, CouchDB conflicts, and team collaboration scaling
 
 ---
 

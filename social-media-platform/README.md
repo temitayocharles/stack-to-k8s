@@ -11,9 +11,29 @@ This is a complete social media platform with feeds, messaging, content delivery
 
 ## **🚀 Massive Scale Engineering - We'll Guide You!**
 
+**🎯 NEW: Interactive Smart Setup (Recommended)**
+```bash
+# Run the intelligent setup script from the root directory
+cd .. && ./smart-setup.sh social-media-platform
+```
+
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)
 
 **Building for millions is complex - we'll show you how the pros do it.**
+
+---
+
+## 📱 DevOps Learning Opportunities
+
+**🔥 Progressive Social Scale Challenges Available!**
+- ⭐ **Level 1**: Social container foundation (3-4 hours)
+- ⭐⭐ **Level 2**: Social scale Kubernetes (5-6 hours)  
+- ⭐⭐⭐ **Level 3**: Social media CI/CD (7-8 hours)
+- ⭐⭐⭐⭐ **Level 4**: Enterprise social operations (9-10 hours)
+
+**📚 Detailed Challenge Guide**: [docs/devops-challenges.md](docs/devops-challenges.md)
+
+**🚨 Chaos Engineering**: Practice viral load surges, social database overloads, and content delivery failures
 
 ---
 

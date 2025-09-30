@@ -11,9 +11,29 @@ This is a complete weather data platform with real-time API integration, caching
 
 ## **🚀 Don't Get Overwhelmed - We'll Guide You!**
 
+**🎯 NEW: Interactive Smart Setup (Recommended)**
+```bash
+# Run the intelligent setup script from the root directory
+cd .. && ./smart-setup.sh weather-app
+```
+
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)
 
 **We'll help you pick the right approach based on your Python experience.**
+
+---
+
+## 🌤️ DevOps Learning Opportunities
+
+**🔥 Progressive Weather Data Challenges Available!**
+- ⭐ **Level 1**: Weather data container foundation (2-3 hours)
+- ⭐⭐ **Level 2**: Weather data Kubernetes (4-5 hours)  
+- ⭐⭐⭐ **Level 3**: Weather data CI/CD (6-8 hours)
+- ⭐⭐⭐⭐ **Level 4**: Production weather operations (8-10 hours)
+
+**📚 Detailed Challenge Guide**: [docs/devops-challenges.md](docs/devops-challenges.md)
+
+**🚨 Chaos Engineering**: Practice external API failures, cache system outages, and data pipeline overloads
 
 ---
 
