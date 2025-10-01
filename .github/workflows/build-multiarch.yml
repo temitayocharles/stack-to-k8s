@@ -1,0 +1,98 @@
+name: Build Multi-Architecture Docker Images
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ecommerce-app/**'
+      - 'educational-platform/**'
+      - 'weather-app/**'
+      - 'medical-care-system/**'
+      - 'task-management-app/**'
+      - 'social-media-platform/**'
+      - '.github/workflows/build-multiarch.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  
+jobs:
+  build-multiarch:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        application:
+          - name: ecommerce-app
+            description: "Node.js/React E-commerce Platform"
+          - name: educational-platform
+            description: "Java/Angular Learning Management System"
+          - name: weather-app
+            description: "Python/Vue.js Weather Application"
+          - name: medical-care-system
+            description: "ASP.NET/Blazor Medical Care System"
+          - name: task-management-app
+            description: "Go/Svelte Task Management App"
+          - name: social-media-platform
+            description: "Ruby/React Social Media Platform"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.application.name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.application.name }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify multi-arch manifest
+        run: |
+          echo "🔍 Verifying multi-architecture support for ${{ matrix.application.name }}..."
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.application.name }}:latest
+
+  verify-builds:
+    needs: build-multiarch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all builds completed
+        run: |
+          echo "🎉 SUCCESS! All 6 applications built with multi-architecture support:"
+          echo "✅ ecommerce-app (Node.js/React)"
+          echo "✅ educational-platform (Java/Angular)" 
+          echo "✅ weather-app (Python/Vue.js)"
+          echo "✅ medical-care-system (ASP.NET/Blazor)"
+          echo "✅ task-management-app (Go/Svelte)"
+          echo "✅ social-media-platform (Ruby/React)"
+          echo ""
+          echo "🏗️ All images support both linux/amd64 and linux/arm64 architectures"
+          echo "🚀 Ready for deployment on Intel and ARM infrastructure"
