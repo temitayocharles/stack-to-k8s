@@ -5,7 +5,7 @@
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install --only=production
+RUN npm install
 COPY frontend/ ./
 RUN npm run build
 
@@ -13,7 +13,7 @@ RUN npm run build
 FROM node:18-alpine AS backend-builder
 WORKDIR /app/backend
 COPY backend/package*.json ./
-RUN npm install --only=production
+RUN npm install
 COPY backend/ ./
 
 # Stage 3: Production Runtime
@@ -31,13 +31,13 @@ RUN apk add --no-cache curl
 COPY --from=backend-builder --chown=nodejs:nodejs /app/backend ./
 
 # Copy built frontend
-COPY --from=frontend-builder --chown=nodejs:nodejs /app/frontend/dist ./public
+COPY --from=frontend-builder --chown=nodejs:nodejs /app/frontend/build ./public
 
 # Install production dependencies only
 RUN npm install --only=production && npm cache clean --force
 
-# Security: Remove unnecessary packages
-RUN apk del npm
+# Security: Remove npm cache
+RUN rm -rf ~/.npm
 
 # Health check for backend
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

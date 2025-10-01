@@ -66,6 +66,11 @@ docker-compose up -d
 
 ---
 
+**🏗️ Created by**: Temitayo Charles Akinniranye | TCA-InfraForge  
+**🐳 Docker Images**: [Docker Hub](https://hub.docker.com/u/temitayocharles)  
+**📚 Documentation**: Complete learning platform with progressive difficulty  
+**🌟 Purpose**: Real-world DevOps practice with production-ready applications
+
 **Ready to become a Kubernetes expert?** 
 
 👉 **[START HERE](docs/START-HERE.md)** and pick your path!

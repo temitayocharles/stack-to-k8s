@@ -1,39 +1,4 @@
-# 🚀 StaWe've designed **three ways** to get started. Pick what feels right for you:
-
-### 🚀 **OPTION 1: Ultimate Kubernetes Learning Platform** *(Most Comprehensive)*
-
-**🎓 Comprehensive learning platform with progressive difficulty levels:**
-
-```bash
-# Launch the ultimate learning experience
-./scripts/learn-kubernetes.sh
-```
-
-**What it provides for you:**
-- 🎯 **Progressive Learning**: 4 difficulty levels from beginner to expert
-- 🏆 **Achievement System**: Track your progress with unlockable achievements
-- ⏰ **Time Tracking**: Monitor your learning investment and efficiency
-- 🔍 **Environment Validation**: Comprehensive setup verification
-- 📊 **Learning Analytics**: Personalized recommendations and skill progression
-- 🛠️ **Complete Toolchain**: Secrets management, monitoring, and advanced features
-
-### 🔧 **OPTION 2: Smart Interactive Setup** *(Easy & Guided)*
-
-**🤖 Interactive installer that sets up everything step-by-step:**
-
-```bash
-# Smart DevOps practice setup with guided installation
-./smart-setup.sh
-```
-
-**What it does for you:**
-- 🔍 **System Detection**: Automatically detects your OS and architecture
-- 🐳 **Tool Installation**: Installs Docker, kubectl, Helm, and other DevOps tools
-- ☸️ **Kubernetes Setup**: Sets up local cluster (Docker Desktop or kind)
-- 🎯 **Practice Modes**: Choose from Quick Start, K8s Practice, CI/CD, or Enterprise levels
-- ✅ **Verification**: Tests everything works before you start practicing
-
-### 🛠️ **OPTION 3: Manual Setup** *(For Learning Each Step)*s Mastery Journey
+# 🚀 DevOps Mastery Journey
 
 **Welcome!** This workspace contains 6 real working applications for practicing Docker, Kubernetes, CI/CD, and GitOps.
 
@@ -41,14 +6,25 @@
 
 ## ⚡ **CHOOSE YOUR SETUP METHOD**
 
-We've designed **two ways** to get started. Pick what feels right for you:
+### 🤖 **Easy Setup** *(Recommended - 5 minutes)*
+[→ Smart Guided Setup](./getting-started/easy-setup.md)
 
-### 🚀 **OPTION 1: Ultimate Kubernetes Learning Platform** *(Recommended)*
+**What it does**: Automated installation with guided prompts
 
-**🎓 Comprehensive learning platform with progressive difficulty levels:**
+### 🛠️ **Manual Setup** *(Learning - 15 minutes)*  
+[→ Step-by-Step Installation](./getting-started/manual-setup.md)
 
-```bash
-# Launch the ultimate learning experience
+**What you learn**: How each tool works and why you need it
+
+### � **Browse First** *(3 minutes)*
+[→ See Available Applications](./getting-started/applications-overview.md)
+
+**What's included**: 6 applications with different tech stacks
+
+---
+
+**Created by**: Temitayo Charles Akinniranye | TCA-InfraForge  
+**Next**: Pick one setup method above to begin
 ./scripts/learn-kubernetes.sh
 ```
 
@@ -145,5 +121,9 @@ We've designed **two ways** to get started. Pick what feels right for you:
 ✅ **Visual guides** - Screenshots show exactly what to expect  
 
 ---
+
+**🏗️ Created by**: Temitayo Charles Akinniranye | TCA-InfraForge  
+**🎯 Purpose**: Professional DevOps practice workspace with real-world applications  
+**🐳 Docker Hub**: [Pre-built images available](https://hub.docker.com/u/temitayocharles)
 
 **Ready to start?** Pick your path above and click the link! 🎉

@@ -1,67 +1,37 @@
 # Educational Platform - Multi-Stage Docker Build
-# Optimized for production with security hardening
+# Java Spring Boot + Angular Application
 
 # Frontend build stage
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci --only=production
+RUN npm install
 COPY frontend/ ./
 RUN npm run build
 
-# Backend build stage
-FROM python:3.11-slim as builder
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    libffi-dev \
-    libssl-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy requirements and install Python dependencies
-COPY backend/requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Backend build stage  
+FROM maven:3.9-eclipse-temurin-17 AS backend-builder
+WORKDIR /app/backend
+COPY backend/pom.xml ./
+RUN mvn dependency:go-offline -B
+COPY backend/src ./src
+RUN mvn clean package -DskipTests
 
 # Production stage
-FROM python:3.11-slim as production
+FROM eclipse-temurin:17-jre AS production
+WORKDIR /app
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    libpq5 \
-    libffi7 \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from builder stage
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy backend JAR
+COPY --from=backend-builder --chown=appuser:appuser /app/backend/target/*.jar app.jar
 
-# Set working directory
-WORKDIR /app
-
-# Copy application code
-COPY backend/ .
-
-# Copy built frontend
-COPY --from=frontend-builder /app/frontend/dist ./static
+# Copy built frontend to Spring Boot static resources
+COPY --from=frontend-builder --chown=appuser:appuser /app/frontend/dist/educational-platform-frontend ./public
 
 # Create necessary directories
 RUN mkdir -p /app/uploads /app/logs && \
@@ -72,10 +42,14 @@ USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8080
+
+# Environment variables
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+ENV SPRING_PROFILES_ACTIVE=prod
 
 # Start application
-CMD ["python", "run.py"]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
