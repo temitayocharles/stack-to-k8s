@@ -13,8 +13,8 @@ This is a complete weather data platform with real-time API integration, caching
 
 **🎯 NEW: Interactive Smart Setup (Recommended)**
 ```bash
-# Run the intelligent setup script from the root directory
-cd .. && ./smart-setup.sh weather-app
+# Launch the ultimate Kubernetes learning platform
+cd .. && ./scripts/learn-kubernetes.sh
 ```
 
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)

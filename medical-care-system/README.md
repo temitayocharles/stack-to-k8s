@@ -2,10 +2,10 @@
 
 ## 🎯 Overview
 
-**🎯 NEW: Interactive Smart Setup (Recommended)**
+**🚀 NEW: Ultimate Kubernetes Learning Platform (Recommended)**
 ```bash
-# Run the intelligent setup script from the root directory
-cd .. && ./smart-setup.sh medical-care-system
+# Run the comprehensive learning platform from the root directory
+cd .. && ./scripts/learn-kubernetes.sh
 ```
 
 A **production-ready healthcare management system** built with .NET Core API + Blazor WebAssembly frontend + PostgreSQL database. Features **HIPAA compliance**, **AI-powered health analytics**, **telemedicine capabilities**, and **enterprise-grade security**.

@@ -11,11 +11,11 @@ This is a complete e-commerce platform with shopping cart, payment processing, a
 
 ## **🚀 Want to Get Started? Don't Get Overwhelmed!**
 
-### **🤖 Smart Setup (Recommended - Automates Everything)**
+### **🚀 Learning Platform Launcher (Recommended)**
 ```bash
 # From the main directory, run:
-chmod +x ../smart-setup.sh && ../smart-setup.sh
-# Follow the colorful interactive guide!
+cd .. && ./scripts/learn-kubernetes.sh
+# Access the ultimate Kubernetes learning experience!
 ```
 
 ### **👆 Manual Setup:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)

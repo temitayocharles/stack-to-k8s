@@ -13,8 +13,8 @@ This is a complete social media platform with feeds, messaging, content delivery
 
 **🎯 NEW: Interactive Smart Setup (Recommended)**
 ```bash
-# Run the intelligent setup script from the root directory
-cd .. && ./smart-setup.sh social-media-platform
+# Launch the ultimate Kubernetes learning platform
+cd .. && ./scripts/learn-kubernetes.sh
 ```
 
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)

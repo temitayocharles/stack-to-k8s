@@ -13,17 +13,17 @@
 
 ## ⚡ Quick Start (Choose Your Method)
 
-### 🔧 **OPTION 1: Smart System Optimizer (Recommended)**
+### 🔧 **OPTION 1: Smart DevOps Setup (Recommended)**
 ```bash
-# Intelligent system analysis and optimization
-./smart-system-optimizer.sh
+# Interactive installation and setup for DevOps practice
+./smart-setup.sh
 
 # ✨ What it does:
-# • Detects your system (macOS/Linux/Windows)
-# • Recommends optimal tools for your architecture
-# • Replaces heavy tools (Docker Desktop) with lightweight alternatives
-# • Preserves all your data during optimization
-# • Saves 2-4GB RAM and improves performance
+# • Detects your system (macOS/Linux/Windows)  
+# • Installs required tools (Docker, kubectl, Helm)
+# • Sets up local Kubernetes cluster
+# • Verifies complete DevOps environment
+# • Guides you through different practice levels
 ```
 
 ### 🚀 **OPTION 2: Quick Manual Demo**

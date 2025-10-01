@@ -11,13 +11,13 @@ This is a complete learning management system with course creation, student trac
 
 ## 🚀 Quick Start
 
-**🎯 NEW: Interactive Smart Setup (Recommended)**
+**🚀 NEW: Ultimate Kubernetes Learning Platform (Recommended)**
 ```bash
-# Run the intelligent setup script from the root directory
-cd .. && ./smart-setup.sh educational-platform
+# Run the comprehensive learning platform from the root directory
+cd .. && ./scripts/learn-kubernetes.sh
 ```
 
-The smart setup automatically detects your system, installs required tools, and gets you running in minutes!
+The learning platform provides progressive difficulty levels, achievement tracking, and the ultimate Kubernetes experience!
 
 **Manual Setup:**
 

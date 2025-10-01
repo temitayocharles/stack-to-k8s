@@ -38,8 +38,8 @@ We've designed **two ways** to get your system ready for DevOps mastery. Choose 
 ### **🎯 Quick Start - One Command:**
 
 ```bash
-# Run the intelligent optimizer
-./smart-system-optimizer.sh
+# Launch the ultimate learning platform
+./scripts/learn-kubernetes.sh
 ```
 
 **The script will:**
@@ -246,8 +246,8 @@ Remember: The Smart Automatic Setup includes built-in error handling and recover
 
 ### **Recommended Path:**
 ```bash
-# Try the smart optimizer first
-./smart-system-optimizer.sh
+# Try the ultimate learning platform first
+./scripts/learn-kubernetes.sh
 
 # If you prefer manual control, follow the manual steps above
 ```

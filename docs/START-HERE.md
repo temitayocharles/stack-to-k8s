@@ -1,4 +1,39 @@
-# 🚀 Start Here - Your DevOps Mastery Journey
+# 🚀 StaWe've designed **three ways** to get started. Pick what feels right for you:
+
+### 🚀 **OPTION 1: Ultimate Kubernetes Learning Platform** *(Most Comprehensive)*
+
+**🎓 Comprehensive learning platform with progressive difficulty levels:**
+
+```bash
+# Launch the ultimate learning experience
+./scripts/learn-kubernetes.sh
+```
+
+**What it provides for you:**
+- 🎯 **Progressive Learning**: 4 difficulty levels from beginner to expert
+- 🏆 **Achievement System**: Track your progress with unlockable achievements
+- ⏰ **Time Tracking**: Monitor your learning investment and efficiency
+- 🔍 **Environment Validation**: Comprehensive setup verification
+- 📊 **Learning Analytics**: Personalized recommendations and skill progression
+- 🛠️ **Complete Toolchain**: Secrets management, monitoring, and advanced features
+
+### 🔧 **OPTION 2: Smart Interactive Setup** *(Easy & Guided)*
+
+**🤖 Interactive installer that sets up everything step-by-step:**
+
+```bash
+# Smart DevOps practice setup with guided installation
+./smart-setup.sh
+```
+
+**What it does for you:**
+- 🔍 **System Detection**: Automatically detects your OS and architecture
+- 🐳 **Tool Installation**: Installs Docker, kubectl, Helm, and other DevOps tools
+- ☸️ **Kubernetes Setup**: Sets up local cluster (Docker Desktop or kind)
+- 🎯 **Practice Modes**: Choose from Quick Start, K8s Practice, CI/CD, or Enterprise levels
+- ✅ **Verification**: Tests everything works before you start practicing
+
+### 🛠️ **OPTION 3: Manual Setup** *(For Learning Each Step)*s Mastery Journey
 
 **Welcome!** This workspace contains 6 real working applications for practicing Docker, Kubernetes, CI/CD, and GitOps.
 
@@ -8,21 +43,22 @@
 
 We've designed **two ways** to get started. Pick what feels right for you:
 
-### 🚀 **OPTION 1: Smart System Optimizer** *(Recommended)*
+### 🚀 **OPTION 1: Ultimate Kubernetes Learning Platform** *(Recommended)*
 
-**🤖 Intelligent setup that analyzes and optimizes your system:**
+**🎓 Comprehensive learning platform with progressive difficulty levels:**
 
 ```bash
-# Run the smart optimizer from the main directory
-./smart-system-optimizer.sh
+# Launch the ultimate learning experience
+./scripts/learn-kubernetes.sh
 ```
 
-**What it does for you:**
-- 🔍 **System Analysis**: Detects your OS (macOS/Linux/Windows) and architecture
-- ⚡ **Performance Optimization**: Replaces heavy tools (Docker Desktop) with lightweight alternatives
-- 🛡️ **Data Preservation**: Keeps all your containers, images, and volumes safe
-- 🎯 **Smart Recommendations**: Apple Silicon → OrbStack, Intel → Colima, Windows → Rancher Desktop
-- 💾 **Resource Savings**: 2-4GB RAM savings, faster startup, better battery life
+**What it provides for you:**
+- 🎯 **Progressive Learning**: 4 difficulty levels from beginner to expert
+- 🏆 **Achievement System**: Track your progress with unlockable achievements
+- ⏰ **Time Tracking**: Monitor your learning investment and efficiency
+- 🔍 **Environment Validation**: Comprehensive setup verification
+- 📊 **Learning Analytics**: Personalized recommendations and skill progression
+- �️ **Complete Toolchain**: Secrets management, monitoring, and advanced features
 
 ### 🛠️ **OPTION 2: Manual Setup** *(For Learning)*
 

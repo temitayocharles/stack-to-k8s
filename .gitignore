@@ -9,14 +9,103 @@
 ehthumbs.db
 Thumbs.db
 
-# IDE and Editor files
-.vscode/settings.json
-.vscode/launch.json
-.vscode/extensions.json
+# IDE and Editor files - COMPREHENSIVE COVERAGE
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.template
 .idea/
 *.swp
 *.swo
 *~
+.sublime-project
+.sublime-workspace
+*.code-workspace.tmp
+.brackets.json
+.atom/
+.vim/
+.nvim/
+*.tmProject
+*.tmproj
+.editorconfig.local
+.vs/
+.vscode-test/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.project
+.externalToolBuilders/
+*.launch
+.pydevproject
+.cproject
+.buildpath
+.factorypath
+.target
+.tern-project
+.texlipse
+.springBeans
+.recommenders/
+.apt_generated/
+.cache-main
+.scala_dependencies
+.worksheet
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+mono_crash.*
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+.build/
+
+# Xcode
+*.xcworkspace
+*.xcuserdata
+*.xcscheme
+DerivedData/
+.xcode-version
 
 # Environment variables and secrets
 .env
@@ -77,21 +166,25 @@ debug.log
 error.log
 build.log
 
-# Session and progress files - TEMPORARY ONLY
+# Learning progress and tracking files - USER-SPECIFIC DATA
+.learning-progress.json
+.session-history.log
+.time-tracking.json
+.current-session.tmp
+learning-progress-report.md
+time-investment-report.md
+monitoring-validation-report.md
+
+# Internal development and implementation tracking - LOCAL ONLY
 SESSION_LOG.md
 PROGRESS_LOG.md
 CORRECTED_TEST_REPORT.md
 ENTERPRISE_FINAL_REPORT.md
-
-# Internal development and implementation tracking - LOCAL ONLY
 *COMPLETE*.md
 *IMPLEMENTATION*.md
 *TRANSFORMATION*.md
 *STATUS-REPORT*.md
 *VALIDATION-REPORT*.md
-validate-optimizer-setup.sh
-validate-*.sh
-*-validation-*.sh
 *-internal-*.md
 INTERNAL-*.md
 *-INTERNAL.md
@@ -121,6 +214,13 @@ notification_demo.go
 .zshrc_auto_approve
 setup-universal-auto-approval.sh
 universal-terminal-auto-approval.sh
+
+# Validation and optimization scripts - TEMPORARY TOOLS
+validate-optimizer-setup.sh
+validate-*.sh
+*-validation-*.sh
+setup-optimize.sh
+test-optimizer.sh
 
 # Node.js
 node_modules/

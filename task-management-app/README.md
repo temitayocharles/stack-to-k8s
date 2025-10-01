@@ -13,8 +13,8 @@ This is a complete task management and collaboration platform with real-time upd
 
 **🎯 NEW: Interactive Smart Setup (Recommended)**
 ```bash
-# Run the intelligent setup script from the root directory
-cd .. && ./smart-setup.sh task-management-app
+# Launch the ultimate Kubernetes learning platform
+cd .. && ./scripts/learn-kubernetes.sh
 ```
 
 ### **👆 Click here to begin:** [**GET STARTED - Choose Your Path**](./GET-STARTED.md)
