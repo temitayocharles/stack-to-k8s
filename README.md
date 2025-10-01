@@ -11,26 +11,28 @@
 ✅ **Production ready** - Docker, Kubernetes, monitoring, CI/CD  
 ✅ **Beginner friendly** - Step-by-step guides, no overwhelming docs  
 
-## ⚡ Quick Start (Choose Your Method)
+## ⚡ Quick Start
 
-### 🔧 **OPTION 1: Smart DevOps Setup (Recommended)**
+### 🏃‍♂️ **Use Pre-Built Images** (Recommended for Kubernetes practice)
 ```bash
-# Interactive installation and setup for DevOps practice
-./smart-setup.sh
-
-# ✨ What it does:
-# • Detects your system (macOS/Linux/Windows)  
-# • Installs required tools (Docker, kubectl, Helm)
-# • Sets up local Kubernetes cluster
-# • Verifies complete DevOps environment
-# • Guides you through different practice levels
+# Multi-architecture images ready on Docker Hub - works on Intel AND ARM!
+docker pull temitayocharles/ecommerce-app:latest
+docker run -d -p 3000:3000 temitayocharles/ecommerce-app:latest
+# Visit: http://localhost:3000
+# ✅ Supports: Intel/AMD (x86_64) and ARM (Apple Silicon, ARM servers)
 ```
 
-### 🚀 **OPTION 2: Quick Manual Demo**
+### 🛠️ **Build Your Own** (For Docker learning)
 ```bash
-cd ecommerce-app
+cd ecommerce-app/
+docker build -t my-ecommerce-app:latest .
 docker-compose up -d
-# Open: http://localhost:3001
+# Visit: http://localhost:3001
+```
+
+### 🔧 **Complete DevOps Setup**
+```bash
+./smart-setup.sh  # Full environment with Kubernetes cluster
 ```
 
 ### 📚 **Complete Setup Documentation**
