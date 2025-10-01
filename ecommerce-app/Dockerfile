@@ -34,7 +34,7 @@ COPY --from=backend-builder --chown=nodejs:nodejs /app/backend ./
 COPY --from=frontend-builder --chown=nodejs:nodejs /app/frontend/build ./public
 
 # Install production dependencies only
-RUN npm install --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Security: Remove npm cache
 RUN rm -rf ~/.npm
