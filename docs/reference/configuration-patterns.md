@@ -1,5 +1,7 @@
 # 🔧 Configuration Management Patterns
 
+Practical patterns for multi-environment configuration: Kustomize, Helm, feature flags, and validation.
+
 ## Overview
 
 Advanced patterns and best practices for managing configuration across different environments in Kubernetes applications.

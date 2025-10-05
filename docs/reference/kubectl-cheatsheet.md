@@ -1,5 +1,7 @@
 # kubectl Cheatsheet
 
+A compact list of the most useful `kubectl` commands and quick namespace/context tips.
+
 Quick reference for common kubectl commands used in labs.
 
 ## Cluster Info
