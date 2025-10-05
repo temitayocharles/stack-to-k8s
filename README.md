@@ -8,7 +8,7 @@
 
 ## 📚 Learning Path
 
-Complete guide: **[KUBERNETES-LABS.md](KUBERNETES-LABS.md)**
+Complete guide: **[KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)**
 
 10 hands-on labs from beginner (⭐) to expert (⭐⭐⭐⭐)
 
@@ -49,9 +49,11 @@ Complete Kubernetes fundamentals through 10 progressive labs:
 
 **Success Resources**:
 - **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** - Avoid top 10 beginner mistakes
-- **[kubectl-cheatsheet.md](kubectl-cheatsheet.md)** - Quick command reference
-- **[troubleshooting.md](troubleshooting.md)** - Fix common issues
-- **[debugging.md](debugging.md)** - Advanced debugging techniques
+- **[🔐 secrets-management.md](docs/reference/secrets-management.md)** - Handle API keys & configs securely
+- **[🔑 api-keys-guide.md](docs/reference/api-keys-guide.md)** - Get keys from popular services
+- **[kubectl-cheatsheet.md](docs/reference/kubectl-cheatsheet.md)** - Quick command reference
+- **[troubleshooting.md](docs/troubleshooting/troubleshooting.md)** - Fix common issues
+- **[debugging.md](docs/troubleshooting/debugging.md)** - Advanced debugging techniques
 
 **Validation**:
 - **[scripts/validate-lab.sh](scripts/validate-lab.sh)** - Verify your deployments work

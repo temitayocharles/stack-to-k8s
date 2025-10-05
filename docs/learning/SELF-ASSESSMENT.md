@@ -50,7 +50,7 @@ Test your understanding after completing labs. Be honest with yourself!
 **Scoring**: 
 - 5/5: ⭐ Excellent! Move to Lab 2
 - 3-4/5: ⭐ Good, review concepts then proceed
-- 0-2/5: 🔄 Redo Lab 1 and study kubectl-cheatsheet.md
+- 0-2/5: 🔄 Redo Lab 1 and study docs/reference/kubectl-cheatsheet.md
 
 </details>
 
@@ -547,7 +547,7 @@ Test your understanding after completing labs. Be honest with yourself!
 
 - **Below 25** (<50%): 🔄 **Needs Review**
   - Redo labs slowly
-  - Study kubectl-cheatsheet.md
+  - Study ../reference/kubectl-cheatsheet.md
   - Read COMMON-MISTAKES.md
   - Ask questions!
 
@@ -606,7 +606,7 @@ After completing all labs, you should be able to:
 
 ### If you scored below 70%:
 1. 🔄 Redo ALL labs at your own pace
-2. 📚 Study kubectl-cheatsheet.md thoroughly
+2. 📚 Study ../reference/kubectl-cheatsheet.md thoroughly
 3. 🚨 Read COMMON-MISTAKES.md
 4. 💡 Take notes while doing labs
 5. ❓ Ask questions in Kubernetes communities

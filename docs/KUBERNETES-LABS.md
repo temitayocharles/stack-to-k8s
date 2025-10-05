@@ -110,9 +110,9 @@ No building required - focus on **Kubernetes**, not Docker.
 ---
 
 ## 🆘 Stuck?
-- **[Common Issues](troubleshooting.md)** - Quick fixes
-- **[kubectl Cheat Sheet](kubectl-cheatsheet.md)** - Essential commands
-- **[Debug Guide](debugging.md)** - When things break
+- **[Common Issues](troubleshooting/troubleshooting.md)** - Quick fixes
+- **[kubectl Cheat Sheet](reference/kubectl-cheatsheet.md)** - Essential commands
+- **[Debug Guide](troubleshooting/debugging.md)** - When things break
 
 ---
 
