@@ -338,13 +338,13 @@ kubectl exec -n ecommerce-lab $BACKEND_POD -- env | grep DATABASE
 
 **[Lab 3: Educational Platform - Stateful Apps](03-educational-stateful.md)**
 
-## 📝 Quick Quiz (3 questions)
+## 🧠 Quick Check
 
 1. What Kubernetes resource would you use to persist database storage across pod restarts?
 2. How can a Deployment consume configuration from a ConfigMap as environment variables?
 3. What command shows service endpoints to verify a Service is routing to pods?
 
-## 🧩 Mini Challenge
+## 🏆 Challenge Mode
 
 - Convert the PostgreSQL Deployment to a StatefulSet (minimal changes) and verify a PVC is created for the database pod.
 

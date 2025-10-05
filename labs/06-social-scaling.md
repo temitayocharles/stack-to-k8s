@@ -496,13 +496,13 @@ kubectl describe pod <name> -n <namespace>
 
 **[Lab 7: Multi-App Orchestration](07-multi-app.md)**
 
-## 📝 Quick Quiz (3 questions)
+## 🧠 Quick Check
 
 1. What metric does the basic HPA example use to scale pods?
 2. Why are resource requests required for HPA to function properly?
 3. What does `stabilizationWindowSeconds` control in HPA behavior?
 
-## 🧩 Mini Challenge
+## 🏆 Challenge Mode
 
 - Create a short k6 script that generates a 2-minute spike and observe the HPA reaction. Summarize the HPA replica counts before, during, and after the spike.
 

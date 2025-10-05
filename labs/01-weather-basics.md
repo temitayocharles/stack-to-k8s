@@ -53,7 +53,7 @@ graph TD
 
 ---
 
-## � Quick Quiz (3 questions)
+## 🧠 Quick Check
 
 1. What Kubernetes object provides a stable network endpoint for a set of pods?
 2. How do you scale a Deployment to 3 replicas from the CLI?
@@ -61,7 +61,7 @@ graph TD
 
 Check your answers after completing the lab.
 
-## 🧩 Mini Challenge
+## 🏆 Challenge Mode
 
 - Add a simple readiness probe to the frontend deployment that checks `/health` and verify the pod stays in Ready state during a simulated slow backend response (use `kubectl exec` to simulate delay if needed).
 
