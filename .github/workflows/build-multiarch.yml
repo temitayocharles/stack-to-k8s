@@ -1,4 +1,4 @@
-name: 🚀 Hardened Multi-Architecture Docker Builds
+name: 🚀 Hardened Multi-Architecture Docker Builds v2
 
 on:
   push:
