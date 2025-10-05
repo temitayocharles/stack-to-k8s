@@ -1,4 +1,5 @@
 # Lab 7: Multi-App Orchestration
+Deploy and observe multiple apps together with a service mesh and centralized monitoring.
 
 **Time**: 120 minutes  
 **Difficulty**: ⭐⭐⭐⭐ Expert  
@@ -58,11 +59,19 @@ graph TD
 
 ## 🚀 Steps
 
-### 1. Create Namespace & Deploy All Apps (20 min)
+# 1. Create Namespace & Deploy All Apps (20 min)
 
 ```bash
 kubectl create namespace platform
+
+# Safer option: prefer using -n on kubectl commands rather than switching your current kubectl context
+# Example: kubectl apply -f weather-app/k8s/ -n platform
+
+# If you prefer to change the current context, capture and restore it:
+PREV_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo default)
 kubectl config set-context --current --namespace=platform
+# To restore:
+kubectl config set-context --current --namespace="$PREV_NS"
 
 # Deploy Weather App
 kubectl apply -f weather-app/k8s/ -n platform
