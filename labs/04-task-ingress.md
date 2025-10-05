@@ -1,4 +1,5 @@
 # Lab 4: Task Manager - Ingress & External Access
+Expose the Task Manager safely with an Ingress controller and TLS for external access.
 
 **Time**: 45 minutes  
 **Difficulty**: ⭐⭐⭐ Advanced  
@@ -26,6 +27,12 @@ Deploy task management app and expose it externally using Ingress. Learn how to 
 ```
 
 Confirms access to the Task Manager manifests and required CLI tooling.
+
+## ✅ Success criteria
+
+- Ingress controller (nginx) is installed and Running
+- `task-ingress` resource exists in namespace `task-lab`
+- Frontend and backend are reachable through the Ingress (HTTP/HTTPS)
 
 ## 🧭 Architecture Snapshot
 
@@ -68,6 +75,9 @@ kubectl get svc -n ingress-nginx
 ```bash
 # Create namespace
 kubectl create namespace task-lab
+
+# Safer option: prefer using -n on kubectl commands rather than switching your current kubectl context
+# Example: kubectl apply -f task-management-app/k8s/database-deployment.yaml -n task-lab
 
 # Deploy MongoDB
 kubectl apply -f task-management-app/k8s/database-deployment.yaml -n task-lab
