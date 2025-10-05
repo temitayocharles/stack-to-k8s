@@ -1,63 +1,69 @@
-# Kubernetes Practice Labs
+# Kubernetes Practice Lab## Application portfolio 🧱 🚀## Learning toolkit 🎒
 
-6 full-stack applications for hands-on Kubernetes learning.
+- ✅ **[SELF-ASSESSMENT.md](docs/learning/SELF-ASSESSMENT.md)** — Gauge skills after every milestone.
+- ⚠️ **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** — Skip the top gotchas we see in reviews.
+- 📘 **[kubectl cheatsheet](docs/reference/kubectl-cheatsheet.md)** — Commands plus namespace best practices.
+- 🛠️ **[Troubleshooting hub](docs/troubleshooting/troubleshooting.md)** — Rapid response playbook with deep-dive drills.
+- 🔐 **[Secrets management guide](docs/reference/secrets-management.md)** — Vault patterns and rotation strategies.
+- 🗂️ **[Markdown inventory](docs/MARKDOWN-INDEX.md)** — Quick glance at every guide, lab, and reference in the repo.e aboard—six production-grade apps and twelve narrative labs that take you from curious engineer to confident Kubernetes operator.LF-ASSESSMENT.md](docs/learning/SELF-ASSESSMENT.md)** — Gauge skills after every milestone.
+- ⚠️ **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** — Skip the top gotchas we see in reviews.
+- 📘 **[kubectl cheatsheet](docs/reference/kubectl-cheatsheet.md)** — Copy/paste-ready commands.
+- 🏷️ **[Namespace best practices](docs/reference/namespace-best-practices.md)** — Why and how to always scope operations with `-n`.
+- �️ **[Troubleshooting hub](docs/troubleshooting/troubleshooting.md)** — Rapid response playbook with deep-dive drills.
+- 🔐 **[Secrets management guide](docs/reference/secrets-management.md)** — Vault patterns and rotation strategies.
+- 🗂️ **[Markdown inventory](docs/MARKDOWN-INDEX.md)** — Quick glance at every guide, lab, and reference in the repo.Welcome aboard—six production-grade apps and twelve narrative labs that take you from curious engineer to confident Kubernetes operator.
 
-## 🚀 Start Here
+## Quick start 🏁
 
-**[Lab 1: Deploy Your First App](labs/01-weather-basics.md)** (20 minutes)
+1. Provision a local Kubernetes cluster with [Rancher Desktop](docs/setup/rancher-desktop.md) or [kind/k3d](docs/setup/linux-kind-k3d.md).
+2. Complete **[Lab 1: Deploy Your First App](labs/01-weather-basics.md)** to see the full toolchain in action.
+3. Track what you finish in **[LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md)** so you always know the next move.
 
-## 📚 Learning Path
+## Lab roadmap 🧭
 
-Complete guide: **[KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)**
+The complete progression—including difficulty, prerequisites, and success criteria—lives in **[KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)**. Each lab links to its story-driven walkthrough plus supporting runbooks, troubleshooting checklists, and validation scripts.
 
-10 hands-on labs from beginner (⭐) to expert (⭐⭐⭐⭐)
+## Application portfolio �
 
-## 🏗️ Applications
+- 🌦️ **Weather App** — Vue.js + Python + Redis
+- 🛒 **E-commerce Platform** — React + Node.js + MongoDB
+- 🎓 **Educational Platform** — Angular + Java + PostgreSQL
+- ✅ **Task Management** — Svelte + Go + PostgreSQL
+- 🏥 **Medical Care System** — Blazor + .NET + PostgreSQL
+- 📱 **Social Media Platform** — React Native + Ruby + PostgreSQL
 
-- **Weather App** - Vue.js + Python + Redis
-- **E-commerce Platform** - React + Node.js + MongoDB
-- **Educational Platform** - Angular + Java + PostgreSQL
-- **Task Management** - Svelte + Go + PostgreSQL
-- **Medical Care System** - Blazor + .NET + PostgreSQL
-- **Social Media Platform** - React Native + Ruby + PostgreSQL
+## Learning toolkit 🎒
 
-## 🎯 What You'll Learn
+- ✅ **[SELF-ASSESSMENT.md](docs/learning/SELF-ASSESSMENT.md)** — Gauge skills after every milestone.
+- ⚠️ **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** — Skip the top gotchas we see in reviews.
+- � **[kubectl cheatsheet](docs/reference/kubectl-cheatsheet.md)** — Copy/paste-ready commands.
+- 🛠️ **[Troubleshooting hub](docs/troubleshooting/troubleshooting.md)** — Rapid response playbook with deep-dive drills.
+- 🔐 **[Secrets management guide](docs/reference/secrets-management.md)** — Vault patterns and rotation strategies.
+- 🗂️ **[Markdown inventory](docs/MARKDOWN-INDEX.md)** — Quick glance at every guide, lab, and reference in the repo.
 
-Complete Kubernetes fundamentals through 10 progressive labs:
-- Pods, Deployments, Services
-- Multi-tier applications
-- StatefulSets & Persistence
-- Ingress & TLS
-- Security & RBAC
-- Autoscaling
-- Service Mesh
-- Chaos Engineering
-- Helm Package Management
-- GitOps with ArgoCD
+## Automation & quality checks ✅
 
-## 📋 Prerequisites
+- `scripts/validate-lab.sh` runs smoke tests tailored to each lab’s acceptance criteria.
+- `scripts/validate-links.sh` verifies Markdown links using `markdown-link-check` with sensible retry and ignore defaults.
+- `.github/markdown-link-check.json` centralises link-check behaviour so CI and local runs stay consistent.
 
-- Docker Desktop with Kubernetes enabled
-- kubectl installed
-- 30 minutes to 2 hours per lab
+## Writing & style guide ✍️
 
-## 🛠️ Learning Tools
+We keep docs fast to skim: one emoji per heading, imperative voice, and consistent section order. See **[STYLE-GUIDE.md](docs/STYLE-GUIDE.md)** before adding or refreshing lab content.
 
-**Progress Tracking**:
-- **[LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md)** - Track your lab completions and milestones
-- **[SELF-ASSESSMENT.md](docs/learning/SELF-ASSESSMENT.md)** - Test your knowledge after each lab
+## Repository map 🗺️
 
-**Success Resources**:
-- **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** - Avoid top 10 beginner mistakes
-- **[🔐 secrets-management.md](docs/reference/secrets-management.md)** - Handle API keys & configs securely
-- **[🔑 api-keys-guide.md](docs/reference/api-keys-guide.md)** - Get keys from popular services
-- **[kubectl-cheatsheet.md](docs/reference/kubectl-cheatsheet.md)** - Quick command reference
-- **[troubleshooting.md](docs/troubleshooting/troubleshooting.md)** - Fix common issues
-- **[debugging.md](docs/troubleshooting/debugging.md)** - Advanced debugging techniques
+- `applications/` — Boilerplates and templates shared by multiple labs.
+- `docs/` — Lab narratives, setup guides, troubleshooting references, and learning aids.
+- `scripts/` — Automation for validation, builds, monitoring, and clean-up.
+- `<app>/` — Production-style source, infrastructure, and CI/CD for each platform.
 
-**Validation**:
-- **[scripts/validate-lab.sh](scripts/validate-lab.sh)** - Verify your deployments work
+## Contributing 🤝
 
----
+1. Run `scripts/validate-links.sh` (or pass specific Markdown files) to confirm outbound references.
+2. Execute `scripts/validate-lab.sh <lab>` for any lab you modify.
+3. Submit a PR with a summary of changes, test evidence, and any new playbook entries.
 
-**Created by**: Temitayo Charles Akinniranye | [Docker Hub](https://hub.docker.com/u/temitayocharles)
+## Credits 💡
+
+Created by Temitayo Charles Akinniranye — [Docker Hub](https://hub.docker.com/u/temitayocharles) — Built with ❤️ for curious engineers.

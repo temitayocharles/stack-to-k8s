@@ -19,6 +19,32 @@ Deploy social media platform and configure autoscaling for high traffic. Learn h
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 6
+```
+
+Ensures `kubectl`, `helm`, and the social media manifests are ready to go.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph LR
+  Users-->Frontend[React UI]
+  Frontend-->Backend[Go API]
+  Backend-->Database[(PostgreSQL)]
+  Backend-->Cache[(Redis)]
+  Autoscaler-->Backend
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-06/` (in progress)
+- Manual approach: apply manifests from `social-media-platform/k8s`, then layer in the HPA, VPA, and resource patch commands detailed in this lab.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Install Metrics Server (5 min)
@@ -283,6 +309,45 @@ kubectl get pdb -n social-lab
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 6
+```
+
+This checks the namespace, deployments, database service, metrics server, and HPA configuration.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How can you watch HPA decisions in real time?</summary>
+  ```bash
+  kubectl get hpa social-backend -n social-lab -w
+  ```
+  </details>
+
+<details>
+  <summary>What command shows current pod CPU usage?</summary>
+  ```bash
+  kubectl top pods -n social-lab
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Add a Vertical Pod Autoscaler (VPA) in recommendation mode and compare suggestions.
+- Configure Prometheus/Grafana dashboards to visualize CPU and HPA metrics.
+- Introduce a PodDisruptionBudget to maintain minimum backend replicas during node maintenance.
+
+## 🔧 Troubleshooting Flow
+
+1. **HPA status unknown?** → Ensure metrics server pods are running without TLS errors.
+2. **HPA not scaling?** → Confirm CPU resource requests are set (HPA uses requests as baseline).
+3. **Pods throttled?** → Examine `kubectl describe pod` for throttling messages due to low limits.
+4. **Load test fails?** → Verify port-forward is active and consider increasing the HPA max replicas.
 
 ---
 

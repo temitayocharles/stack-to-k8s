@@ -19,6 +19,32 @@ Deploy medical care system with production-grade security. Learn Kubernetes secu
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 5
+```
+
+Validates availability of the medical system manifests and `kubectl` access.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph LR
+  Clinician-->Frontend[Blazor Frontend]
+  Frontend-->API[.NET API]
+  API-->Database[(PostgreSQL)]
+  API-->Secrets[(K8s Secrets)]
+  API-->External{External Systems}
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-05/` (in progress)
+- Manual approach: start with `medical-care-system/k8s` manifests and add the RBAC, network policies, and security context tweaks from this lab.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Create Namespace with Labels (2 min)
@@ -350,6 +376,46 @@ kubectl get pod -n medical-lab -l app=postgres -o jsonpath='{.items[0].spec.secu
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 5
+```
+
+The script ensures secrets, RBAC objects, network policies, and deployments match expectations.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How can you see what a service account is allowed to do?</summary>
+  ```bash
+  kubectl auth can-i list pods --as=system:serviceaccount:medical-lab:medical-api-sa -n medical-lab
+  ```
+  </details>
+
+<details>
+  <summary>How do you confirm the default-deny policy is active?</summary>
+  ```bash
+  kubectl get networkpolicy -n medical-lab
+  ```
+  Then attempt a curl from a throwaway pod and observe the timeout.
+  </details>
+
+## 🏆 Challenge Mode
+
+- Introduce Pod Security Admission labels (`pod-security.kubernetes.io/enforce=restricted`).
+- Create a `NetworkPolicy` that allows monitoring traffic from the `observability` namespace only.
+- Add Kyverno or OPA Gatekeeper policies that prevent privileged pods in the namespace.
+
+## 🔧 Troubleshooting Flow
+
+1. **API cannot read secrets?** → Verify Role rules: `kubectl describe role medical-api-role -n medical-lab`.
+2. **Traffic blocked unexpectedly?** → Inspect applied network policies and ensure selectors match.
+3. **Service account missing permissions?** → Check RoleBinding subjects for typos.
+4. **Pods running as root?** → Inspect `securityContext` in the deployment and reapply with `runAsNonRoot`.
 
 ---
 

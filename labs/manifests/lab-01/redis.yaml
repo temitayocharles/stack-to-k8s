@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-redis
+  labels:
+    app: weather-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-redis
+  template:
+    metadata:
+      labels:
+        app: weather-redis
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis
+          image: redis:7.2-alpine
+          ports:
+            - containerPort: 6379
+          args: ["--appendonly", "yes"]
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+              ephemeral-storage: "128Mi"
+            limits:
+              cpu: "150m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-redis
+spec:
+  selector:
+    app: weather-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379

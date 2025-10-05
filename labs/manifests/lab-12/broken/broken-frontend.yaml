@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-frontend
+  namespace: label-lab
+  labels:
+    app: frontend
+    version: v1.0.0
+    component: web
+  annotations:
+    kube-linter.io/ignore-autosar: "intentional-lab-mismatch"
+    kube-linter.io/ignore-checks: latest-tag
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend-service # ❌ Intentional mismatch
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1.0.0
+        component: web
+        tier: frontend
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: web
+          image: nginx:1.27.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 50Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+              ephemeral-storage: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: label-lab
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend-app # ❌ Intentional mismatch
+    tier: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

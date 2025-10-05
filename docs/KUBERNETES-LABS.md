@@ -1,81 +1,45 @@
 # 🎓 Kubernetes Learning Labs
 
-## Purpose
-**Practice Kubernetes with 6 real applications.** This is NOT about the apps - it's about mastering K8s deployment, scaling, debugging, and operations.
+Practice Kubernetes with 6 real applications across 12 progressively spicy labs. 🌶️
 
-**Think**: KodeKloud-style hands-on labs, not production documentation.
+**Mindset**: Less "read the docs", more "ship to cluster". Each lab is a guided mission with validation, troubleshooting, and real-world fire drills.
 
 ---
 
-## 📚 Learning Path
+## 🧭 Lab Map
 
-### Level 1: Beginner (⭐)
-**Goal**: Deploy your first app to Kubernetes
+### ⭐ Level 1 — Lift-off (Foundations)
+1. 🌦️ **[Lab 1: Weather App Basics](../labs/01-weather-basics.md)** (20 min)  
+   Deploy your first app. Master pods, services, port-forwarding.
+2. 🛒 **[Lab 2: E-commerce Multi-tier](../labs/02-ecommerce-basics.md)** (30 min)  
+   Frontend + backend + database. Understand multi-service communication.
 
-1. **[Lab 1: Weather App](labs/01-weather-basics.md)** (20 min)
-   - Deploy pods, services, deployments
-   - Port forward and test
-   - Scale replicas
+### ⚙️ Stage 2: Production Ops (3 labs)
+3. 🎓 **[Lab 3: Educational Stateful](../labs/03-educational-stateful.md)** (40 min)  
+   Persistent volumes, StatefulSets, data retention.
+4. ✅ **[Lab 4: Task Manager Ingress](../labs/04-task-ingress.md)** (45 min)  
+   Expose apps with Ingress (NGINX), manage external traffic.
 
-2. **[Lab 2: E-commerce](labs/02-ecommerce-basics.md)** (30 min)
-   - Multi-service deployment
-   - Service discovery
-   - Health checks
+### 🛡️ Stage 3: Platform Wizards (2 labs)
+5. 🏥 **[Lab 5: Medical Security](../labs/05-medical-security.md)** (60 min)  
+   RBAC, NetworkPolicies, secrets, TLS. Secure apps like a pro.
+6. 📈 **[Lab 6: Social Scaling](../labs/06-social-scaling.md)** (90 min)  
+   HPA, resource limits, multi-replica deployments, caching.
 
-### Level 2: Intermediate (⭐⭐)
-**Goal**: Manage stateful applications
+### 🤖 Stage 4: Automation Legends (5 labs)
+7. 🧩 **[Lab 7: Multi-App Orchestration](../labs/07-multi-app.md)** (120 min)  
+   Deploy all 6 apps with shared configs (ConfigMaps).
+8. ⚡ **[Lab 8: Chaos Engineering](../labs/08-chaos.md)** (90 min)  
+   Break pods, test self-healing, resilience patterns.
 
-3. **[Lab 3: Educational Platform](labs/03-educational-stateful.md)** (40 min)
-   - Persistent volumes
-   - StatefulSets
-   - Database backups
-
-4. **[Lab 4: Task Manager](labs/04-task-ingress.md)** (45 min)
-   - Ingress controllers
-   - TLS certificates
-   - Domain routing
-
-### Level 3: Advanced (⭐⭐⭐)
-**Goal**: Production-grade operations
-
-5. **[Lab 5: Medical System](labs/05-medical-security.md)** (60 min)
-   - RBAC and security
-   - Network policies
-   - Secrets management
-   - HIPAA compliance basics
-
-6. **[Lab 6: Social Media](labs/06-social-scaling.md)** (90 min)
-   - Horizontal pod autoscaling
-   - Resource limits
-   - Multi-region deployment
-   - Load testing
-
-### Level 4: Expert (⭐⭐⭐⭐)
-**Goal**: Advanced Kubernetes patterns
-
-7. **[Lab 7: Multi-App Orchestration](labs/07-multi-app.md)** (120 min)
-   - Deploy all 6 apps
-   - Service mesh (Istio basics)
-   - Centralized logging
-   - Monitoring with Prometheus
-
-8. **[Lab 8: Chaos Engineering](labs/08-chaos.md)** (90 min)
-   - Pod failures
-   - Network delays
-   - Resource exhaustion
-   - Recovery strategies
-
-9. **[Lab 9: Helm Package Management](labs/09-helm-package-management.md)** (75 min)
-   - Helm charts and repositories
-   - Values customization
-   - Creating custom charts
-   - Chart dependencies and templating
-
-10. **[Lab 10: GitOps with ArgoCD](labs/10-gitops-argocd.md)** (90 min)
-    - GitOps principles and workflows
-    - ArgoCD setup and configuration
-    - Multi-environment deployments
-    - Git-driven automation
+### � Stage 5: Tooling Masters (3 labs)
+9. 🪄 **[Lab 9: Helm Package Management](../labs/09-helm-package-management.md)** (75 min)  
+   Build charts, templating, versioned releases.
+10. 🤖 **[Lab 10: GitOps with ArgoCD](../labs/10-gitops-argocd.md)** (90 min)  
+    Git as source of truth, automated sync, rollback workflows.
+11. 🔐 **[Lab 11: External Secrets Management](../labs/11-external-secrets.md)** (60 min)  
+    External secrets operator, Vault integration.
+12. 🧠 **[Lab 12: Kubernetes Fundamentals Deep Dive](../labs/12-kubernetes-fundamentals.md)** (75 min)
 
 ---
 
@@ -171,4 +135,4 @@ By completing these labs, you'll master:
 
 **Ready to master Kubernetes?**
 
-👉 Start with **[Lab 1: Weather App Basics](labs/01-weather-basics.md)**
+👉 Start with **[Lab 1: Weather App Basics](../labs/01-weather-basics.md)**

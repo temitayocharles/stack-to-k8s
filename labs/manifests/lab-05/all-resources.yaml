@@ -1,0 +1,325 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-lab
+    app.kubernetes.io/part-of: lab-05-medical-security
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: postgres
+type: Opaque
+stringData:
+  POSTGRES_USER: medical_user
+  POSTGRES_PASSWORD: secure_medical_pass_999
+  POSTGRES_DB: medical
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-secret
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-api
+type: Opaque
+stringData:
+  JWT_SECRET: ultra_secure_jwt_token_for_medical_app_2024
+  ENCRYPTION_KEY: aes256_encryption_key_for_patient_data
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: medical-api-sa
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-api
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: medical-api-role
+  namespace: medical-lab
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["api-secret", "postgres-secret"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: medical-api-binding
+  namespace: medical-lab
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: medical-api-role
+subjects:
+  - kind: ServiceAccount
+    name: medical-api-sa
+    namespace: medical-lab
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: medical-lab
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-to-db
+  namespace: medical-lab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: medical-api
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-api
+  namespace: medical-lab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: medical-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: ui
+      ports:
+        - protocol: TCP
+          port: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: medical-lab
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres
+          image: postgres:15.4
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+              ephemeral-storage: 200Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-api
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-api
+    app.kubernetes.io/component: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: medical-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: medical-api
+        app.kubernetes.io/component: api
+    spec:
+      serviceAccountName: medical-api-sa
+      automountServiceAccountToken: true
+      containers:
+        - name: api
+          image: temitayocharles/medical-api:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: JWT_SECRET
+            - name: DATABASE_URL
+              value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 100Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+              ephemeral-storage: 300Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medical-api
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-api
+spec:
+  selector:
+    app.kubernetes.io/name: medical-api
+  ports:
+    - port: 5000
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-frontend
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-frontend
+    app.kubernetes.io/component: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: medical-frontend
+      app.kubernetes.io/component: ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: medical-frontend
+        app.kubernetes.io/component: ui
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: frontend
+          image: temitayocharles/medical-frontend:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: API_URL
+              value: http://medical-api:5000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 50Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medical-frontend
+  namespace: medical-lab
+  labels:
+    app.kubernetes.io/name: medical-frontend
+spec:
+  selector:
+    app.kubernetes.io/name: medical-frontend
+    app.kubernetes.io/component: ui
+  ports:
+    - port: 80
+      targetPort: 80
+  type: LoadBalancer

@@ -1,0 +1,13 @@
+{
+  "verbose": false,
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 203, 204, 206, 301, 302, 307, 308],
+  "timeout": "10s",
+  "ignorePatterns": [
+    { "pattern": "^mailto:" },
+    { "pattern": "^#" },
+    { "pattern": "localhost" }
+  ]
+}

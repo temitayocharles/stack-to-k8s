@@ -1,616 +1,491 @@
-# 🎓 Kubernetes Knowledge Self-Assessment
+# 🎓 Kubernetes Knowledge Self-Assessment (Adventure Mode)
 
-Test your understanding after completing labs. Be honest with yourself!
+Ready to check how battle-tested your cluster skills really are? Grab a pen, answer honestly, and celebrate every win (or revisit the lab for bonus XP).
 
 ---
 
-## 📝 Lab 1: Weather App Basics (⭐)
+## 🚀 How to Play
+- 🧭 **Pick your stage**: Only take quizzes for labs you’ve completed.
+- ✍️ **Mark your answers**: Circle (or click) the option you believe is correct.
+- 🔐 **No peeking**: Reveal the answer key in each `<details>` block only after you’ve committed.
+- 📊 **Tally your score**: Use the stage scoring guidance, then update the overall scoreboard at the end.
+- 🔁 **Loop for mastery**: Scores under target? Re-run the lab, review `COMMON-MISTAKES.md`, and come back stronger.
 
-### Questions
+---
+
+## 🧭 Stage 1 · Launchpad (⭐)
+
+### 🌦️ Lab 1 · Weather App Basics
+<details>
+<summary>Take the quiz</summary>
 
 1. **What command creates a deployment?**
    - [ ] A) `kubectl deploy weather-app --image=weather-app:latest`
    - [ ] B) `kubectl create deployment weather-app --image=weather-app:latest`
    - [ ] C) `kubectl apply -f deployment.yaml`
    - [ ] D) Both B and C
-
-2. **What does "replicas: 3" mean in a Deployment?**
-   - [ ] A) Create 3 different deployments
+2. **What does `replicas: 3` mean in a Deployment?**
+   - [ ] A) Create 3 different Deployments
    - [ ] B) Run 3 identical pods
-   - [ ] C) Create 3 services
-   - [ ] D) Scale to 3 nodes
-
+   - [ ] C) Create 3 Services
+   - [ ] D) Scale the cluster to 3 nodes
 3. **How do you expose a deployment externally in Minikube?**
    - [ ] A) `kubectl expose deployment weather-app --type=ClusterIP`
    - [ ] B) `kubectl expose deployment weather-app --type=LoadBalancer` + `minikube tunnel`
    - [ ] C) `kubectl create service weather-app`
    - [ ] D) `kubectl port-forward`
-
 4. **Command to see real-time pod status changes?**
    - [ ] A) `kubectl get pods --watch`
    - [ ] B) `kubectl describe pods`
    - [ ] C) `kubectl logs pods`
    - [ ] D) `kubectl status pods`
-
-5. **A pod is in "CrashLoopBackOff". First debugging step?**
+5. **A pod is in `CrashLoopBackOff`. First debugging step?**
    - [ ] A) Delete and recreate it
    - [ ] B) Check pod logs: `kubectl logs <pod-name>`
    - [ ] C) Restart the cluster
    - [ ] D) Change the image
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **D** - Both B and C work (create imperative, apply declarative)
-2. **B** - Maintains 3 identical pod copies for HA
-3. **B** - LoadBalancer + minikube tunnel for local external access
-4. **A** - `--watch` shows real-time updates
-5. **B** - Always check logs first to understand why it's crashing
-
-**Scoring**: 
-- 5/5: ⭐ Excellent! Move to Lab 2
-- 3-4/5: ⭐ Good, review concepts then proceed
-- 0-2/5: 🔄 Redo Lab 1 and study docs/reference/kubectl-cheatsheet.md
-
+**Answer key**: 1️⃣ D · 2️⃣ B · 3️⃣ B · 4️⃣ A · 5️⃣ B  
+**Scoring**: 5/5 = ⭐⭐ Rocket ready · 3-4 = ⭐ Solid launch · ≤2 = 🔄 Re-fly Lab 1
 </details>
 
----
+### 🛒 Lab 2 · E-commerce Multi-Tier
+<details>
+<summary>Take the quiz</summary>
 
-## 📝 Lab 2: E-commerce Multi-Tier (⭐⭐)
-
-### Questions
-
-1. **How do backend pods discover PostgreSQL service?**
+1. **How do backend pods discover the PostgreSQL service?**
    - [ ] A) Hardcoded IP address
    - [ ] B) DNS: `postgres.ecommerce-app.svc.cluster.local`
    - [ ] C) Environment variable only
-   - [ ] D) They can't communicate
-
-2. **What ConfigMap provides?**
+   - [ ] D) They can’t communicate
+2. **What does a ConfigMap provide?**
    - [ ] A) Sensitive password storage
    - [ ] B) Non-sensitive configuration data
    - [ ] C) Container images
    - [ ] D) Pod replicas
-
 3. **Frontend connects to backend via?**
    - [ ] A) Pod IP directly
-   - [ ] B) Service name (backend-service)
+   - [ ] B) Service name (e.g., `backend-service`)
    - [ ] C) Node IP
    - [ ] D) External URL
-
-4. **Why use multiple services?**
+4. **Why use multiple Services?**
    - [ ] A) Each tier needs its own load balancer
    - [ ] B) Separate concerns (frontend/backend/database)
    - [ ] C) Required by Kubernetes
    - [ ] D) No reason
-
-5. **Command to check service endpoints?**
+5. **Command to check Service endpoints?**
    - [ ] A) `kubectl get services`
    - [ ] B) `kubectl get endpoints`
    - [ ] C) `kubectl describe service <name>`
    - [ ] D) Both B and C
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - Kubernetes DNS auto-resolves service names
-2. **B** - ConfigMaps for non-sensitive config (use Secrets for passwords)
-3. **B** - Services abstract pod IPs with stable DNS names
-4. **B** - Service separation follows microservice architecture
-5. **D** - Both show endpoints (pod IPs behind service)
-
-**Scoring**:
-- 5/5: ⭐⭐ Excellent! Multi-tier mastered
-- 3-4/5: ⭐ Good, review service networking
-- 0-2/5: 🔄 Redo Lab 2, study service discovery
-
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ B · 4️⃣ B · 5️⃣ D  
+**Scoring**: 5/5 = ⭐⭐ Multi-tier master · 3-4 = ⭐ Keep refining · ≤2 = 🔄 Revisit Lab 2 routing
 </details>
 
 ---
 
-## 📝 Lab 3: Educational Stateful (⭐⭐)
+## 🛠️ Stage 2 · Builders Guild (⭐⭐)
 
-### Questions
+### 🎓 Lab 3 · Educational Stateful
+<details>
+<summary>Take the quiz</summary>
 
 1. **Difference between Deployment and StatefulSet?**
-   - [ ] A) StatefulSet maintains pod identity/order, Deployment doesn't
+   - [ ] A) StatefulSet maintains pod identity/order; Deployment doesn’t
    - [ ] B) No difference
    - [ ] C) StatefulSet only for databases
    - [ ] D) Deployment is newer
-
 2. **What is a PersistentVolumeClaim (PVC)?**
    - [ ] A) Request for storage by a pod
    - [ ] B) Physical disk
    - [ ] C) ConfigMap for storage
    - [ ] D) Service for volumes
-
 3. **Why use StatefulSet for PostgreSQL?**
    - [ ] A) Data must survive pod restarts
    - [ ] B) Ordered deployment
    - [ ] C) Stable network identity
    - [ ] D) All of the above
-
 4. **What happens to data if pod restarts?**
    - [ ] A) Lost forever
    - [ ] B) Persists if PVC attached
    - [ ] C) Automatically backed up
    - [ ] D) Duplicated
-
 5. **Command to check persistent volumes?**
    - [ ] A) `kubectl get pv`
    - [ ] B) `kubectl get pvc`
    - [ ] C) Both A and B
    - [ ] D) `kubectl get volumes`
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **A** - StatefulSet: stable identity, ordered ops; Deployment: stateless
-2. **A** - PVC is a storage request (PV is actual storage)
-3. **D** - All are benefits of StatefulSet for databases
-4. **B** - PVC ensures data persists across pod lifecycles
-5. **C** - Check both PV (cluster resource) and PVC (namespace resource)
-
-**Scoring**:
-- 5/5: ⭐⭐ Excellent! Data persistence mastered
-- 3-4/5: ⭐ Good, review StatefulSet concepts
-- 0-2/5: 🔄 Redo Lab 3, study persistence
-
+**Answer key**: 1️⃣ A · 2️⃣ A · 3️⃣ D · 4️⃣ B · 5️⃣ C  
+**Scoring**: 5/5 = ⭐⭐⭐ Storage sage · 3-4 = ⭐⭐ Review persistence · ≤2 = 🔄 Replay Lab 3 slowly
 </details>
 
----
-
-## 📝 Lab 4: Task Ingress (⭐⭐⭐)
-
-### Questions
+### ✅ Lab 4 · Task Manager Ingress
+<details>
+<summary>Take the quiz</summary>
 
 1. **What is Ingress?**
-   - [ ] A) A type of service
-   - [ ] B) HTTP/HTTPS routing to services
+   - [ ] A) A type of Service
+   - [ ] B) HTTP/HTTPS routing to Services
    - [ ] C) Firewall rules
    - [ ] D) Pod security
-
 2. **Ingress requires what to work?**
-   - [ ] A) Nothing, built into Kubernetes
+   - [ ] A) Nothing—built in
    - [ ] B) Ingress Controller (nginx, traefik, etc.)
    - [ ] C) Cloud provider only
    - [ ] D) External DNS
-
 3. **What does TLS in Ingress provide?**
    - [ ] A) Faster routing
    - [ ] B) HTTPS encryption
    - [ ] C) Load balancing
    - [ ] D) Service discovery
-
 4. **Path-based routing example:**
    - [ ] A) `/api` → backend, `/` → frontend
    - [ ] B) Different ports
    - [ ] C) Different namespaces
    - [ ] D) Different clusters
-
 5. **Check Ingress status:**
    - [ ] A) `kubectl get ingress`
    - [ ] B) `kubectl describe ingress <name>`
    - [ ] C) Check if ADDRESS field is populated
    - [ ] D) All of the above
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - Ingress routes external HTTP(S) to internal services
-2. **B** - Ingress resource needs a controller to function
-3. **B** - TLS terminates SSL/HTTPS at ingress layer
-4. **A** - Path-based routing sends different paths to different services
-5. **D** - All commands help verify ingress configuration
-
-**Scoring**:
-- 5/5: ⭐⭐⭐ Excellent! External access mastered
-- 3-4/5: ⭐⭐ Good, review ingress concepts
-- 0-2/5: 🔄 Redo Lab 4, study ingress patterns
-
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ B · 4️⃣ A · 5️⃣ D  
+**Scoring**: 5/5 = ⭐⭐⭐ Ingress ace · 3-4 = ⭐⭐ Keep practicing · ≤2 = 🔄 Re-run Lab 4 configuration
 </details>
 
 ---
 
-## 📝 Lab 5: Medical Security (⭐⭐⭐)
+## 🛡️ Stage 3 · Production Ops (⭐⭐⭐)
 
-### Questions
+### 🏥 Lab 5 · Medical Security
+<details>
+<summary>Take the quiz</summary>
 
 1. **What is RBAC?**
    - [ ] A) Resource-Based Access Control
    - [ ] B) Role-Based Access Control
    - [ ] C) Rule-Based Access Control
    - [ ] D) Random Access Control
-
 2. **What does NetworkPolicy control?**
    - [ ] A) Internet access
    - [ ] B) Pod-to-pod communication
    - [ ] C) Service routing
    - [ ] D) Storage access
-
 3. **Difference between Secret and ConfigMap?**
    - [ ] A) No difference
    - [ ] B) Secrets are base64 encoded
    - [ ] C) Secrets for sensitive data, ConfigMap for non-sensitive
    - [ ] D) Both B and C
-
 4. **What is a ServiceAccount?**
    - [ ] A) User account
    - [ ] B) Identity for pods to access K8s API
    - [ ] C) Database account
    - [ ] D) Service configuration
-
-5. **NetworkPolicy "Ingress" means?**
+5. **NetworkPolicy “Ingress” means?**
    - [ ] A) HTTP ingress controller
    - [ ] B) Incoming traffic TO the pod
    - [ ] C) Outgoing traffic FROM the pod
    - [ ] D) External traffic only
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - RBAC assigns permissions based on roles
-2. **B** - NetworkPolicy controls which pods can communicate
-3. **D** - Secrets are base64 encoded AND meant for sensitive data
-4. **B** - ServiceAccount provides identity for pods to access K8s resources
-5. **B** - Ingress = incoming TO pod; Egress = outgoing FROM pod
-
-**Scoring**:
-- 5/5: ⭐⭐⭐ Excellent! Security concepts mastered
-- 3-4/5: ⭐⭐ Good, review RBAC and NetworkPolicy
-- 0-2/5: 🔄 Redo Lab 5, study security
-
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ D · 4️⃣ B · 5️⃣ B  
+**Scoring**: 5/5 = ⭐⭐⭐ Security sentinel · 3-4 = ⭐⭐ Review RBAC/NetworkPolicies · ≤2 = 🔄 Revisit Lab 5
 </details>
 
----
-
-## 📝 Lab 6: Social Scaling (⭐⭐⭐⭐)
-
-### Questions
+### 📈 Lab 6 · Social Scaling
+<details>
+<summary>Take the quiz</summary>
 
 1. **What does HorizontalPodAutoscaler (HPA) do?**
    - [ ] A) Increases pod memory
    - [ ] B) Adds more replicas based on metrics
    - [ ] C) Increases node count
    - [ ] D) Upgrades container images
-
 2. **HPA requires what to function?**
    - [ ] A) Nothing
    - [ ] B) Metrics Server
    - [ ] C) Prometheus
    - [ ] D) Manual scaling
-
 3. **Resource requests are needed for HPA because?**
-   - [ ] A) HPA calculates percentage of requested resources
+   - [ ] A) HPA calculates % of requested resources
    - [ ] B) Security requirement
    - [ ] C) Not needed
    - [ ] D) Cost tracking
-
 4. **What is VPA (VerticalPodAutoscaler)?**
    - [ ] A) Adds more pods
    - [ ] B) Increases CPU/memory of existing pods
    - [ ] C) Scales nodes
    - [ ] D) Same as HPA
-
 5. **Check HPA status:**
    - [ ] A) `kubectl get hpa`
    - [ ] B) `kubectl describe hpa <name>`
-   - [ ] C) `kubectl top pods` (verify metrics)
+   - [ ] C) `kubectl top pods`
    - [ ] D) All of the above
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - HPA adds/removes pod replicas based on CPU/memory
-2. **B** - Metrics Server provides resource usage data to HPA
-3. **A** - HPA scales at 50% of requested resources (default target)
-4. **B** - VPA adjusts CPU/memory; HPA adjusts replica count
-5. **D** - All commands help monitor autoscaling behavior
-
-**Scoring**:
-- 5/5: ⭐⭐⭐⭐ Excellent! Autoscaling mastered
-- 3-4/5: ⭐⭐⭐ Good, review HPA mechanics
-- 0-2/5: 🔄 Redo Lab 6, study autoscaling
-
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ A · 4️⃣ B · 5️⃣ D  
+**Scoring**: 5/5 = ⭐⭐⭐⭐ Scaling maestro · 3-4 = ⭐⭐⭐ Tune autoscaling · ≤2 = 🔄 Revisit Lab 6 metrics
 </details>
 
 ---
 
-## 📝 Lab 7: Multi-App Orchestration (⭐⭐⭐⭐)
+## 🌐 Stage 4 · Platform Wizards (⭐⭐⭐⭐)
 
-### Questions
+### 🧩 Lab 7 · Multi-App Orchestration
+<details>
+<summary>Take the quiz</summary>
 
 1. **What is a Service Mesh?**
    - [ ] A) Multiple services
    - [ ] B) Infrastructure layer for service-to-service communication
    - [ ] C) Mesh network topology
    - [ ] D) Service discovery
-
 2. **Istio provides what capabilities?**
    - [ ] A) Traffic management, security, observability
    - [ ] B) Just load balancing
    - [ ] C) Only monitoring
    - [ ] D) Container runtime
-
 3. **What is a sidecar proxy?**
    - [ ] A) Extra container in pod handling networking
    - [ ] B) Secondary pod
    - [ ] C) Backup container
    - [ ] D) Security scanner
-
 4. **Prometheus is used for?**
    - [ ] A) Log aggregation
    - [ ] B) Metrics collection and alerting
    - [ ] C) Container orchestration
    - [ ] D) CI/CD
-
 5. **Grafana is used for?**
    - [ ] A) Metrics collection
    - [ ] B) Metrics visualization (dashboards)
    - [ ] C) Log storage
    - [ ] D) Container builds
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - Service mesh manages inter-service networking, security, observability
-2. **A** - Istio provides traffic management, mTLS, and observability
-3. **A** - Sidecar container (Envoy) proxies all network traffic
-4. **B** - Prometheus scrapes and stores time-series metrics
-5. **B** - Grafana visualizes Prometheus metrics in dashboards
-
-**Scoring**:
-- 5/5: ⭐⭐⭐⭐ Excellent! Advanced orchestration mastered
-- 3-4/5: ⭐⭐⭐ Good, review service mesh concepts
-- 0-2/5: 🔄 Redo Lab 7, study Istio
-
+**Answer key**: 1️⃣ B · 2️⃣ A · 3️⃣ A · 4️⃣ B · 5️⃣ B  
+**Scoring**: 5/5 = ⭐⭐⭐⭐ Mesh mage · 3-4 = ⭐⭐⭐ Review Istio/observability · ≤2 = 🔄 Revisit Lab 7
 </details>
 
----
-
-## 📝 Lab 8: Chaos Engineering (⭐⭐⭐⭐)
-
-### Questions
+### ⚡ Lab 8 · Chaos Engineering
+<details>
+<summary>Take the quiz</summary>
 
 1. **What is Chaos Engineering?**
    - [ ] A) Breaking things randomly
-   - [ ] B) Controlled experiments to test system resilience
+   - [ ] B) Controlled experiments to test resilience
    - [ ] C) Stressing servers
    - [ ] D) Security testing
-
 2. **Chaos Mesh can simulate what?**
    - [ ] A) Pod failures, network issues, I/O stress
    - [ ] B) Only pod deletions
    - [ ] C) Code bugs
    - [ ] D) User traffic
-
 3. **Why practice chaos engineering?**
    - [ ] A) Find weaknesses before production incidents
    - [ ] B) Test recovery procedures
    - [ ] C) Validate monitoring/alerting
    - [ ] D) All of the above
-
-4. **What is "blast radius" in chaos experiments?**
+4. **What is “blast radius” in chaos experiments?**
    - [ ] A) Scope of impact (pods, namespaces affected)
    - [ ] B) Server explosion
    - [ ] C) Network distance
    - [ ] D) Pod count
-
 5. **Good chaos experiment practices?**
    - [ ] A) Start small (1 pod), expand gradually
    - [ ] B) Have rollback plan
    - [ ] C) Monitor during experiments
    - [ ] D) All of the above
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - Controlled failure injection to test resilience
-2. **A** - Chaos Mesh simulates various infrastructure failures
-3. **D** - All benefits: find issues, test recovery, validate monitoring
-4. **A** - Blast radius = how many resources are affected
-5. **D** - All are chaos engineering best practices
-
-**Scoring**:
-- 5/5: ⭐⭐⭐⭐ Excellent! Chaos engineering mastered
-- 3-4/5: ⭐⭐⭐ Good, review chaos principles
-- 0-2/5: 🔄 Redo Lab 8, study resilience testing
-
+**Answer key**: 1️⃣ B · 2️⃣ A · 3️⃣ D · 4️⃣ A · 5️⃣ D  
+**Scoring**: 5/5 = ⭐⭐⭐⭐ Chaos tamer · 3-4 = ⭐⭐⭐ Keep experimenting · ≤2 = 🔄 Replay Lab 8
 </details>
 
----
-
-## 📝 Lab 9: Helm Package Management (⭐⭐⭐⭐)
-
-### Questions
+### 🪄 Lab 9 · Helm Package Management
+<details>
+<summary>Take the quiz</summary>
 
 1. **What is Helm?**
    - [ ] A) Container runtime
    - [ ] B) Package manager for Kubernetes
    - [ ] C) Service mesh
    - [ ] D) Monitoring tool
-
 2. **What is a Helm Chart?**
    - [ ] A) Performance graph
    - [ ] B) Package of Kubernetes resources with templates
    - [ ] C) Configuration file
    - [ ] D) Database schema
-
-3. **What is the purpose of values.yaml?**
+3. **Purpose of `values.yaml`?**
    - [ ] A) Store secrets
    - [ ] B) Define default configuration parameters
    - [ ] C) List dependencies
    - [ ] D) Template helpers
-
-4. **How do you customize a chart during installation?**
+4. **Customize a chart during installation?**
    - [ ] A) Edit the chart directly
-   - [ ] B) Use --set flag or --values file
-   - [ ] C) Modify templates
-   - [ ] D) Change Chart.yaml
-
-5. **What does helm upgrade do?**
-   - [ ] A) Updates Helm itself
+   - [ ] B) Use `--set` or pass a custom `--values` file
+   - [ ] C) Modify templates in place
+   - [ ] D) Change `Chart.yaml`
+5. **What does `helm upgrade` do?**
+   - [ ] A) Updates Helm CLI
    - [ ] B) Updates an existing release with new values/chart
    - [ ] C) Upgrades Kubernetes
    - [ ] D) Installs new chart
 
-<details>
-<summary><b>Show Answers</b></summary>
-
-1. **B** - Helm is the package manager for Kubernetes
-2. **B** - Chart contains templated K8s resources with metadata
-3. **B** - values.yaml provides configurable parameters for charts
-4. **B** - Use --set key=value or --values custom-values.yaml
-5. **B** - helm upgrade updates existing release with changes
-
-**Scoring**:
-- 5/5: ⭐⭐⭐⭐ Excellent! Package management mastered
-- 3-4/5: ⭐⭐⭐ Good, review Helm concepts
-- 0-2/5: 🔄 Redo Lab 9, study Helm basics
-
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ B · 4️⃣ B · 5️⃣ B  
+**Scoring**: 5/5 = ⭐⭐⭐⭐ Helm hero · 3-4 = ⭐⭐⭐ Practice templating · ≤2 = 🔄 Repeat Lab 9 packaging
 </details>
 
 ---
 
-## 📝 Lab 10: GitOps with ArgoCD (⭐⭐⭐⭐)
+## 🤖 Stage 5 · Automation Legends (⭐⭐⭐⭐)
 
-### Questions
+### 🚀 Lab 10 · GitOps with ArgoCD
+<details>
+<summary>Take the quiz</summary>
 
 1. **What is GitOps?**
    - [ ] A) Git hosting service
-   - [ ] B) Operational model where Git is single source of truth
+   - [ ] B) Operational model where Git is the source of truth
    - [ ] C) Code deployment tool
    - [ ] D) Container registry
-
 2. **What does ArgoCD do?**
    - [ ] A) Manages Git repositories
-   - [ ] B) Continuously syncs K8s cluster with Git state
+   - [ ] B) Continuously syncs the cluster with Git state
    - [ ] C) Builds container images
    - [ ] D) Monitors applications
-
 3. **What triggers a deployment in GitOps?**
-   - [ ] A) Manual kubectl commands
+   - [ ] A) Manual `kubectl` commands
    - [ ] B) CI pipeline push
-   - [ ] C) Git commit to repository
-   - [ ] D) Webhook calls
-
-4. **What is the main benefit of pull-based deployments?**
+   - [ ] C) Git commit to the repository
+   - [ ] D) Webhook calls only
+4. **Main benefit of pull-based deployments?**
    - [ ] A) Faster deployments
    - [ ] B) No cluster credentials needed in CI
    - [ ] C) Smaller images
    - [ ] D) Better monitoring
-
 5. **How do you rollback in GitOps?**
-   - [ ] A) kubectl rollout undo
+   - [ ] A) `kubectl rollout undo`
    - [ ] B) Git revert + ArgoCD sync
    - [ ] C) Delete pods
    - [ ] D) Redeploy manually
 
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ C · 4️⃣ B · 5️⃣ B  
+**Scoring**: 5/5 = ⭐⭐⭐⭐ GitOps guru · 3-4 = ⭐⭐⭐ Review automation flow · ≤2 = 🔄 Revisit Lab 10
+</details>
+
+### 🔐 Lab 11 · External Secrets Management
 <details>
-<summary><b>Show Answers</b></summary>
+<summary>Take the quiz</summary>
 
-1. **B** - GitOps uses Git as the single source of truth for operations
-2. **B** - ArgoCD continuously syncs cluster state with Git repository
-3. **C** - Git commits trigger ArgoCD to sync changes to cluster
-4. **B** - Pull-based means no cluster credentials in CI/CD pipelines
-5. **B** - Rollback by reverting Git commit, ArgoCD syncs the change
+1. **What is External Secrets Operator (ESO)?**
+   - [ ] A) Container image builder
+   - [ ] B) Controller that syncs secrets from external systems
+   - [ ] C) Kubernetes scheduler
+   - [ ] D) Network policy manager
+2. **Which CRD defines where external secrets are stored?**
+   - [ ] A) ExternalSecret
+   - [ ] B) SecretStore
+   - [ ] C) SecretProvider
+   - [ ] D) ExternalStore
+3. **Main advantage of ESO over manual secret management?**
+   - [ ] A) Faster pod startup
+   - [ ] B) Automatic secret rotation from external sources
+   - [ ] C) Smaller secret size
+   - [ ] D) Better CPU performance
+4. **What happens if the external secret backend becomes unavailable?**
+   - [ ] A) All pods immediately fail
+   - [ ] B) Existing Kubernetes secrets continue to work
+   - [ ] C) Cluster stops functioning
+   - [ ] D) All data is lost
+5. **When would you use ClusterSecretStore vs SecretStore?**
+   - [ ] A) ClusterSecretStore for single namespace; SecretStore for cluster-wide
+   - [ ] B) ClusterSecretStore for cluster-wide; SecretStore for single namespace
+   - [ ] C) They are identical
+   - [ ] D) ClusterSecretStore is deprecated
 
-**Scoring**:
-- 5/5: ⭐⭐⭐⭐ Excellent! GitOps mastered
-- 3-4/5: ⭐⭐⭐ Good, review GitOps principles
-- 0-2/5: 🔄 Redo Lab 10, study ArgoCD concepts
-
+**Answer key**: 1️⃣ B · 2️⃣ B · 3️⃣ B · 4️⃣ B · 5️⃣ B  
+**Scoring**: 5/5 = ⭐⭐⭐⭐ Secrets sage · 3-4 = ⭐⭐⭐ Review ESO flows · ≤2 = 🔄 Revisit Lab 11
 </details>
 
 ---
 
-## 🎯 Overall Assessment
+## 🧠 Stage 6 · Fundamentals Deep Dive (⭐⭐⭐⭐⭐)
 
-### Scoring Guide
+### 🧠 Lab 12 · Troubleshooting Gauntlet
+<details>
+<summary>Take the quiz</summary>
 
-**Count your total correct answers across all completed labs:**
+1. **How do you filter pods by label when listing them?**
+   - [ ] A) `kubectl get pods -l app=frontend`
+   - [ ] B) `kubectl get pods --selector app=frontend`
+   - [ ] C) Both A and B
+   - [ ] D) `kubectl describe deployments`
+2. **Best way to restart a deployment without deleting it manually?**
+   - [ ] A) `kubectl delete pods -l app=my-app`
+   - [ ] B) `kubectl rollout restart deployment my-app`
+   - [ ] C) `kubectl scale deployment my-app --replicas=0`
+   - [ ] D) `kubectl apply -f deployment.yaml`
+3. **Command to confirm the latest rollout succeeded?**
+   - [ ] A) `kubectl get deployments`
+   - [ ] B) `kubectl rollout status deployment/weather-app`
+   - [ ] C) `kubectl describe deployment weather-app`
+   - [ ] D) `kubectl rollout history deployment/weather-app`
+4. **If a Service shows no endpoints, where do you look first?**
+   - [ ] A) ConfigMap definitions
+   - [ ] B) Service selector vs. pod labels
+   - [ ] C) ClusterRole bindings
+   - [ ] D) Ingress host rules
+5. **Which command helps reveal labels while listing pods?**
+   - [ ] A) `kubectl get pods --show-labels`
+   - [ ] B) `kubectl logs <pod>`
+   - [ ] C) `kubectl edit deployment`
+   - [ ] D) `kubectl port-forward deployment`
 
-- **45-50 correct** (90%+): 🏆 **Kubernetes Expert**
-  - You're ready for CKA/CKAD certification
-  - Consider contributing to Kubernetes projects
-  - Help others learn!
-
-- **36-44 correct** (72-88%): 🌟 **Advanced Practitioner**
-  - Strong Kubernetes understanding
-  - Ready for production deployments
-  - Review missed concepts
-
-- **25-35 correct** (50-70%): 📚 **Intermediate Learner**
-  - Good foundation, needs practice
-  - Redo challenging labs
-  - Focus on weak areas
-
-- **Below 25** (<50%): 🔄 **Needs Review**
-  - Redo labs slowly
-  - Study ../reference/kubectl-cheatsheet.md
-  - Read COMMON-MISTAKES.md
-  - Ask questions!
-
----
-
-## 📈 Skills Matrix
-
-After completing all labs, you should be able to:
-
-| Skill | Lab | Confidence (1-5) |
-|-------|-----|------------------|
-| Deploy pods/deployments | Lab 1 | ☐☐☐☐☐ |
-| Create services | Lab 1 | ☐☐☐☐☐ |
-| Scale applications | Lab 1 | ☐☐☐☐☐ |
-| Multi-tier architecture | Lab 2 | ☐☐☐☐☐ |
-| Service discovery | Lab 2 | ☐☐☐☐☐ |
-| StatefulSets | Lab 3 | ☐☐☐☐☐ |
-| Persistent storage | Lab 3 | ☐☐☐☐☐ |
-| Ingress configuration | Lab 4 | ☐☐☐☐☐ |
-| TLS/HTTPS | Lab 4 | ☐☐☐☐☐ |
-| RBAC | Lab 5 | ☐☐☐☐☐ |
-| NetworkPolicies | Lab 5 | ☐☐☐☐☐ |
-| Secrets management | Lab 5 | ☐☐☐☐☐ |
-| HorizontalPodAutoscaler | Lab 6 | ☐☐☐☐☐ |
-| Load testing | Lab 6 | ☐☐☐☐☐ |
-| Service mesh (Istio) | Lab 7 | ☐☐☐☐☐ |
-| Monitoring (Prometheus) | Lab 7 | ☐☐☐☐☐ |
-| Chaos engineering | Lab 8 | ☐☐☐☐☐ |
-| Resilience testing | Lab 8 | ☐☐☐☐☐ |
-| Helm charts | Lab 9 | ☐☐☐☐☐ |
-| Chart templating | Lab 9 | ☐☐☐☐☐ |
-| Package management | Lab 9 | ☐☐☐☐☐ |
-| GitOps principles | Lab 10 | ☐☐☐☐☐ |
-| ArgoCD deployment | Lab 10 | ☐☐☐☐☐ |
-| Multi-environment automation | Lab 10 | ☐☐☐☐☐ |
-
-**Goal**: Score 4-5 in each skill before moving to real projects!
-
-**Total Skills**: 24 comprehensive Kubernetes competencies
+**Answer key**: 1️⃣ C · 2️⃣ B · 3️⃣ B · 4️⃣ B · 5️⃣ A  
+**Scoring**: 5/5 = 🧙 Troubleshooting wizard · 3-4 = 🧠 Strong fundamentals · ≤2 = 🔄 Walk through Lab 12 drills again
+</details>
 
 ---
 
-## 🚀 Next Steps Based on Your Score
+## 📈 Scoreboard
+Record your total correct answers across all labs tackled:
 
-### If you scored 88%+:
-1. ✅ Deploy your own application using these patterns
-2. ✅ Prepare for CKA/CKAD certification
-3. ✅ Contribute to open-source Kubernetes projects
-4. ✅ Mentor others learning Kubernetes
+| Total Correct | Title | What it means |
+| --- | --- | --- |
+| 55-60 (91%+) | 🏆 Kubernetes Expert | Ready for real-world on-call + certification preps |
+| 48-54 | 🌟 Advanced Practitioner | Production-ready, revisit any weak spots |
+| 36-47 | 📚 Intermediate Learner | Solid foundation, repeat tricky labs |
+| ≤35 | 🔄 Needs Review | Slow down, revisit labs, revisit `COMMON-MISTAKES.md`
 
-### If you scored 70-87%:
-1. 🔄 Redo challenging labs
-2. 📖 Read official Kubernetes documentation
-3. 🛠️ Experiment with variations
-4. 💬 Explain concepts to others (teaching = mastery)
-
-### If you scored below 70%:
-1. 🔄 Redo ALL labs at your own pace
-2. 📚 Study ../reference/kubectl-cheatsheet.md thoroughly
-3. 🚨 Read COMMON-MISTAKES.md
-4. 💡 Take notes while doing labs
-5. ❓ Ask questions in Kubernetes communities
+_Psst: You can always retake sections and bump your score. This isn’t graded—it's growth tracking._
 
 ---
 
-**Remember**: This assessment measures understanding, not speed. Take your time!
+## 🧮 Skill Matrix Tracker
+Check your confidence (1-5) as you progress. Update after each lab run.
+
+| Skill | Stage | Confidence (1-5) |
+| --- | --- | --- |
+| Deploy pods/deployments | Launchpad | ☐ ☐ ☐ ☐ ☐ |
+| Create services & expose apps | Launchpad | ☐ ☐ ☐ ☐ ☐ |
+| Multi-tier service discovery | Launchpad | ☐ ☐ ☐ ☐ ☐ |
+| StatefulSets & PVCs | Builders Guild | ☐ ☐ ☐ ☐ ☐ |
+| Ingress + TLS routing | Builders Guild | ☐ ☐ ☐ ☐ ☐ |
+| RBAC & ServiceAccounts | Production Ops | ☐ ☐ ☐ ☐ ☐ |
+| NetworkPolicies | Production Ops | ☐ ☐ ☐ ☐ ☐ |
+| Autoscaling (HPA/VPA) | Production Ops | ☐ ☐ ☐ ☐ ☐ |
+| Service mesh & observability | Platform Wizards | ☐ ☐ ☐ ☐ ☐ |
+| Chaos engineering & resilience | Platform Wizards | ☐ ☐ ☐ ☐ ☐ |
+| Helm templating & releases | Platform Wizards | ☐ ☐ ☐ ☐ ☐ |
+| GitOps & ArgoCD | Automation Legends | ☐ ☐ ☐ ☐ ☐ |
+| External Secrets strategies | Automation Legends | ☐ ☐ ☐ ☐ ☐ |
+| Troubleshooting toolkit | Fundamentals Deep Dive | ☐ ☐ ☐ ☐ ☐ |
+
+**Aim**: Hit ≥4 in each category before you call it “production ready.”
+
+---
+
+## 🪜 Next Moves After Scoring
+- 🥇 **Crushed it?** Mentor someone, tackle a community issue, or spin up your own side project on Kubernetes.
+- 🔁 **Almost there?** Re-run targeted labs, revisit reference guides, and journal the tricky bits you uncover.
+- 🧑‍🤝‍🧑 **Need a boost?** Pair with a friend, ask in Kubernetes Slack, or schedule a focused study sprint.
+
+**Remember**: Mastery isn’t a finish line—it’s a loop. Keep roaming the cluster, keep asking "why", and keep leveling up! 🚀

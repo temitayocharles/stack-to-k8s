@@ -20,6 +20,31 @@ Master Helm - the "package manager for Kubernetes". Learn to use existing charts
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 9
+```
+
+Validates `helm`, `kubectl`, and the optional `gitops-configs` workspace.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph TD
+  HelmRepo[(Helm Repo)] --> HelmClient[Helm CLI]
+  HelmClient --> Kubernetes[(Kubernetes API)]
+  Kubernetes --> PostgresRelease[my-postgres Release]
+  HelmClient --> WeatherChart[weather-chart]
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-09/` (in progress)
+- Manual approach: rely on the Bitnami charts plus your `postgres-values.yaml` and the `weather-chart` scaffold created in this lab.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Install & Configure Helm (10 min)
@@ -581,6 +606,45 @@ helm install weather-green weather-chart/ \
 # Then cleanup old version
 helm uninstall weather-blue -n weather
 ```
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 9
+```
+
+Confirms the `helm-demo` namespace and `my-postgres` release are healthy.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How do you inspect the rendered manifests without applying them?</summary>
+  ```bash
+  helm template weather-chart/
+  ```
+  </details>
+
+<details>
+  <summary>How can you see which values were used in the last deploy?</summary>
+  ```bash
+  helm get values my-postgres -n helm-demo
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Add Helm tests to the weather chart (see `templates/tests/` example).
+- Publish your chart to an OCI registry and pull it from another cluster.
+- Integrate `helm lint` and `helm unittest` into your CI pipeline.
+
+## 🔧 Troubleshooting Flow
+
+1. **Install fails?** → `helm install ... --debug --dry-run` to inspect rendered YAML.
+2. **Upgrade errors?** → Compare revisions: `helm diff upgrade` or `helm history`.
+3. **Pods crash after upgrade?** → Check for immutable field changes; consider `helm rollback`.
+4. **Values not applied?** → Ensure the value path matches template structure (`helm show values chart`).
 
 ---
 

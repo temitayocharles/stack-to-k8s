@@ -2,18 +2,25 @@
 
 Quick fixes for common issues encountered in the labs.
 
-## Docker Desktop Issues
+## Local Kubernetes Runtime Issues
 
-### Kubernetes Not Starting
-```bash
-# Restart Docker Desktop
-# Or reset Kubernetes cluster in Docker Desktop settings
-```
+### Kubernetes Engine Not Starting
+- **Rancher Desktop (Windows/macOS)** → Toggle Kubernetes off/on from **Settings ▸ Kubernetes**, then restart the app.
+- **Other runtimes** → Restart the service or reboot the host.
+
+### Resetting the Cluster
+- **Rancher Desktop** → `kubectl config use-context rancher-desktop` then use **Settings ▸ Kubernetes ▸ Reset Kubernetes** inside the app.
+- **Kind / other CLIs** → Recreate the cluster (e.g., `kind delete cluster && kind create cluster`).
 
 ### Disk Space Full
 ```bash
+# Docker-compatible runtimes (Docker Desktop, Rancher Desktop with moby)
 docker system prune -a
 docker volume prune
+
+# Containerd-based runtimes (Rancher Desktop with nerdctl)
+nerdctl system prune
+nerdctl volume prune
 ```
 
 ## kubectl Issues
@@ -30,7 +37,9 @@ kubectl version --client
 ### Can't Connect to Cluster
 ```bash
 kubectl config get-contexts
-kubectl config use-context docker-desktop
+# Choose the context that matches your runtime
+kubectl config use-context rancher-desktop   # Windows/macOS Rancher Desktop
+kubectl config use-context kind-kind         # Example for other local clusters
 ```
 
 ## Image Pull Issues

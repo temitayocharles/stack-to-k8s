@@ -20,6 +20,32 @@ Learn chaos engineering by intentionally breaking things and watching how Kubern
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 8
+```
+
+Verifies `kubectl`, `helm`, and the social media manifests are available.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph TD
+  ChaosMesh[Chaos Mesh] -->|injects| SocialBackend
+  Users-->SocialFrontend
+  SocialFrontend-->SocialBackend
+  SocialBackend-->Database[(PostgreSQL)]
+  SocialBackend-->Cache[(Redis)]
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-08/` (in progress)
+- Manual approach: deploy the social media app, then install Chaos Mesh via the Helm chart referenced in this guide.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Install Chaos Mesh (10 min)
@@ -429,6 +455,47 @@ curl http://localhost:8000/api/health
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 8
+```
+
+Confirms the `chaos-testing` workloads and the Chaos Mesh control plane are operational.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How do you watch chaos experiments in real time?</summary>
+  ```bash
+  kubectl get podchaos -n chaos-testing -w
+  ```
+  </details>
+
+<details>
+  <summary>Where are Chaos Mesh logs stored?</summary>
+  In the controller manager:
+
+  ```bash
+  kubectl logs -n chaos-mesh deploy/chaos-controller-manager
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Add latency to only 50% of requests by using the `pod-failure` selector with `mode: fixed-percent`.
+- Chain experiments (pod kill + network delay) with schedules to mimic cascading failures.
+- Export Chaos Mesh metrics to Prometheus for visualization.
+
+## 🔧 Troubleshooting Flow
+
+1. **Chaos Mesh CRDs missing?** → Re-run the Helm installation with `--set installCRDs=true`.
+2. **Experiments stuck in Injecting state?** → Check controller logs for RBAC issues.
+3. **Target pods unaffected?** → Verify label selectors in the Chaos object match pod labels.
+4. **Cluster instability?** → Disable experiments quickly with `kubectl delete <chaos-kind>`.
 
 ---
 

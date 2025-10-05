@@ -18,6 +18,33 @@ Deploy a 2-tier weather application and learn fundamental Kubernetes concepts.
 
 ---
 
+## ✅ Prerequisites Check
+
+Before you dive in, make sure your workstation is ready:
+
+```bash
+./scripts/check-lab-prereqs.sh 1
+```
+
+This verifies `kubectl`, the Weather app manifests, and the optional manifest overlay are present.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph TD
+	Developer[(You)] -->|kubectl apply| WeatherFrontend
+	WeatherFrontend --> WeatherBackend
+	WeatherBackend --> WeatherRedis[(Redis Cache)]
+	WeatherBackend -->|HTTP| ExternalAPI[(OpenWeather API)]
+```
+
+## 📦 Manifest Starter Kit
+
+- Premium shortcut: `kustomize build labs/manifests/lab-01 | kubectl apply -f -`
+- DIY route: apply the manifests in `weather-app/k8s/base`, swapping the namespace to `weather-lab` as shown below.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Verify Cluster (2 min)
@@ -142,6 +169,51 @@ curl http://localhost:5000/api/health
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+Prefer an automated audit? Run the validator:
+
+```bash
+./scripts/validate-lab.sh 1
+```
+
+You’ll get a success/fail summary for namespaces, deployments, and services touched in this lab.
+
+## 🧠 Quick Check
+
+<details>
+	<summary>What happens if the service selector doesn't match the pod labels?</summary>
+	The service will show **0 endpoints** and all traffic to `weather-frontend` will fail. Diagnose with:
+
+	```bash
+	kubectl describe service weather-frontend -n weather-lab
+	```
+	</details>
+
+<details>
+	<summary>How do you inspect logs for a single backend replica?</summary>
+	Use label selectors so you don't have to copy/paste pod names:
+
+	```bash
+	kubectl logs -n weather-lab -l app=weather-backend
+	```
+	</details>
+
+## 🏆 Challenge Mode
+
+- Swap Redis for the in-memory cache by adding an environment variable toggle.
+- Configure a horizontal pod autoscaler that scales `weather-backend` between 2 and 5 replicas at 60% CPU.
+- Create a Kubernetes Job that warms the cache with a list of popular cities.
+
+## 🔧 Troubleshooting Flow
+
+1. **Pod stuck Pending?** → `kubectl describe pod <name> -n weather-lab` → look for image pull or scheduling issues.
+2. **Port-forward fails?** → Ensure the service port is correct: `kubectl get svc weather-frontend -n weather-lab`.
+3. **API returns 500s?** → Check Redis connectivity: `kubectl exec -n weather-lab deploy/weather-backend -- redis-cli ping`.
+4. **No weather data?** → Confirm the OpenWeather key is populated: `kubectl get secret weather-secrets -n weather-lab -o yaml`.
 
 ---
 

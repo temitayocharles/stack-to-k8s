@@ -19,6 +19,31 @@ Deploy an educational platform with persistent database storage. Learn how to ma
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 3
+```
+
+The script confirms `kubectl` availability and checks for the `educational-platform/k8s` manifests.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph LR
+  Learner-->Frontend[Angular Frontend]
+  Frontend-->Backend[Spring Boot API]
+  Backend-->Postgres[(PostgreSQL StatefulSet)]
+  Postgres---PVC[(Persistent Volume)]
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-03/` (in progress)
+- Manual approach: apply manifests from `educational-platform/k8s`, but override the namespace to `educational-lab` and ensure the PVC uses a storage class that exists on your cluster.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Create Namespace (1 min)
@@ -184,6 +209,47 @@ curl http://localhost:8080
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 3
+```
+
+The checker verifies the namespace, StatefulSet, PVC, and supporting deployments.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How do you confirm data survived a pod restart?</summary>
+  Connect to the database after deleting `postgres-0`:
+
+  ```bash
+  kubectl exec -it postgres-0 -n educational-lab -- psql -U postgres -d educational -c "SELECT COUNT(*) FROM courses;"
+  ```
+  </details>
+
+<details>
+  <summary>Which command shows the PVC binding to the PV?</summary>
+  ```bash
+  kubectl get pvc postgres-pvc -n educational-lab -o wide
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Scale the StatefulSet to 3 replicas and inspect the persistent data directories.
+- Convert the backend deployment into a StatefulSet and compare pod naming.
+- Add a CronJob that runs nightly backups using `pg_dump`.
+
+## 🔧 Troubleshooting Flow
+
+1. **PVC stuck Pending?** → Check storage classes: `kubectl get storageclass`.
+2. **Pod can't mount volume?** → `kubectl describe pod postgres-0 -n educational-lab` for events.
+3. **Backend can't connect?** → Ensure the headless service resolves: `nslookup postgres -n educational-lab`.
+4. **Lost data after restart?** → Validate volume mount path and ensure data writes outside `/tmp`.
 
 ---
 

@@ -33,11 +33,7 @@ This guide provides step-by-step instructions for obtaining API keys from popula
      --from-literal=OPENWEATHER_API_KEY="your_api_key_here" \
      --namespace=weather
    ```
-
-4. **Test**
-   ```bash
    # Verify API key works
-   curl "http://api.openweathermap.org/data/2.5/weather?q=London&appid=YOUR_API_KEY"
    ```
 
 #### Limits:
@@ -129,7 +125,7 @@ This guide provides step-by-step instructions for obtaining API keys from popula
 
 #### Setup Steps:
 1. **Sign Up**
-   - Visit: https://platform.openai.com/signup
+   - Visit: https://platform.openai.com/
    - Verify phone number
    - Add billing method (required for usage)
 

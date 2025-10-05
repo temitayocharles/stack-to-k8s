@@ -20,6 +20,42 @@ Deploy all 6 applications together and learn how to manage complex multi-app env
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 7
+```
+
+Validates `kubectl`, `helm`, and the manifests for all six applications plus shared add-ons.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph TD
+  subgraph Weather
+    WFE[Weather Frontend] --> WBE[Weather Backend]
+  end
+  subgraph E-commerce
+    EFE[Ecom Frontend] --> EBE[Ecom Backend]
+    EBE --> EDB[(Postgres)]
+  end
+  subgraph Observability
+    Prometheus --> Grafana
+    Grafana --> Loki
+  end
+  IstioMesh{{Service Mesh}} --> WBE
+  IstioMesh --> EBE
+  IstioMesh --> MedicalBackend
+  Users-->IstioMesh
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-07/` (in progress)
+- Manual approach: apply each application's manifests and then install Prometheus, Grafana, Loki, and Istio per the lab instructions.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Create Namespace & Deploy All Apps (20 min)
@@ -373,6 +409,45 @@ curl -s http://localhost:3000/login
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 7
+```
+
+Checks the `platform` namespace, key deployments, and the monitoring namespace.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How do you list pods grouped by application label?</summary>
+  ```bash
+  kubectl get pods -n platform --show-labels | sort
+  ```
+  </details>
+
+<details>
+  <summary>Where do Grafana admin credentials live?</summary>
+  ```bash
+  kubectl get secret monitoring-grafana -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Create a global Gateway in Istio that routes traffic based on hostnames per app.
+- Wire Loki into Grafana dashboards for centralized log queries.
+- Add Kiali or Jaeger for service mesh visualization.
+
+## 🔧 Troubleshooting Flow
+
+1. **Pods failing due to missing CRDs?** → Ensure Istio and monitoring Helm releases finished successfully.
+2. **Grafana not reachable?** → Confirm the port-forward and service endpoints.
+3. **Cross-app calls failing?** → Inspect network policies or service mesh policies blocking traffic.
+4. **Loki logs empty?** → Verify promtail DaemonSet is running on every node.
 
 ---
 

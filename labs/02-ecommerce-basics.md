@@ -18,6 +18,31 @@ Deploy a complete e-commerce application with backend API, frontend, and Postgre
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 2
+```
+
+Ensure `kubectl` can reach your cluster and that the `ecommerce-app/k8s` manifests are available locally.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph LR
+  User-->Frontend[Vue Storefront]
+  Frontend-->Backend[Node API]
+  Backend-->Postgres[(PostgreSQL)]
+  Backend-->Redis[(Redis Cache)]
+```
+
+## 📦 Manifest Starter Kit
+
+- Curated overlay: coming soon at `labs/manifests/lab-02/`
+- Manual route: apply manifests from `ecommerce-app/k8s`, setting the namespace to `ecommerce-lab` per the guide.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Create Namespace (1 min)
@@ -170,6 +195,49 @@ curl http://localhost:3000
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 2
+```
+
+This confirms the namespace, Deployments, Services, and ConfigMap required for Lab 2.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How can you confirm the backend is reading from the ConfigMap?</summary>
+  Describe the deployment and inspect the mounted env vars:
+
+  ```bash
+  kubectl describe deployment ecommerce-backend -n ecommerce-lab | grep DATABASE_HOST
+  ```
+  </details>
+
+<details>
+  <summary>How do services discover each other inside the cluster?</summary>
+  Through Kubernetes DNS. Test it from the backend pod:
+
+  ```bash
+  kubectl exec -n ecommerce-lab deploy/ecommerce-backend -- nslookup postgres
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Add a readiness probe to `ecommerce-frontend` that checks the `/health` endpoint.
+- Switch PostgreSQL to a StatefulSet and verify PVC creation.
+- Introduce a staging environment by duplicating the namespace with a different ConfigMap.
+
+## 🔧 Troubleshooting Flow
+
+1. **Pods CrashLooping?** → `kubectl logs -n ecommerce-lab deploy/ecommerce-backend`.
+2. **Database unreachable?** → Check service endpoints: `kubectl get endpoints postgres -n ecommerce-lab`.
+3. **Config values missing?** → `kubectl get configmap ecommerce-config -n ecommerce-lab -o yaml`.
+4. **Frontend blank screen?** → Inspect browser console and ensure port-forwarding to 3000 is active.
 
 ---
 

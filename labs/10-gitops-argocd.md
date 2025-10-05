@@ -20,6 +20,32 @@ Master GitOps - the modern way to deploy and manage Kubernetes applications. Lea
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 10
+```
+
+Validates `kubectl`, `helm` (optional), and a local `gitops-configs` workspace.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph LR
+  DevRepo[(Git Repository)] --> ArgoCD[ArgoCD]
+  ArgoCD --> Kubernetes[(Kubernetes Cluster)]
+  Kubernetes --> WeatherApp
+  Kubernetes --> EcommerceApp
+  ArgoCD --> Notifications[(Notifications / Webhooks)]
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-10/` (in progress)
+- Manual approach: install ArgoCD with the official manifests, then build your GitOps structure under `gitops-configs` as described in this lab.
+
+---
+
 ## ⚡ Prerequisites
 - Completed Labs 1-9 (especially Lab 9 for Helm understanding)
 - Git repository access (GitHub/GitLab)
@@ -705,6 +731,57 @@ kubectl apply -f argocd-apps/
 
 # 3. ArgoCD rebuilds entire environment from Git
 ```
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 10
+```
+
+- Confirms ArgoCD core deployments in `argocd` namespace are Ready.
+- Checks the `weather-dev` application exists and reports `Synced` + `Healthy`.
+- Verifies the `<your-app-name>` manifest directory matches what ArgoCD manages.
+
+> If anything fails, re-run `./scripts/check-lab-prereqs.sh 10` to ensure your CLI and repo state are in sync.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How can you inspect why an Argo application is OutOfSync?</summary>
+
+  ```bash
+  argocd app diff <app-name>
+  ```
+
+  Review drift against Git before deciding to sync or revert.
+  </details>
+
+<details>
+  <summary>How do you trigger a manual resync from the CLI?</summary>
+
+  ```bash
+  argocd app sync weather-dev
+  ```
+
+  Use flags like `--prune` if you need to remove stray resources.
+  </details>
+
+## 🏆 Challenge Mode
+
+- Bootstrap an **App-of-Apps** repository that deploys all six sample services from a single Argo Application.
+- Wire up **SSO for the ArgoCD UI** (GitHub OAuth, Okta, or Dex connector) and enforce RBAC policies.
+- Add **ArgoCD Notifications** to broadcast sync status changes to Slack or Microsoft Teams.
+- Integrate **Argo Rollouts** canary strategy into one service and manage it entirely through GitOps.
+
+## 🔧 Troubleshooting Flow
+
+1. **Application stuck in `Progressing`** → `kubectl describe application <name> -n argocd` for event history.
+2. **Repository authentication errors** → Validate repo secrets + inspect `argocd-repo-server` logs.
+3. **Permission denied during sync** → Check Project-level RBAC and target namespace permissions.
+4. **Resources drift right after sync** → Confirm no mutating webhooks/ops tools are changing manifests; enable auto-prune.
+5. **UI shows stale state** → `argocd app get <name> --refresh` or trigger a hard refresh in the UI.
 
 ---
 

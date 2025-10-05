@@ -19,6 +19,31 @@ Deploy task management app and expose it externally using Ingress. Learn how to 
 
 ---
 
+## ✅ Prerequisites Check
+
+```bash
+./scripts/check-lab-prereqs.sh 4
+```
+
+Confirms access to the Task Manager manifests and required CLI tooling.
+
+## 🧭 Architecture Snapshot
+
+```mermaid
+graph LR
+  Internet{{User Requests}} --> Ingress[NGINX Ingress]
+  Ingress --> Backend[Go API]
+  Ingress --> Frontend[Svelte UI]
+  Backend --> Mongo[(MongoDB)]
+```
+
+## 📦 Manifest Starter Kit
+
+- Overlay status: `labs/manifests/lab-04/` (in progress)
+- Manual approach: apply `task-management-app/k8s/deployment.yaml` and create the ingress manifest from the lab instructions using namespace `task-lab`.
+
+---
+
 ## 🚀 Steps
 
 ### 1. Install Ingress Controller (10 min)
@@ -247,6 +272,46 @@ curl -I http://task.local:8080/
 ```
 
 **All checks pass?** ✅ Lab complete!
+
+---
+
+## 📊 Validate Your Work
+
+```bash
+./scripts/validate-lab.sh 4
+```
+
+Ensures the namespace, workloads, and ingress objects exist and are healthy.
+
+## 🧠 Quick Check
+
+<details>
+  <summary>How do you confirm the ingress is routing traffic correctly?</summary>
+  ```bash
+  kubectl describe ingress task-ingress -n task-lab
+  ```
+  Review the backend service/port mappings.
+  </details>
+
+<details>
+  <summary>Where can you see the external address for the ingress controller?</summary>
+  ```bash
+  kubectl get svc -n ingress-nginx
+  ```
+  </details>
+
+## 🏆 Challenge Mode
+
+- Add TLS termination using a self-signed certificate via a Kubernetes secret.
+- Configure host-based routing to serve the API on `api.example.local` and UI on `app.example.local`.
+- Add rate-limiting annotations to throttle brute-force login attempts.
+
+## 🔧 Troubleshooting Flow
+
+1. **404 from ingress?** → Verify path & service names in ingress spec.
+2. **Ingress controller pending?** → Check `kubectl get pods -n ingress-nginx` for crash loops.
+3. **TLS handshake fails?** → Ensure the secret referenced in `tls:` exists and contains valid cert/key.
+4. **Backend 502 errors?** → Inspect backend service endpoints and backend pod logs.
 
 ---
 

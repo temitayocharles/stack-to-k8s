@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: challenge-frontend
+  namespace: label-lab
+  labels:
+    app: challenge-frontend
+    tier: web
+    lab: fundamentals
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: challenge-frontend
+  template:
+    metadata:
+      labels:
+        app: challenge-frontend
+        tier: web
+        lab: fundamentals
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: frontend
+          image: nginx:1.27.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 75m
+              memory: 96Mi
+              ephemeral-storage: 100Mi
+            limits:
+              cpu: 200m
+              memory: 192Mi
+              ephemeral-storage: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: challenge-backend
+  namespace: label-lab
+  labels:
+    app: challenge-backend
+    tier: api
+    lab: fundamentals
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: challenge-backend
+  template:
+    metadata:
+      labels:
+        app: challenge-backend
+        tier: api
+        lab: fundamentals
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: backend
+          image: nginx:1.27.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 75m
+              memory: 96Mi
+              ephemeral-storage: 100Mi
+            limits:
+              cpu: 200m
+              memory: 192Mi
+              ephemeral-storage: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: challenge-frontend-svc
+  namespace: label-lab
+  labels:
+    app: challenge-frontend
+    lab: fundamentals
+spec:
+  selector:
+    app: challenge-frontend-wrong # ❌ Intentional mismatch to fix
+    tier: web
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: challenge-backend-svc
+  namespace: label-lab
+  labels:
+    app: challenge-backend
+    lab: fundamentals
+spec:
+  selector:
+    app: challenge-backend-wrong # ❌ Intentional mismatch to fix
+    tier: api
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

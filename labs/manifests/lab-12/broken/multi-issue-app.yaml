@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-issue-app
+  namespace: label-lab
+  labels:
+    app: multi-issue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: multi-issue
+  template:
+    metadata:
+      labels:
+        app: multi-issue
+        version: v1
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: web
+          image: nginx:1.27.1
+          ports:
+            - containerPort: 8080 # ❌ Wrong port on purpose
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 80
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+              ephemeral-storage: 200Mi
+            limits:
+              cpu: 2000m
+              memory: 3Gi
+              ephemeral-storage: 400Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multi-issue-service
+  namespace: label-lab
+  labels:
+    app: multi-issue
+spec:
+  selector:
+    app: multi-issue-wrong # ❌ Intentional mismatch
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
