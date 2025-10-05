@@ -53,7 +53,19 @@ graph TD
 
 ---
 
-## 🚀 Steps
+## � Quick Quiz (3 questions)
+
+1. What Kubernetes object provides a stable network endpoint for a set of pods?
+2. How do you scale a Deployment to 3 replicas from the CLI?
+3. Why is it better to use `-n` on kubectl commands instead of changing the current context namespace?
+
+Check your answers after completing the lab.
+
+## 🧩 Mini Challenge
+
+- Add a simple readiness probe to the frontend deployment that checks `/health` and verify the pod stays in Ready state during a simulated slow backend response (use `kubectl exec` to simulate delay if needed).
+
+## �🚀 Steps
 
 ### 1. Verify Cluster (2 min)
 

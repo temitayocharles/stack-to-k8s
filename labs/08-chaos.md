@@ -731,3 +731,14 @@ You've completed all 8 labs! You now have hands-on experience with:
 ---
 
 **Thank you for completing this learning journey! Keep practicing and exploring Kubernetes!** 🎉
+
+## 📝 Quick Quiz (3 questions)
+
+1. What is a safe first step when introducing chaos experiments into a staging environment?
+2. Name two types of NetworkChaos actions supported by Chaos Mesh.
+3. Why should you keep chaos experiment durations short when starting out?
+
+## 🧩 Mini Challenge
+
+- Create a short Workflow that runs a pod-kill (mode: one) followed by a 30s network delay. Verify the application remains available (returns 200) during the experiment and document the recovery time.
+
