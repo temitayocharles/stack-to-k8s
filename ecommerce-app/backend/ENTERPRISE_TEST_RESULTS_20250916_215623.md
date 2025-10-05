@@ -1,2 +1,0 @@
-- ✅ E-commerce Dependencies: Installed
-- ⚠️ E-commerce Health: Failed
