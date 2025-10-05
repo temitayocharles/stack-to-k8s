@@ -1,6 +1,7 @@
 # Lab 1: Deploy Weather App (Basics)
-
 Ship a two-tier app to your cluster and prove it works — fast.
+
+Build a small, resilient weather service (frontend + backend) and verify basic service plumbing.
 
 **Time**: 20 minutes  
 **Difficulty**: ⭐ Beginner  
@@ -72,8 +73,14 @@ kubectl get nodes
 # Create isolated environment
 kubectl create namespace weather-lab
 
-# Set as default (optional)
+# Safer option (recommended): prefer using -n on kubectl commands rather than switching your current kubectl context
+# Example: kubectl apply -f weather-app/k8s/backend-deployment.yaml -n weather-lab
+
+# If you prefer to change the current context namespace, capture previous namespace and restore when done:
+PREV_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo default)
 kubectl config set-context --current --namespace=weather-lab
+# To restore:
+kubectl config set-context --current --namespace="$PREV_NS"
 
 # Verify
 kubectl get namespace weather-lab
