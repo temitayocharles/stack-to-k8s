@@ -1,5 +1,7 @@
 # 🔑 API Keys & External Services Setup Guide
 
+Where to get external API keys and how to wire them into your lab environments securely.
+
 ## Overview
 
 This guide provides step-by-step instructions for obtaining API keys from popular services used in our Kubernetes labs.
@@ -125,7 +127,7 @@ This guide provides step-by-step instructions for obtaining API keys from popula
 
 #### Setup Steps:
 1. **Sign Up**
-   - Visit: https://platform.openai.com/
+   - Visit: https://platform.openai.com/docs/ (login required)
    - Verify phone number
    - Add billing method (required for usage)
 
