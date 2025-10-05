@@ -531,9 +531,15 @@ kubectl describe pod <name> -n <namespace>
 
 ---
 
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 5 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-5--medical-security)** and see how you score!
+
+---
+
 ## 🚀 Next Lab
 
-**[Lab 6: Social Media - Autoscaling & Performance](06-social-scaling.md)**
+**[Lab 6: Social Platform with Scaling](06-social-scaling.md)**
 
 Learn about:
 - Horizontal Pod Autoscaler (HPA)

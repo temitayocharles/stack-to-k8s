@@ -11,7 +11,17 @@ Expose the Task Manager safely with an Ingress controller and TLS for external a
 Deploy task management app and expose it externally using Ingress. Learn how to route traffic, use custom domains, and configure TLS.
 
 ## 📋 What You'll Learn
-- Ingress controllers (nginx)
+- Ingress contro---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 4 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-4--task-manager-ingress)** and see how you score!
+
+---
+
+## 🚀 Next Lab
+
+**[Lab 5: Medical System with Security](05-medical-security.md)** (nginx)
 - Path-based routing
 - Host-based routing
 - TLS/SSL certificates

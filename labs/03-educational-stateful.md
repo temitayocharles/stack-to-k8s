@@ -379,9 +379,17 @@ kubectl describe pod postgres-0 -n educational-lab
 
 ---
 
+---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 3 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-3--educational-stateful)** and see how you score!
+
+---
+
 ## 🚀 Next Lab
 
-**[Lab 4: Task Manager - Ingress & Routing](04-task-ingress.md)**
+**[Lab 4: Task Management with Ingress](04-task-ingress.md)**
 
 Learn about:
 - Ingress controllers

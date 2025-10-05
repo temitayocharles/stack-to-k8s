@@ -876,3 +876,9 @@ kubectl get all -n label-lab -l app=mystery-app
 5. **Teach others** these troubleshooting techniques
 
 **Remember**: Mastering labels and systematic debugging will solve 90% of your Kubernetes production issues!
+
+---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 12 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-12--troubleshooting-gauntlet)** and see how you score!

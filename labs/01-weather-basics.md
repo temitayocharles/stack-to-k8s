@@ -294,6 +294,12 @@ kubectl delete namespace <name>
 
 ---
 
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 1 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#%EF%B8%8F-lab-1--weather-app-basics)** and see how you score!
+
+---
+
 ## 🚀 Next Lab
 
 **[Lab 2: E-commerce Multi-Service](02-ecommerce-basics.md)**

@@ -599,6 +599,12 @@ kubectl get services -n platform --show-labels
 
 ---
 
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 7 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-7--multi-app-orchestration)** and see how you score!
+
+---
+
 ## 🚀 Next Lab
 
 **[Lab 8: Chaos Engineering](08-chaos.md)**

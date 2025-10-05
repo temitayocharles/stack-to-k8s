@@ -742,3 +742,9 @@ You've completed all 8 labs! You now have hands-on experience with:
 
 - Create a short Workflow that runs a pod-kill (mode: one) followed by a 30s network delay. Verify the application remains available (returns 200) during the experiment and document the recovery time.
 
+---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 8 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-8--chaos-engineering)** and see how you score!
+

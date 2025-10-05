@@ -12,7 +12,17 @@ Deploy social media platform and configure autoscaling for high traffic. Learn h
 
 ## 📋 What You'll Learn
 - Horizontal Pod Autoscaler (HPA)
-- Vertical Pod Autoscaler (VPA)
+- Verti---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 6 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-6--social-scaling)** and see how you score!
+
+---
+
+## 🚀 Next Lab
+
+**[Lab 7: Multi-App Orchestration](07-multi-app-orchestration.md)**od Autoscaler (VPA)
 - Resource requests & limits
 - Metrics Server
 - Load testing

@@ -5,7 +5,17 @@ Build a multi-service storefront (backend, frontend, DB) and validate service di
 
 **Time**: 30 minutes  
 **Difficulty**: ⭐⭐ Intermediate  
-**Focus**: Multi-tier apps, Service discovery, ConfigMaps
+**Focus**: Multi-tier apps, ---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 2 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-2--e-commerce-multi-tier)** and see how you score!
+
+---
+
+## 🚀 Next Lab
+
+**[Lab 3: Educational Platform Stateful Apps](03-educational-stateful.md)**ce discovery, ConfigMaps
 
 ## ✅ Success criteria
 - PostgreSQL pod is Running and PVC bound

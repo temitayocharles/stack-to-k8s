@@ -688,3 +688,9 @@ You've mastered Helm package management! You can now:
 - **[Chart Testing](https://github.com/helm/chart-testing)**
 
 **Remember**: Helm is like package manager (apt/yum) for Kubernetes - it manages complexity and enables reusable deployments!
+
+---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 9 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-9--helm-package-management)** and see how you score!

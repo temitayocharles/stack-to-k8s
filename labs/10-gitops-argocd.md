@@ -851,3 +851,9 @@ GitOps transforms how we think about deployments:
 - **Observable** over black-box
 
 **You've now completed the full professional Kubernetes journey: from basic pods to production GitOps workflows!** 🎉
+
+---
+
+## 🧠 Test Your Knowledge
+
+Ready to verify your mastery? Take the **[Lab 10 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-10--gitops-with-argocd)** and see how you score!
