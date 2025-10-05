@@ -1,4 +1,5 @@
 # Lab 8: Chaos Engineering
+Practice resilience by injecting controlled failures and validating system recovery.
 
 **Time**: 90 minutes  
 **Difficulty**: ⭐⭐⭐⭐ Expert  
@@ -27,6 +28,12 @@ Learn chaos engineering by intentionally breaking things and watching how Kubern
 ```
 
 Verifies `kubectl`, `helm`, and the social media manifests are available.
+
+## ✅ Success criteria
+
+- Chaos Mesh control plane is Running and experiments can be created
+- Target app recovers after injected failures (pods return to Running)
+- No lingering experiments after cleanup
 
 ## 🧭 Architecture Snapshot
 
