@@ -1,4 +1,5 @@
 # Lab 3: Educational Platform - Stateful Applications
+Build a resilient educational platform using StatefulSets and persistent volumes.
 
 **Time**: 40 minutes  
 **Difficulty**: ⭐⭐ Intermediate  
@@ -27,6 +28,12 @@ Deploy an educational platform with persistent database storage. Learn how to ma
 
 The script confirms `kubectl` availability and checks for the `educational-platform/k8s` manifests.
 
+## ✅ Success criteria
+
+- StatefulSet `postgres` is Running and Ready
+- PersistentVolumeClaim `postgres-pvc` is Bound
+- Data persists after deleting and recreating `postgres-0` pod
+
 ## 🧭 Architecture Snapshot
 
 ```mermaid
@@ -51,7 +58,14 @@ graph LR
 ```bash
 kubectl create namespace educational-lab
 
+# Safer option (recommended): avoid changing your current kubectl context; use -n on commands
+# Example: kubectl apply -f educational-platform/k8s/database-statefulset.yaml -n educational-lab
+
+# If you prefer to change the current context namespace, be explicit and capture the previous namespace:
+PREV_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo default)
 kubectl config set-context --current --namespace=educational-lab
+# To restore:
+kubectl config set-context --current --namespace="$PREV_NS"
 ```
 
 ### 2. Create PersistentVolumeClaim (5 min)
