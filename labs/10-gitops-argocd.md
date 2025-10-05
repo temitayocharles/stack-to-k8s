@@ -1,4 +1,5 @@
 # Lab 10: GitOps with ArgoCD
+Implement GitOps workflows using ArgoCD to keep cluster state synchronized with Git.
 
 **Time**: 90 minutes  
 **Difficulty**: ⭐⭐⭐⭐ Expert  
@@ -27,6 +28,12 @@ Master GitOps - the modern way to deploy and manage Kubernetes applications. Lea
 ```
 
 Validates `kubectl`, `helm` (optional), and a local `gitops-configs` workspace.
+
+## ✅ Success criteria
+
+- ArgoCD server and core components are Running in the `argocd` namespace
+- An ArgoCD Application can sync a small repo directory (e.g., `development/weather-app`) and deploy resources
+- You can trigger a commit and observe ArgoCD auto-sync (or manual sync) apply the changes
 
 ## 🧭 Architecture Snapshot
 
