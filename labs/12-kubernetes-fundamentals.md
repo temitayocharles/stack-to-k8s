@@ -1,7 +1,13 @@
 # 🎯 Lab 12: Kubernetes Fundamentals Deep Dive
+A focused, hands-on deep-dive into labels, selectors, and systematic troubleshooting.
 **Difficulty**: ⭐⭐⭐ (Intermediate-Advanced)  
 **Time**: 60-75 minutes  
 **Prerequisites**: Complete Labs 1-3
+
+## ✅ Success criteria
+- Identify and fix label/selector mismatches so Deployments reach Ready state.
+- Ensure Services expose endpoints for matching pods after fixes.
+- Validate with: ./scripts/validate-lab.sh 12
 
 ## 🎯 What You'll Learn
 
@@ -49,10 +55,15 @@ flowchart TD
 
 ### Step 1: Create Test Environment
 ```bash
-# Create namespace
-kubectl create namespace label-lab
+# Create namespace (safer: avoid mutating the current kubectl context)
+# This pattern creates the namespace and applies resources with an explicit -n.
+prev_ns=$(kubectl config view --minify --output 'jsonpath={..namespace}')
+if [ -z "$prev_ns" ]; then prev_ns=default; fi
 
-# Deploy an app with INTENTIONAL label problems
+# Create the lab namespace idempotently
+kubectl create namespace label-lab --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy an app with INTENTIONAL label problems (apply explicitly to the lab ns)
 cat > broken-app.yaml << 'EOF'
 apiVersion: apps/v1
 kind: Deployment
