@@ -1,8 +1,16 @@
 # Lab 2: E-commerce Multi-Service Deployment
+Deploy a production-like storefront and verify inter-service comms and persistence.
+
+Build a multi-service storefront (backend, frontend, DB) and validate service discovery and config-driven deployment.
 
 **Time**: 30 minutes  
 **Difficulty**: ⭐⭐ Intermediate  
 **Focus**: Multi-tier apps, Service discovery, ConfigMaps
+
+## ✅ Success criteria
+- PostgreSQL pod is Running and PVC bound
+- Backend and frontend pods are Running
+- Frontend returns HTTP 200 via port-forward
 
 ---
 
@@ -50,8 +58,14 @@ graph LR
 ```bash
 kubectl create namespace ecommerce-lab
 
-# Set as default
+# Safer option: prefer using -n on kubectl commands rather than switching your current kubectl context
+# Example: kubectl apply -f ecommerce-app/k8s/database-deployment.yaml -n ecommerce-lab
+
+# If you must change the current context namespace, capture and restore it:
+PREV_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo default)
 kubectl config set-context --current --namespace=ecommerce-lab
+# To restore:
+kubectl config set-context --current --namespace="$PREV_NS"
 ```
 
 ### 2. Deploy Database (5 min)
