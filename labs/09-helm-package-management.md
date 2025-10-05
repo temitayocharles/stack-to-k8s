@@ -1,4 +1,5 @@
 # Lab 9: Helm Package Management
+Learn Helm to package, templatize, and deliver Kubernetes applications reproducibly.
 
 **Time**: 75 minutes  
 **Difficulty**: ⭐⭐⭐⭐ Expert  
@@ -27,6 +28,12 @@ Master Helm - the "package manager for Kubernetes". Learn to use existing charts
 ```
 
 Validates `helm`, `kubectl`, and the optional `gitops-configs` workspace.
+
+## ✅ Success criteria
+
+- Helm client installed and functional (helm version)
+- Can install a PostgreSQL chart into a `helm-demo` namespace and verify pods
+- Can create, lint, and package a custom chart (weather-chart)
 
 ## 🧭 Architecture Snapshot
 
