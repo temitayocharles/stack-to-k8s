@@ -1,4 +1,5 @@
 # Lab 6: Social Media - Autoscaling & Performance
+Learn to scale a social media backend automatically and tune resource requests/limits.
 
 **Time**: 90 minutes  
 **Difficulty**: ⭐⭐⭐⭐ Expert  
@@ -64,11 +65,19 @@ kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system 
 kubectl top nodes
 ```
 
-### 2. Create Namespace & Deploy (10 min)
+# 2. Create Namespace & Deploy (10 min)
 
 ```bash
 kubectl create namespace social-lab
+
+# Safer option: prefer using -n on kubectl commands rather than switching your current kubectl context
+# Example: kubectl apply -f social-media-platform/k8s/database-deployment.yaml -n social-lab
+
+# If you prefer to change the current context, capture previous namespace and restore it:
+PREV_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo default)
 kubectl config set-context --current --namespace=social-lab
+# To restore:
+kubectl config set-context --current --namespace="$PREV_NS"
 
 # Deploy database
 kubectl apply -f social-media-platform/k8s/database-deployment.yaml -n social-lab
