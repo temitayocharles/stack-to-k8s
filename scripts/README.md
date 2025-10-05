@@ -14,9 +14,9 @@ Practical automation that keeps the labs reproducible and production-shaped. Eve
 | `validate-lab.sh` | Run lab-specific smoke tests to confirm manifests deploy correctly. | After editing any lab walkthrough or manifests |
 | `validate-links.sh` | Scan Markdown for broken links using `markdown-link-check`. Honors `.github/markdown-link-check.json`. | Documentation changes |
 | `audit-configmaps-secrets.py` | Generate an inventory of every ConfigMap/Secret declared in app manifests (TSV or Markdown). | Before/after manifest edits |
-| `generate-advanced-features.sh` | Apply optional advanced Kubernetes features (HPA, network policies, PodDisruptionBudgets) across apps. | Scaling beyond the base lab setup |
+| `regenerate-markdown-index.py` | Rebuild the complete markdown file inventory (excludes node_modules, .venv, build artifacts). | After adding/removing documentation |
 
-All scripts are POSIX-friendly Bash and assume execution from the repository root unless noted otherwise.
+All scripts are POSIX-friendly Bash (or Python 3) and assume execution from the repository root unless noted otherwise.
 
 ## Usage patterns
 
@@ -44,12 +44,6 @@ All scripts are POSIX-friendly Bash and assume execution from the repository roo
 
 ```bash
 ./scripts/build-multiarch-images.sh --app ecommerce-app --tag v1.2.0
-```
-
-### Layer on advanced platform features
-
-```bash
-./scripts/generate-advanced-features.sh --cluster local
 ```
 
 Each script supports `--help` for option details when available. Always review the script before running in sensitive environments.
