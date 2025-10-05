@@ -10,7 +10,7 @@
 
 Complete guide: **[KUBERNETES-LABS.md](KUBERNETES-LABS.md)**
 
-8 hands-on labs from beginner (⭐) to expert (⭐⭐⭐⭐)
+10 hands-on labs from beginner (⭐) to expert (⭐⭐⭐⭐)
 
 ## 🏗️ Applications
 
@@ -23,7 +23,7 @@ Complete guide: **[KUBERNETES-LABS.md](KUBERNETES-LABS.md)**
 
 ## 🎯 What You'll Learn
 
-Complete Kubernetes fundamentals through 8 progressive labs:
+Complete Kubernetes fundamentals through 10 progressive labs:
 - Pods, Deployments, Services
 - Multi-tier applications
 - StatefulSets & Persistence
@@ -32,12 +32,29 @@ Complete Kubernetes fundamentals through 8 progressive labs:
 - Autoscaling
 - Service Mesh
 - Chaos Engineering
+- Helm Package Management
+- GitOps with ArgoCD
 
 ## 📋 Prerequisites
 
 - Docker Desktop with Kubernetes enabled
 - kubectl installed
 - 30 minutes to 2 hours per lab
+
+## 🛠️ Learning Tools
+
+**Progress Tracking**:
+- **[LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md)** - Track your lab completions and milestones
+- **[SELF-ASSESSMENT.md](docs/learning/SELF-ASSESSMENT.md)** - Test your knowledge after each lab
+
+**Success Resources**:
+- **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** - Avoid top 10 beginner mistakes
+- **[kubectl-cheatsheet.md](kubectl-cheatsheet.md)** - Quick command reference
+- **[troubleshooting.md](troubleshooting.md)** - Fix common issues
+- **[debugging.md](debugging.md)** - Advanced debugging techniques
+
+**Validation**:
+- **[scripts/validate-lab.sh](scripts/validate-lab.sh)** - Verify your deployments work
 
 ---
 

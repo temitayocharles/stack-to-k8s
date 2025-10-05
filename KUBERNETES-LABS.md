@@ -65,6 +65,18 @@
    - Resource exhaustion
    - Recovery strategies
 
+9. **[Lab 9: Helm Package Management](labs/09-helm-package-management.md)** (75 min)
+   - Helm charts and repositories
+   - Values customization
+   - Creating custom charts
+   - Chart dependencies and templating
+
+10. **[Lab 10: GitOps with ArgoCD](labs/10-gitops-argocd.md)** (90 min)
+    - GitOps principles and workflows
+    - ArgoCD setup and configuration
+    - Multi-environment deployments
+    - Git-driven automation
+
 ---
 
 ## 🚀 Quick Start
@@ -142,6 +154,18 @@ By completing these labs, you'll master:
 - Metrics collection
 - Distributed tracing
 - Alerting
+
+**Package Management**:
+- Helm charts and repositories
+- Chart templating and values
+- Release lifecycle management
+- Chart dependencies and best practices
+
+**GitOps & Automation**:
+- GitOps principles and workflows
+- ArgoCD deployment and management
+- Multi-environment automation
+- Git-driven continuous deployment
 
 ---
 
