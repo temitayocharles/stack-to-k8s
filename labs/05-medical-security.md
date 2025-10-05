@@ -1,4 +1,5 @@
 # Lab 5: Medical System - Security & RBAC
+Harden the medical system with RBAC, network policies, and secure secret handling.
 
 **Time**: 60 minutes  
 **Difficulty**: ⭐⭐⭐ Advanced  
@@ -56,8 +57,21 @@ kubectl create namespace medical-lab
 # Label for network policies
 kubectl label namespace medical-lab security=restricted
 
+# Safer option: prefer using -n on kubectl commands rather than switching your current kubectl context
+# Example: kubectl create secret generic postgres-secret -n medical-lab --from-literal=postgres-user=... 
+
+# If you prefer changing the current context, capture and restore it:
+PREV_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo default)
 kubectl config set-context --current --namespace=medical-lab
+# To restore:
+kubectl config set-context --current --namespace="$PREV_NS"
 ```
+
+## ✅ Success criteria
+
+- Secrets (`postgres-secret`, `api-secret`) present in `medical-lab`
+- NetworkPolicies enforce default deny and allow only intended traffic
+- ServiceAccount `medical-api-sa` can access required secrets (via RBAC)
 
 ### 2. Create Secrets (5 min)
 
