@@ -1,8 +1,15 @@
 # Lab 1: Deploy Weather App (Basics)
 
+Ship a two-tier app to your cluster and prove it works — fast.
+
 **Time**: 20 minutes  
 **Difficulty**: ⭐ Beginner  
 **Focus**: Pods, Deployments, Services
+
+## ✅ Success criteria
+- `kubectl get pods -n weather-lab` shows frontend & backend Running
+- `kubectl get svc -n weather-lab` exposes the frontend (ClusterIP / port-forwardable)
+- You can curl the frontend and receive a 200 response
 
 ---
 

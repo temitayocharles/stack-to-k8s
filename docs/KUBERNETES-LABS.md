@@ -45,7 +45,7 @@ Practice Kubernetes with 6 real applications across 12 progressively spicy labs.
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Prerequisites (smoke checks)
 ```bash
 # Verify K8s cluster
 kubectl cluster-info
@@ -76,7 +76,7 @@ No building required - focus on **Kubernetes**, not Docker.
 ## 🆘 Stuck?
 - **[Common Issues](troubleshooting/troubleshooting.md)** - Quick fixes
 - **[kubectl Cheat Sheet](reference/kubectl-cheatsheet.md)** - Essential commands
-- **[Debug Guide](troubleshooting/debugging.md)** - When things break
+(debugging guidance consolidated into the Troubleshooting Hub)
 
 ---
 

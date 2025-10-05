@@ -1,6 +1,8 @@
 # Documentation Hub 📚
 
-Mission control for every lab, reference, and troubleshooting flow in this repo. Start with **[KUBERNETES-LABS.md](KUBERNETES-LABS.md)** to see the full twelve-lab storyline.
+Mission control for every lab, reference, and troubleshooting playbook. Fast to scan, easy to act on.
+
+Start with **[KUBERNETES-LABS.md](KUBERNETES-LABS.md)** to see the twelve-lab storyline.
 
 ## Navigation 🧭
 
@@ -21,7 +23,7 @@ Mission control for every lab, reference, and troubleshooting flow in this repo.
 ## Troubleshooting 🆘
 
 - **[Troubleshooting playbook](troubleshooting/troubleshooting.md)** — Fast triage flows mapped to lab incidents.
-- **[Debugging drills](troubleshooting/debugging.md)** — Deep dives for observability, logging, and recovery scenarios.
+(debugging drills merged into the Troubleshooting Hub)
 
 ## Style & contributions ✍️
 

@@ -1,6 +1,6 @@
 # 🎓 Kubernetes Knowledge Self-Assessment (Adventure Mode)
 
-Ready to check how battle-tested your cluster skills really are? Grab a pen, answer honestly, and celebrate every win (or revisit the lab for bonus XP).
+Quick quizzes to verify mastery after each lab. Be honest, learn, repeat.
 
 ---
 

@@ -1,0 +1,64 @@
+path,lines,first_h1,emoji_count
+./labs/08-chaos.md,726,Lab 8: Chaos Engineering,31
+./labs/01-weather-basics.md,279,Lab 1: Deploy Weather App (Basics),16
+./labs/10-gitops-argocd.md,846,Lab 10: GitOps with ArgoCD,46
+./labs/05-medical-security.md,529,Lab 5: Medical System - Security & RBAC,17
+./labs/02-ecommerce-basics.md,332,Lab 2: E-commerce Multi-Service Deployment,17
+./labs/12-kubernetes-fundamentals.md,867,🎯 Lab 12: Kubernetes Fundamentals Deep Dive,37
+./labs/03-educational-stateful.md,377,Lab 3: Educational Platform - Stateful Applications,19
+./labs/06-social-scaling.md,495,Lab 6: Social Media - Autoscaling & Performance,19
+./labs/09-helm-package-management.md,683,Lab 9: Helm Package Management,31
+./labs/11-external-secrets.md,631,🔐 Lab 11: External Secrets Management,30
+./labs/07-multi-app.md,603,Lab 7: Multi-App Orchestration,19
+./labs/manifests/lab-09/README.md,28,Lab 9 · Helm Package Management Overlay,0
+./labs/manifests/lab-07/README.md,34,Lab 7 · Multi-App Orchestration Overlay,0
+./labs/manifests/lab-06/README.md,26,Lab 6 · Social Media Autoscaling Overlay,0
+./labs/manifests/lab-08/README.md,23,Lab 8 · Chaos Engineering Overlay,0
+./labs/manifests/lab-12/README.md,42,Lab 12 · Kubernetes Fundamentals Overlay,0
+./labs/manifests/README.md,56,Kubernetes Manifest Overlays,15
+./labs/manifests/ARCHITECTURE-DECISIONS.md,361,Architecture Decisions - Manifest Overlays,7
+./labs/manifests/lab-03/README.md,42,Lab 3 · Educational Platform StatefulSet Overlay,0
+./labs/manifests/lab-04/README.md,46,Lab 4 · Task Manager Ingress Overlay,0
+./labs/manifests/lab-05/README.md,46,Lab 5 · Medical Security Overlay,0
+./labs/manifests/lab-02/README.md,42,Lab 2 · E-commerce Multi-Service Overlay,0
+./labs/manifests/lab-11/README.md,25,Lab 11 · External Secrets Overlay,0
+./labs/manifests/lab-10/README.md,29,Lab 10 · GitOps ArgoCD Overlay,0
+./labs/manifests/IMAGE-TAG-UPDATES.md,48,Image Tag Update Playbook 🏷️,1
+./labs/04-task-ingress.md,451,Lab 4: Task Manager - Ingress & External Access,19
+./educational-platform/ARCHITECTURE.md,65,Educational Platform Architecture,7
+./educational-platform/k8s/advanced-features/README.md,125,🚀 ADVANCED KUBERNETES FEATURES - DEPLOYMENT GUIDE,16
+./educational-platform/README.md,5,Educational Platform,0
+./global-configs/README.md,14,Global Configs,0
+./docs/KUBERNETES-LABS.md,138,🎓 Kubernetes Learning Labs,22
+./docs/MARKDOWN-INDEX.md,71,📚 Markdown File Inventory,1
+./docs/learning/SELF-ASSESSMENT.md,491,🎓 Kubernetes Knowledge Self-Assessment (Adventure Mode),122
+./docs/learning/LAB-PROGRESS.md,110,📊 Lab Progress Tracker,62
+./docs/learning/COMMON-MISTAKES.md,294,🚨 Common Kubernetes Mistakes (Boss Fight Edition),76
+./docs/setup/rancher-desktop.md,162,🖥️ Rancher Desktop Setup · Windows & macOS,9
+./docs/setup/linux-kind-k3d.md,200,🐧 Linux Setup Guide · kind (Kubernetes in Docker) + Optional k3d,7
+./docs/troubleshooting/troubleshooting.md,163,Troubleshooting Guide,0
+./docs/README.md,28,Documentation Hub 📚,4
+./docs/STYLE-GUIDE.md,39,Documentation Style Guide ✍️,8
+./docs/reference/configuration-patterns.md,518,🔧 Configuration Management Patterns,19
+./docs/reference/kubectl-cheatsheet.md,99,kubectl Cheatsheet,1
+./docs/reference/api-keys-guide.md,461,🔑 API Keys & External Services Setup Guide,29
+./docs/reference/secrets-management.md,415,🔐 Secrets & Configuration Management Guide,16
+./README.md,65,🚀 Master Kubernetes: From Zero to Production Hero,23
+./ecommerce-app/ARCHITECTURE.md,56,E-commerce Platform Architecture,7
+./ecommerce-app/k8s/advanced-features/README.md,125,🚀 ADVANCED KUBERNETES FEATURES - DEPLOYMENT GUIDE,16
+./ecommerce-app/README.md,5,E-commerce Platform,0
+./task-management-app/ARCHITECTURE.md,56,Task Management Application Architecture,7
+./task-management-app/k8s/advanced-features/README.md,125,🚀 ADVANCED KUBERNETES FEATURES - DEPLOYMENT GUIDE,16
+./task-management-app/README.md,5,Task Management App,0
+./medical-care-system/ARCHITECTURE.md,60,Medical Care System Architecture,7
+./medical-care-system/k8s/advanced-features/README.md,125,🚀 ADVANCED KUBERNETES FEATURES - DEPLOYMENT GUIDE,16
+./medical-care-system/README.md,5,Medical Care System,0
+./scripts/README.md,49,Scripts Toolkit 🛠️,1
+./weather-app/ARCHITECTURE.md,49,Weather Application Architecture,6
+./weather-app/k8s/advanced-features/README.md,125,🚀 ADVANCED KUBERNETES FEATURES - DEPLOYMENT GUIDE,16
+./weather-app/README.md,5,Weather App,0
+./social-media-platform/ARCHITECTURE.md,67,Social Media Platform Architecture,7
+./social-media-platform/frontend/README.md,5,Social Media Platform - Frontend,0
+./social-media-platform/k8s/advanced-features/README.md,125,🚀 ADVANCED KUBERNETES FEATURES - DEPLOYMENT GUIDE,16
+./social-media-platform/backend/README.md,5,Social Media Platform - Backend,0
+./social-media-platform/README.md,5,Social Media Platform,0

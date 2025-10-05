@@ -1,6 +1,6 @@
 # 🚨 Common Kubernetes Mistakes (Boss Fight Edition)
 
-You made it this far—now dodge the traps that trip up even seasoned cluster wranglers. Keep this guide nearby while you lab and treat every mistake as an XP boost waiting to happen.
+Short, practical traps to avoid—read this before you press Enter. Treat every mistake as an XP boost.
 
 ---
 

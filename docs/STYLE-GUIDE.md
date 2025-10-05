@@ -4,9 +4,9 @@ Use this guide before shipping a new lab, README, or troubleshooting playbook. C
 
 ## Headings 🎯
 
-- Apply a single, relevant emoji to each top-level or second-level heading. Skip emojis on lower levels.
-- Keep headings short (under 60 characters) and action oriented where possible.
-- Start each page with an `H1` that names the artifact (for example, "Lab 03 — Scaling Deployments").
+- Use a single, relevant emoji on `H1` or `H2` only. Avoid emoji clutter on deeper headings.
+- Keep headings short (≤ 60 characters) and action-oriented.
+- Start each page with a single `H1` that clearly names the page (for example, "Lab 03 — Scaling Deployments").
 
 ## Tone 🗣️
 
@@ -23,8 +23,8 @@ Use this guide before shipping a new lab, README, or troubleshooting playbook. C
 ## Visual rhythm 🖼️
 
 - Use tables sparingly; prefer bullet lists for short callouts.
-- Limit inline emojis to one every two sentences to avoid visual noise.
-- Code blocks must declare a language for syntax highlighting.
+- Limit inline emojis: 1 per 2 sentences on average. Maintain professional tone.
+- Always declare a language for code blocks for consistent highlighting.
 
 ## Quality checks ✅
 
