@@ -49,8 +49,7 @@ jobs:
       - name: Generate services matrix
         id: services
         run: |
-          cat << 'EOF' > services.json
-          {
+          MATRIX_JSON='{
             "include": [
               {
                 "app": "ecommerce-app",
@@ -137,9 +136,8 @@ jobs:
                 "description": "React Social Frontend"
               }
             ]
-          }
-          EOF
-          echo "matrix=$(cat services.json)" >> $GITHUB_OUTPUT
+          }'
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
 
       - name: Validate Docker environment
         run: |
