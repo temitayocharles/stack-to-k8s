@@ -1,0 +1,56 @@
+# 🔒 POD DISRUPTION BUDGETS (PDB)
+# Ensure high availability during cluster maintenance for weather-app
+
+---
+# Pod Disruption Budget for Backend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-backend-pdb
+  namespace: weather-production
+  labels:
+    app: weather-backend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: weather-backend
+  minAvailable: 2
+  maxUnavailable: 1
+
+---
+# Pod Disruption Budget for Frontend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-frontend-pdb
+  namespace: weather-production
+  labels:
+    app: weather-frontend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: weather-frontend
+  minAvailable: 1
+  maxUnavailable: 50%
+
+---
+# Pod Disruption Budget for Database
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-database-pdb
+  namespace: weather-production
+  labels:
+    app: database
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: database
+  minAvailable: 1
+  maxUnavailable: 0

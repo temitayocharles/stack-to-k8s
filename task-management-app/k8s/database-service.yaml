@@ -1,0 +1,19 @@
+# ====================================
+# PostgreSQL Service for Task Management Application
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: task-lab
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+    protocol: TCP

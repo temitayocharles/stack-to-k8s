@@ -1,0 +1,296 @@
+# 🐳 Easy Deployment Options:
+# 1. Use pre-built images: Change 'build: .' to 'image: temitayocharles/educational-backend:latest'
+# 2. Build yourself: Keep 'build: .' for learning Docker builds
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: edu-platform-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: educational_platform
+      POSTGRES_USER: edu_user
+      POSTGRES_PASSWORD: edu_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - edu-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edu_user -d educational_platform"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: edu-platform-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6381:6379"
+    networks:
+      - edu-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: edu-platform-backend
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/educational_platform
+      SPRING_DATASOURCE_USERNAME: edu_user
+      SPRING_DATASOURCE_PASSWORD: edu_password
+      
+      # Redis Configuration
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: redis_password
+      
+      # JPA Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: false
+      
+      # Logging
+      LOGGING_LEVEL_COM_EDUPLATFORM: INFO
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: INFO
+      
+      # JWT Configuration
+      JWT_SECRET: your-super-secret-jwt-key-for-production-use-512-bit-key-that-is-long-enough-for-HS512-algorithm-security-requirements
+      JWT_EXPIRATION: 86400000
+      JWT_REFRESH_EXPIRATION: 604800000
+      
+      # File Upload
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 10MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 10MB
+      
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:80,http://frontend
+      
+      # Profile
+      SPRING_PROFILES_ACTIVE: docker
+      
+      # Server Configuration
+      SERVER_PORT: 8080
+      
+      # Email Configuration (for notifications)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      
+      # File Storage
+      FILE_STORAGE_LOCATION: /app/uploads
+      
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - edu-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edu-platform-frontend
+    restart: unless-stopped
+    environment:
+      API_URL: http://backend:8080
+      WS_URL: ws://backend:8080
+      PRODUCTION: true
+      ENABLE_NOTIFICATIONS: true
+      ENABLE_CHAT: true
+      ENABLE_VIDEO_CALL: true
+      ENABLE_ANALYTICS: true
+      ENABLE_DARK_MODE: true
+    ports:
+      - "3003:80"
+      - "4443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - edu-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx Load Balancer (for production scaling)
+  nginx:
+    image: nginx:alpine
+    container_name: edu-platform-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    ports:
+      - "8443:443"
+      - "8080:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - edu-network
+    profiles:
+      - production
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: edu-platform-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - edu-network
+    profiles:
+      - monitoring
+
+  # Monitoring with Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: edu-platform-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - edu-network
+    profiles:
+      - monitoring
+
+  # ElasticSearch for search functionality
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: edu-platform-elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=edu-platform-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - edu-network
+    profiles:
+      - search
+
+  # Kibana for ElasticSearch management
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.0
+    container_name: edu-platform-kibana
+    restart: unless-stopped
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - edu-network
+    profiles:
+      - search
+
+  # Mailhog for development email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: edu-platform-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web interface
+    networks:
+      - edu-network
+    profiles:
+      - development
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  edu-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

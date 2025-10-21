@@ -1,0 +1,103 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: task-management-network-policy
+  namespace: task-management
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: task-management-frontend
+    - podSelector:
+        matchLabels:
+          app: task-management-backend
+  - from:
+    - podSelector:
+        matchLabels:
+          app: task-management-backend
+    ports:
+    - protocol: TCP
+      port: 5984
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: task-management-backend
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-management-backend-pdb
+  namespace: task-management
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: task-management-backend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-management-frontend-pdb
+  namespace: task-management
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: task-management-frontend
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: task-management-backend-monitor
+  namespace: task-management
+  labels:
+    app: task-management-backend
+spec:
+  selector:
+    matchLabels:
+      app: task-management-backend
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-monitor
+  namespace: task-management
+  labels:
+    app: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  endpoints:
+  - port: postgres
+    path: /metrics
+    interval: 30s

@@ -1,0 +1,19 @@
+# ====================================
+# Frontend Service for Medical Care System
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: medical-frontend
+  namespace: medical-lab
+  labels:
+    app: medical-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: medical-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP

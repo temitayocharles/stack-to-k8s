@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Social Media Platform",
+    "slug": "social-media-platform",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "entryPoint": "./index.js",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.socialmedia"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.example.socialmedia"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "webpack",
+      "output": "static"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ffffff"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow access to camera for posting photos and videos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to photo library for sharing images.",
+          "cameraPermission": "Allow access to camera for taking photos."
+        }
+      ]
+    ]
+  }
+}

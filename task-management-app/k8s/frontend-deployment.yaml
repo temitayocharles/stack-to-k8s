@@ -1,0 +1,52 @@
+# ====================================
+# Frontend Deployment for Task Management Application
+# React application served by Nginx
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-frontend
+  namespace: task-lab
+  labels:
+    app: task-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-frontend
+  template:
+    metadata:
+      labels:
+        app: task-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: temitayocharles/task-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://task-backend:8080"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      restartPolicy: Always

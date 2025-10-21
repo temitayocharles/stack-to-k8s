@@ -1,0 +1,83 @@
+# 🔐 SECURITY POLICIES & RBAC
+# Role-based access control for weather-app
+
+---
+# Cluster Role for Advanced Monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: weather-monitoring
+  labels:
+    app: weather
+    tier: production
+    component: security
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+
+---
+# Service Account for Monitoring
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: weather-monitoring
+  namespace: weather-production
+  labels:
+    app: weather
+    tier: production
+    component: security
+
+---
+# Cluster Role Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: weather-monitoring
+  labels:
+    app: weather
+    tier: production
+    component: security
+subjects:
+- kind: ServiceAccount
+  name: weather-monitoring
+  namespace: weather-production
+roleRef:
+  kind: ClusterRole
+  name: weather-monitoring
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy (for clusters that support it)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: weather-restricted
+  labels:
+    app: weather
+    tier: production
+    component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'

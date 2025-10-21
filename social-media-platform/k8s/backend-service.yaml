@@ -1,0 +1,19 @@
+# ====================================
+# Backend Service for Social Media Platform
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-backend
+  namespace: social-lab
+  labels:
+    app: social-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: social-backend
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP

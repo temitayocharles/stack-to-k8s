@@ -1,0 +1,57 @@
+version: '3.8'
+
+# 🐳 Easy Deployment Options:
+# 1. Use pre-built images: Change 'build: .' to 'image: temitayocharles/task-management-backend:latest'
+# 2. Build yourself: Keep 'build: .' for learning Docker builds
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - DATABASE_URL=postgres://taskuser:taskpass@db:5432/taskmanagement?sslmode=disable
+      - PORT=8080
+    depends_on:
+      - db
+    # Remove volume mount to prevent overriding the built binary
+    # volumes:
+    #   - ./backend:/app
+    networks:
+      - task-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3002:80"
+    environment:
+      - API_URL=http://backend:8080
+    depends_on:
+      - backend
+    networks:
+      - task-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=taskmanagement
+      - POSTGRES_USER=taskuser
+      - POSTGRES_PASSWORD=taskpass
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - task-network
+
+volumes:
+  postgres_data:
+
+networks:
+  task-network:
+    driver: bridge

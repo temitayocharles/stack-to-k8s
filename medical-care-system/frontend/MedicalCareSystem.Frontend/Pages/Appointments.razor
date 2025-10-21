@@ -1,0 +1,312 @@
+@page "/appointments"
+@inject ApiService ApiService
+@inject IJSRuntime JSRuntime
+@using MedicalCareSystem.Frontend.Services
+@using MedicalCareSystem.Frontend.Models
+
+<PageTitle>Appointments - Medical Care System</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Appointment Management
+                    </h3>
+                    <button class="btn btn-success" @onclick="ShowCreateModal">
+                        <i class="fas fa-plus me-2"></i>
+                        Schedule Appointment
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (appointments == null)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading appointments...</p>
+                        </div>
+                    }
+                    else if (appointments.Count == 0)
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No appointments scheduled</h5>
+                            <p class="text-muted">Schedule your first appointment.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Patient</th>
+                                        <th>Doctor</th>
+                                        <th>Date & Time</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var appointment in appointments.OrderBy(a => a.AppointmentDateTime))
+                                    {
+                                        <tr>
+                                            <td>@appointment.Id</td>
+                                            <td>@appointment.PatientName</td>
+                                            <td>@appointment.DoctorName</td>
+                                            <td>@appointment.AppointmentDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>
+                                                <span class="badge bg-@GetStatusColor(appointment.Status)">@appointment.Status</span>
+                                            </td>
+                                            <td>@(string.IsNullOrEmpty(appointment.Notes) ? "-" : appointment.Notes)</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => EditAppointment(appointment)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAppointment(appointment.Id)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+@if (showModal)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEditing ? "Edit Appointment" : "Schedule New Appointment")</h5>
+                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="currentAppointment" OnValidSubmit="SaveAppointmentAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="patientId" class="form-label">Patient</label>
+                                <InputSelect id="patientId" class="form-control" @bind-Value="currentAppointment.PatientId">
+                                    <option value="0">Select Patient</option>
+                                    @if (patients != null)
+                                    {
+                                        @foreach (var patient in patients)
+                                        {
+                                            <option value="@patient.Id">@patient.FullName</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="doctorId" class="form-label">Doctor</label>
+                                <InputSelect id="doctorId" class="form-control" @bind-Value="currentAppointment.DoctorId">
+                                    <option value="0">Select Doctor</option>
+                                    @if (doctors != null)
+                                    {
+                                        @foreach (var doctor in doctors)
+                                        {
+                                            <option value="@doctor.Id">@doctor.FullName</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="appointmentDate" class="form-label">Appointment Date</label>
+                                <InputDate id="appointmentDate" class="form-control" @bind-Value="appointmentDate" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="appointmentTime" class="form-label">Appointment Time</label>
+                                <InputText id="appointmentTime" class="form-control" type="time" @bind-Value="appointmentTime" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <InputSelect id="status" class="form-control" @bind-Value="currentAppointment.Status">
+                                    <option value="Scheduled">Scheduled</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <InputTextArea id="notes" class="form-control" rows="3" @bind-Value="currentAppointment.Notes" />
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideModal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Appointment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Appointment> appointments = new();
+    private List<Patient> patients = new();
+    private List<Doctor> doctors = new();
+    private Appointment currentAppointment = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+    private DateTime appointmentDate = DateTime.Today;
+    private string appointmentTime = "09:00";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppointments();
+        await LoadPatients();
+        await LoadDoctors();
+    }
+
+    private async Task LoadAppointments()
+    {
+        try
+        {
+            appointments = await ApiService.GetAppointmentsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading appointments: {ex.Message}");
+        }
+    }
+
+    private async Task LoadPatients()
+    {
+        try
+        {
+            patients = await ApiService.GetPatientsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading patients: {ex.Message}");
+        }
+    }
+
+    private async Task LoadDoctors()
+    {
+        try
+        {
+            doctors = await ApiService.GetDoctorsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading doctors: {ex.Message}");
+        }
+    }
+
+    private void ShowCreateModal()
+    {
+        currentAppointment = new Appointment();
+        appointmentDate = DateTime.Today;
+        appointmentTime = "09:00";
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void EditAppointment(Appointment appointment)
+    {
+        currentAppointment = new Appointment
+        {
+            Id = appointment.Id,
+            PatientId = appointment.PatientId,
+            DoctorId = appointment.DoctorId,
+            AppointmentDateTime = appointment.AppointmentDateTime,
+            Status = appointment.Status,
+            Notes = appointment.Notes
+        };
+        appointmentDate = appointment.AppointmentDateTime.Date;
+        appointmentTime = appointment.AppointmentDateTime.ToString("HH:mm");
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void HideModal()
+    {
+        showModal = false;
+        currentAppointment = new Appointment();
+    }
+
+    private async Task SaveAppointmentAsync()
+    {
+        // Combine date and time
+        var dateTimeString = $"{appointmentDate:yyyy-MM-dd} {appointmentTime}";
+        if (DateTime.TryParse(dateTimeString, out var combinedDateTime))
+        {
+            currentAppointment.AppointmentDateTime = combinedDateTime;
+        }
+
+        try
+        {
+            if (isEditing)
+            {
+                await ApiService.UpdateAppointmentAsync(currentAppointment.Id, currentAppointment);
+            }
+            else
+            {
+                await ApiService.CreateAppointmentAsync(currentAppointment);
+            }
+            await LoadAppointments();
+            HideModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving appointment: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteAppointment(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this appointment?"))
+        {
+            try
+            {
+                await ApiService.DeleteAppointmentAsync(id);
+                await LoadAppointments();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting appointment: {ex.Message}");
+            }
+        }
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Scheduled" => "warning",
+            "Confirmed" => "info",
+            "In Progress" => "primary",
+            "Completed" => "success",
+            "Cancelled" => "danger",
+            _ => "secondary"
+        };
+    }
+}

@@ -1,0 +1,222 @@
+# ⚠️ INTENTIONALLY BROKEN MANIFEST - DO NOT FIX! ⚠️
+#
+# Challenge A - Midnight Incident: Intentionally Broken Weather App
+# This manifest contains 9 intentional bugs for troubleshooting practice
+#
+# Related Lab: challenge-a-midnight-incident.md
+# 
+# Usage:
+#   kubectl apply -f https://raw.githubusercontent.com/temitayocharles/stack-to-k8s/main/labs/challenge-a-broken.yaml -n incident-lab
+#
+# Intentional Bugs:
+#   1. Health probe wrong port (8080 vs 3001)
+#   2. Insufficient memory (20Mi causes OOMKilled)
+#   3. Service selector typo (weather-backed vs weather-backend)
+#   4. Wrong backend service name in env var
+#   5. Invalid nginx health check path
+#   6. Nginx proxy to wrong URL
+#   7. Service port mismatch (80 vs 8080)
+#   8. Overly restrictive NetworkPolicy (blocks all traffic)
+#   9. Invalid PodDisruptionBudget (minAvailable 3 > replicas 2)
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: weather-backend-config
+  namespace: incident-lab
+data:
+  API_KEY: "demo-api-key-12345"
+  API_ENDPOINT: "https://api.openweathermap.org/data/2.5"
+  PORT: "3001"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-backend
+  namespace: incident-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-backend
+  template:
+    metadata:
+      labels:
+        app: weather-backend
+    spec:
+      containers:
+      - name: backend
+        image: node:18-alpine
+        command: ["sh", "-c", "npm install express axios && node server.js"]
+        ports:
+        - containerPort: 3001
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: weather-backend-config
+              key: PORT
+        - name: API_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: weather-backend-config
+              key: API_KEY
+        - name: API_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: weather-backend-config
+              key: API_ENDPOINT
+        # BUG 1: Wrong probe configuration - using wrong port
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080  # WRONG PORT! Should be 3001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080  # WRONG PORT! Should be 3001
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        # BUG 2: Insufficient resources causing OOMKilled
+        resources:
+          requests:
+            memory: "10Mi"  # TOO LOW! Node.js needs more
+            cpu: "10m"
+          limits:
+            memory: "20Mi"  # TOO LOW! Will cause OOMKilled
+            cpu: "50m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-backend
+  namespace: incident-lab
+spec:
+  # BUG 3: Wrong selector - typo in app name
+  selector:
+    app: weather-backed  # TYPO! Should be weather-backend
+  ports:
+  - port: 3001
+    targetPort: 3001
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-frontend
+  namespace: incident-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: weather-frontend
+  template:
+    metadata:
+      labels:
+        app: weather-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        # BUG 4: Wrong backend service name
+        - name: BACKEND_URL
+          value: "http://weather-backend-svc:3001"  # WRONG! Service is named weather-backend
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        # BUG 5: Wrong health check path
+        livenessProbe:
+          httpGet:
+            path: /healthz  # WRONG PATH! Nginx doesn't have this endpoint
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "50m"
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: incident-lab
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    http {
+      server {
+        listen 80;
+        location / {
+          root /usr/share/nginx/html;
+          index index.html;
+        }
+        location /api {
+          # BUG 6: Proxy pass to wrong backend URL
+          proxy_pass http://weather-backend-svc:3001;  # WRONG! Should be weather-backend:3001
+        }
+      }
+    }
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-frontend
+  namespace: incident-lab
+spec:
+  selector:
+    app: weather-frontend
+  ports:
+  # BUG 7: Wrong port mapping
+  - port: 80
+    targetPort: 8080  # WRONG! Container listens on port 80, not 8080
+  type: ClusterIP
+
+---
+# BUG 8: NetworkPolicy blocking all traffic (too restrictive)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: weather-network-policy
+  namespace: incident-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: weather-backend
+  policyTypes:
+  - Ingress
+  ingress: []  # EMPTY! Blocks all ingress traffic
+
+---
+# BUG 9: PodDisruptionBudget set too aggressively
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-frontend-pdb
+  namespace: incident-lab
+spec:
+  minAvailable: 3  # WRONG! Only 2 replicas exist, blocking evictions
+  selector:
+    matchLabels:
+      app: weather-frontend

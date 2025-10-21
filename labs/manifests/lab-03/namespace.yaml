@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: educational-lab
+  labels:
+    app.kubernetes.io/name: educational-lab
+    app.kubernetes.io/part-of: lab-03-educational

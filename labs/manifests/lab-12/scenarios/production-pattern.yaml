@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: label-lab
+  labels:
+    app.kubernetes.io/name: api-server
+    app.kubernetes.io/instance: api-server-prod
+    app.kubernetes.io/version: "2.1.0"
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: ecommerce
+    app.kubernetes.io/managed-by: kustomize
+    environment: production
+    team: backend
+    cost-center: engineering
+    criticality: high
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-server
+      app.kubernetes.io/instance: api-server-prod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: api-server
+        app.kubernetes.io/instance: api-server-prod
+        app.kubernetes.io/version: "2.1.0"
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: ecommerce
+        environment: production
+        team: backend
+        deployment-id: "20241005-1200"
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: api
+          image: nginx:1.27.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+              ephemeral-storage: 200Mi
+            limits:
+              cpu: 400m
+              memory: 512Mi
+              ephemeral-storage: 400Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-server
+  namespace: label-lab
+  labels:
+    app.kubernetes.io/name: api-server
+    app.kubernetes.io/component: backend
+spec:
+  selector:
+    app.kubernetes.io/name: api-server
+    app.kubernetes.io/instance: api-server-prod
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: ClusterIP

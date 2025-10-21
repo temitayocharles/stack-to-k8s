@@ -1,0 +1,341 @@
+@page "/ai-analysis"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@using System.Text.Json
+
+<PageTitle>AI Medical Analysis</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Header Section -->
+        <div class="col-12 mb-4">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <h3 class="mb-0">🤖 AI Medical Analysis Center</h3>
+                    <p class="mb-0 opacity-8">Advanced diagnostic assistance powered by machine learning</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Symptom Analysis Form -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">📝 Symptom Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@analysisRequest" OnValidSubmit="@AnalyzeSymptoms">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Patient ID</label>
+                            <InputNumber @bind-Value="analysisRequest.PatientId" class="form-control" />
+                            <ValidationMessage For="@(() => analysisRequest.PatientId)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Symptoms (comma-separated)</label>
+                            <InputTextArea @bind-Value="analysisRequest.Symptoms" class="form-control" rows="4" 
+                                         placeholder="e.g., headache, fever, nausea, chest pain" />
+                            <ValidationMessage For="@(() => analysisRequest.Symptoms)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Duration</label>
+                            <InputText @bind-Value="analysisRequest.Duration" class="form-control" 
+                                     placeholder="e.g., 2 days, 1 week" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Severity (1-10)</label>
+                            <InputText @bind-Value="analysisRequest.Severity" class="form-control" 
+                                     placeholder="e.g., 7/10" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" disabled="@isAnalyzing">
+                            @if (isAnalyzing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <text>Analyzing...</text>
+                            }
+                            else
+                            {
+                                <text>🔬 Analyze Symptoms</text>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Results -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">🎯 Analysis Results</h5>
+                </div>
+                <div class="card-body">
+                    @if (analysisResult != null)
+                    {
+                        <div class="alert alert-@GetAlertClass(analysisResult.diagnosis.risk_level)" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-@GetRiskIcon(analysisResult.diagnosis.risk_level)"></i>
+                                @analysisResult.diagnosis.primary
+                            </h6>
+                            <p class="mb-2">Confidence Score: <strong>@analysisResult.diagnosis.confidence_score.ToString("P")</strong></p>
+                            <p class="mb-0">Risk Level: <strong>@analysisResult.diagnosis.risk_level</strong></p>
+                        </div>
+
+                        <div class="mt-3">
+                            <h6>🎯 Recommendations:</h6>
+                            <ul class="list-unstyled">
+                                @foreach (var recommendation in analysisResult.recommendations)
+                                {
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>@recommendation</li>
+                                }
+                            </ul>
+                        </div>
+
+                        @if (analysisResult.ai_insights.differential_diagnoses?.Any() == true)
+                        {
+                            <div class="mt-3">
+                                <h6>🔍 Differential Diagnoses:</h6>
+                                <div class="row">
+                                    @foreach (var diagnosis in analysisResult.ai_insights.differential_diagnoses)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            <span class="badge bg-secondary">@diagnosis</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-robot me-1"></i>
+                                Model: @analysisResult.ai_insights.model_version |
+                                Processing Time: @analysisResult.ai_insights.processing_time_ms ms
+                            </small>
+                        </div>
+                    }
+                    else if (string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-brain fa-3x mb-3"></i>
+                            <p>Enter patient symptoms to get AI-powered analysis</p>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient History -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Patient Analysis History</h5>
+                </div>
+                <div class="card-body">
+                    @if (currentPatientId > 0)
+                    {
+                        <button class="btn btn-outline-primary mb-3" @onclick="LoadPatientAnalyses">
+                            <i class="fas fa-history me-2"></i>Load Analysis History
+                        </button>
+                    }
+
+                    @if (patientAnalyses != null)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@patientAnalyses.total_analyses</h4>
+                                        <small>Total Analyses</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@patientAnalyses.risk_summary.high_risk_count</h4>
+                                        <small>High Risk</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@patientAnalyses.risk_summary.pending_verification</h4>
+                                        <small>Pending Verification</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h4>@((patientAnalyses.total_analyses - patientAnalyses.risk_summary.pending_verification))</h4>
+                                        <small>Verified</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Diagnosis</th>
+                                        <th>Confidence</th>
+                                        <th>Risk Level</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var analysis in patientAnalyses.analyses)
+                                    {
+                                        <tr>
+                                            <td>@analysis.analysis_date.ToString("MMM dd, yyyy")</td>
+                                            <td>@analysis.diagnosis</td>
+                                            <td>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar" style="width: @(analysis.confidence_score * 100)%"></div>
+                                                </div>
+                                                <small>@analysis.confidence_score.ToString("P")</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetRiskColor(analysis.risk_level)">
+                                                    @analysis.risk_level
+                                                </span>
+                                            </td>
+                                            <td>@analysis.analysis_type</td>
+                                            <td>
+                                                @if (analysis.is_verified)
+                                                {
+                                                    <span class="badge bg-success">Verified</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">Pending</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SymptomAnalysisRequest analysisRequest = new();
+    private bool isAnalyzing = false;
+    private string errorMessage = string.Empty;
+    private int currentPatientId = 0;
+
+    // Analysis results
+    private dynamic? analysisResult;
+    private dynamic? patientAnalyses;
+
+    private async Task AnalyzeSymptoms()
+    {
+        try
+        {
+            isAnalyzing = true;
+            errorMessage = string.Empty;
+            analysisResult = null;
+
+            var json = JsonSerializer.Serialize(analysisRequest);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await Http.PostAsync("http://localhost:5170/api/aianalysis/analyze-symptoms", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                analysisResult = JsonSerializer.Deserialize<dynamic>(responseContent);
+                currentPatientId = analysisRequest.PatientId;
+
+                await JSRuntime.InvokeVoidAsync("console.log", "AI Analysis completed successfully");
+            }
+            else
+            {
+                errorMessage = $"Analysis failed: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isAnalyzing = false;
+        }
+    }
+
+    private async Task LoadPatientAnalyses()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5170/api/aianalysis/patient/{currentPatientId}/analyses");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                patientAnalyses = JsonSerializer.Deserialize<dynamic>(responseContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load patient analyses: {ex.Message}";
+        }
+    }
+
+    private string GetAlertClass(string riskLevel) => riskLevel switch
+    {
+        "Critical" => "danger",
+        "High" => "warning",
+        "Medium" => "info",
+        "Low" => "success",
+        _ => "secondary"
+    };
+
+    private string GetRiskIcon(string riskLevel) => riskLevel switch
+    {
+        "Critical" => "exclamation-triangle",
+        "High" => "exclamation-circle",
+        "Medium" => "info-circle",
+        "Low" => "check-circle",
+        _ => "question-circle"
+    };
+
+    private string GetRiskColor(string riskLevel) => riskLevel switch
+    {
+        "Critical" => "danger",
+        "High" => "warning",
+        "Medium" => "info",
+        "Low" => "success",
+        _ => "secondary"
+    };
+
+    public class SymptomAnalysisRequest
+    {
+        public int PatientId { get; set; }
+        public string Symptoms { get; set; } = string.Empty;
+        public string Duration { get; set; } = string.Empty;
+        public string Severity { get; set; } = string.Empty;
+    }
+}

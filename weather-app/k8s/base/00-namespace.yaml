@@ -1,0 +1,11 @@
+# ====================================
+# Namespace for Weather Application
+# ====================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: weather
+  labels:
+    name: weather
+    app: weather-app
+    environment: production

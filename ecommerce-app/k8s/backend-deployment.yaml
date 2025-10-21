@@ -1,0 +1,102 @@
+# ====================================
+# Backend Deployment for E-commerce Application
+# Node.js API with MongoDB and Redis
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-backend
+  namespace: ecommerce-lab
+  labels:
+    app: ecommerce-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+  template:
+    metadata:
+      labels:
+        app: ecommerce-backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/ecommerce-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "5000"
+        # Database configuration from ConfigMap (if exists) or defaults
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: DATABASE_HOST
+              optional: true
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: DATABASE_PORT
+              optional: true
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: DATABASE_NAME
+              optional: true
+        # Build connection string (backend should construct this from above vars)
+        # Or use direct connection string as fallback
+        - name: MONGODB_URI
+          value: "mongodb://admin:password@mongodb:27017/ecommerce?authSource=admin"
+        # Redis configuration from ConfigMap (if exists) or defaults
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: REDIS_HOST
+              optional: true
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: REDIS_PORT
+              optional: true
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: jwt-secret
+              optional: true
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: stripe-key
+              optional: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      restartPolicy: Always

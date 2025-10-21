@@ -1,0 +1,11 @@
+# ====================================
+# Namespace for Medical Care System
+# ====================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: medical-care
+  labels:
+    name: medical-care
+    app: medical-care-system
+    environment: production

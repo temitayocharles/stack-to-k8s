@@ -1,0 +1,79 @@
+# ====================================
+# Frontend Deployment for E-commerce App
+# React application with Nginx
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-frontend
+  namespace: ecommerce
+  labels:
+    app: ecommerce-app
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-app
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: ecommerce-app
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: temitayocharles/ecommerce-frontend:latest
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://ecommerce-backend:5001/api"
+        - name: REACT_APP_STRIPE_PUBLISHABLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: STRIPE_PUBLISHABLE_KEY
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-frontend
+  namespace: ecommerce
+  labels:
+    app: ecommerce-app
+    component: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: ecommerce-app
+    component: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP

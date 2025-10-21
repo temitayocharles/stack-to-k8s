@@ -1,0 +1,11 @@
+# ====================================
+# Namespace for Social Media Platform
+# ====================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: social-media
+  labels:
+    name: social-media
+    app: social-media-platform
+    environment: production

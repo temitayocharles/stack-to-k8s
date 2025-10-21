@@ -1,0 +1,19 @@
+# ====================================
+# Frontend Service for E-commerce Application
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-frontend
+  namespace: ecommerce-lab
+  labels:
+    app: ecommerce-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: ecommerce-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP

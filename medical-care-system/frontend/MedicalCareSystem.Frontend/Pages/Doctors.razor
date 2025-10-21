@@ -1,0 +1,283 @@
+@page "/doctors"
+@inject ApiService ApiService
+@inject IJSRuntime JSRuntime
+@using MedicalCareSystem.Frontend.Services
+@using MedicalCareSystem.Frontend.Models
+
+<PageTitle>Doctors - Medical Care System</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user-md me-2"></i>
+                        Doctor Management
+                    </h3>
+                    <button class="btn btn-info" @onclick="ShowCreateModal">
+                        <i class="fas fa-plus me-2"></i>
+                        Add New Doctor
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (doctors == null)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-info" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading doctors...</p>
+                        </div>
+                    }
+                    else if (doctors.Count == 0)
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No doctors found</h5>
+                            <p class="text-muted">Add your first doctor to get started.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Specialty</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>License</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var doctor in doctors)
+                                    {
+                                        <tr>
+                                            <td>@doctor.Id</td>
+                                            <td>@doctor.FullName</td>
+                                            <td>@doctor.DisplaySpecialty</td>
+                                            <td>@doctor.Email</td>
+                                            <td>@doctor.PhoneNumber</td>
+                                            <td>@doctor.LicenseNumber</td>
+                                            <td>
+                                                <span class="badge bg-@(doctor.IsAvailable ? "success" : "secondary")">
+                                                    @(doctor.IsAvailable ? "Available" : "Unavailable")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => EditDoctor(doctor)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteDoctor(doctor.Id)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+@if (showModal)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEditing ? "Edit Doctor" : "Add New Doctor")</h5>
+                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="currentDoctor" OnValidSubmit="SaveDoctorAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <InputText id="firstName" class="form-control" @bind-Value="currentDoctor.FirstName" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <InputText id="lastName" class="form-control" @bind-Value="currentDoctor.LastName" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <InputText id="email" class="form-control" @bind-Value="currentDoctor.Email" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <InputText id="phone" class="form-control" @bind-Value="currentDoctor.PhoneNumber" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="specialty" class="form-label">Specialty</label>
+                                <InputSelect id="specialty" class="form-control" @bind-Value="currentDoctor.Specialty">
+                                    <option value="">Select Specialty</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                    <option value="Dermatology">Dermatology</option>
+                                    <option value="Emergency Medicine">Emergency Medicine</option>
+                                    <option value="Family Medicine">Family Medicine</option>
+                                    <option value="Internal Medicine">Internal Medicine</option>
+                                    <option value="Neurology">Neurology</option>
+                                    <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
+                                    <option value="Orthopedics">Orthopedics</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Psychiatry">Psychiatry</option>
+                                    <option value="Radiology">Radiology</option>
+                                    <option value="Surgery">Surgery</option>
+                                    <option value="Urology">Urology</option>
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="licenseNumber" class="form-label">License Number</label>
+                                <InputText id="licenseNumber" class="form-control" @bind-Value="currentDoctor.LicenseNumber" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="yearsOfExperience" class="form-label">Years of Experience</label>
+                                <InputNumber id="yearsOfExperience" class="form-control" @bind-Value="currentDoctor.YearsOfExperience" min="0" max="50" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="isAvailable" class="form-label">Availability Status</label>
+                                <div class="form-check form-switch mt-2">
+                                    <InputCheckbox id="isAvailable" class="form-check-input" @bind-Value="currentDoctor.IsAvailable" />
+                                    <label class="form-check-label" for="isAvailable">
+                                        @currentDoctor.IsAvailable
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="qualifications" class="form-label">Qualifications</label>
+                            <InputTextArea id="qualifications" class="form-control" rows="2" @bind-Value="currentDoctor.Qualifications" placeholder="e.g., MD, Board Certified, etc." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Professional Bio</label>
+                            <InputTextArea id="bio" class="form-control" rows="4" @bind-Value="currentDoctor.Bio" placeholder="Brief professional biography..." />
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideModal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Save Doctor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Doctor> doctors = new();
+    private Doctor currentDoctor = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDoctors();
+    }
+
+    private async Task LoadDoctors()
+    {
+        try
+        {
+            doctors = await ApiService.GetDoctorsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading doctors: {ex.Message}");
+        }
+    }
+
+    private void ShowCreateModal()
+    {
+        currentDoctor = new Doctor();
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void EditDoctor(Doctor doctor)
+    {
+        currentDoctor = new Doctor
+        {
+            Id = doctor.Id,
+            FirstName = doctor.FirstName,
+            LastName = doctor.LastName,
+            Email = doctor.Email,
+            PhoneNumber = doctor.PhoneNumber,
+            Specialty = doctor.Specialty,
+            LicenseNumber = doctor.LicenseNumber,
+            Qualifications = doctor.Qualifications,
+            YearsOfExperience = doctor.YearsOfExperience,
+            Bio = doctor.Bio,
+            IsAvailable = doctor.IsAvailable
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    private void HideModal()
+    {
+        showModal = false;
+        currentDoctor = new Doctor();
+    }
+
+    private async Task SaveDoctorAsync()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                await ApiService.UpdateDoctorAsync(currentDoctor.Id, currentDoctor);
+            }
+            else
+            {
+                await ApiService.CreateDoctorAsync(currentDoctor);
+            }
+            await LoadDoctors();
+            HideModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving doctor: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteDoctor(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this doctor?"))
+        {
+            try
+            {
+                await ApiService.DeleteDoctorAsync(id);
+                await LoadDoctors();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting doctor: {ex.Message}");
+            }
+        }
+    }
+}

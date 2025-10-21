@@ -1,0 +1,529 @@
+EXIT CODE: 0
+
+--- STDOUT ---
+
+🔍 Checking links in README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/README.md
+  [✓] docs/setup/rancher-desktop.md
+  [✓] docs/setup/linux-kind-k3d.md
+  [✓] labs/01-weather-basics.md
+  [✓] docs/learning/LAB-PROGRESS.md
+  [✓] docs/KUBERNETES-LABS.md
+  [✓] docs/learning/SELF-ASSESSMENT.md
+  [✓] docs/learning/COMMON-MISTAKES.md
+  [✓] docs/reference/kubectl-cheatsheet.md
+  [✓] docs/troubleshooting/troubleshooting.md
+  [✓] docs/reference/secrets-management.md
+  [✓] docs/MARKDOWN-INDEX.md
+  [✓] https://hub.docker.com/u/temitayocharles
+
+  12 links checked.
+
+🔍 Checking links in docs/KUBERNETES-LABS.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/KUBERNETES-LABS.md
+  [✓] ../labs/01-weather-basics.md
+  [✓] ../labs/02-ecommerce-basics.md
+  [✓] ../labs/03-educational-stateful.md
+  [✓] ../labs/04-task-ingress.md
+  [✓] ../labs/05-medical-security.md
+  [✓] ../labs/06-social-scaling.md
+  [✓] ../labs/07-multi-app.md
+  [✓] ../labs/08-chaos.md
+  [✓] ../labs/09-helm-package-management.md
+  [✓] ../labs/10-gitops-argocd.md
+  [✓] ../labs/11-external-secrets.md
+  [✓] ../labs/12-kubernetes-fundamentals.md
+  [✓] troubleshooting/troubleshooting.md
+  [✓] reference/kubectl-cheatsheet.md
+
+  14 links checked.
+
+🔍 Checking links in docs/MARKDOWN-INDEX.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/MARKDOWN-INDEX.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/README.md
+  [✓] KUBERNETES-LABS.md
+  [✓] learning/LAB-PROGRESS.md
+  [✓] learning/SELF-ASSESSMENT.md
+  [✓] learning/COMMON-MISTAKES.md
+  [✓] MARKDOWN-INDEX.md
+  [✓] reference/kubectl-cheatsheet.md
+  [✓] reference/secrets-management.md
+  [✓] reference/api-keys-guide.md
+  [✓] reference/configuration-patterns.md
+  [✓] setup/rancher-desktop.md
+  [✓] setup/linux-kind-k3d.md
+  [✓] troubleshooting/troubleshooting.md
+  [✓] STYLE-GUIDE.md
+
+  13 links checked.
+
+🔍 Checking links in docs/STYLE-GUIDE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/STYLE-GUIDE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/learning/COMMON-MISTAKES.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/learning/COMMON-MISTAKES.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/learning/LAB-PROGRESS.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/learning/LAB-PROGRESS.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/learning/SELF-ASSESSMENT.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/learning/SELF-ASSESSMENT.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/reference/api-keys-guide.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/reference/api-keys-guide.md
+  [✓] https://openweathermap.org/api
+  [✓] https://dashboard.stripe.com/register
+  [✓] https://sendgrid.com/pricing/
+  [✖] https://platform.openai.com/
+  [✓] https://aws.amazon.com/
+  [✓] https://cloudinary.com/
+  [✓] https://api.slack.com/apps
+  [✓] https://marketplace.zoom.us/
+  [✓] https://console.firebase.google.com/
+
+  9 links checked.
+  [✖] https://platform.openai.com/ → Status: 403
+
+🔍 Checking links in docs/reference/configuration-patterns.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/reference/configuration-patterns.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/reference/kubectl-cheatsheet.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/reference/kubectl-cheatsheet.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in docs/reference/secrets-management.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/reference/secrets-management.md
+  [✓] https://kubernetes.io/docs/concepts/configuration/secret/
+  [✓] https://external-secrets.io/
+  [✓] https://github.com/bitnami-labs/sealed-secrets
+  [✓] https://www.vaultproject.io/
+  [✓] https://github.com/awslabs/git-secrets
+
+  5 links checked.
+
+🔍 Checking links in docs/setup/linux-kind-k3d.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/setup/linux-kind-k3d.md
+  [✓] ../../README.md
+
+  1 links checked.
+
+🔍 Checking links in docs/setup/rancher-desktop.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/setup/rancher-desktop.md
+  [✓] https://rancherdesktop.io/
+  [✓] ../../README.md
+
+  2 links checked.
+
+🔍 Checking links in docs/troubleshooting/troubleshooting.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/docs/troubleshooting/troubleshooting.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in ecommerce-app/ARCHITECTURE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/ecommerce-app/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in ecommerce-app/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/ecommerce-app/README.md
+  [✓] ../labs/02-ecommerce-basics.md
+  [✓] ../docs/KUBERNETES-LABS.md
+
+  2 links checked.
+
+🔍 Checking links in ecommerce-app/k8s/advanced-features/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/ecommerce-app/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in educational-platform/ARCHITECTURE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/educational-platform/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in educational-platform/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/educational-platform/README.md
+  [✓] ../labs/03-educational-stateful.md
+  [✓] ../docs/KUBERNETES-LABS.md
+
+  2 links checked.
+
+🔍 Checking links in educational-platform/k8s/advanced-features/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/educational-platform/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in global-configs/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/global-configs/README.md
+  [✓] ../labs/07-multi-app.md
+
+  1 links checked.
+
+🔍 Checking links in labs/01-weather-basics.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/01-weather-basics.md
+  [✓] 02-ecommerce-basics.md
+
+  1 links checked.
+
+🔍 Checking links in labs/02-ecommerce-basics.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/02-ecommerce-basics.md
+  [✓] 03-educational-stateful.md
+
+  1 links checked.
+
+🔍 Checking links in labs/03-educational-stateful.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/03-educational-stateful.md
+  [✓] 04-task-ingress.md
+
+  1 links checked.
+
+🔍 Checking links in labs/04-task-ingress.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/04-task-ingress.md
+  [✓] 05-medical-security.md
+
+  1 links checked.
+
+🔍 Checking links in labs/05-medical-security.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/05-medical-security.md
+  [✓] 06-social-scaling.md
+
+  1 links checked.
+
+🔍 Checking links in labs/06-social-scaling.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/06-social-scaling.md
+  [✓] 07-multi-app.md
+
+  1 links checked.
+
+🔍 Checking links in labs/07-multi-app.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/07-multi-app.md
+  [✓] 08-chaos.md
+
+  1 links checked.
+
+🔍 Checking links in labs/08-chaos.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/08-chaos.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/09-helm-package-management.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/09-helm-package-management.md
+  [✓] https://helm.sh/docs/
+  [✓] https://helm.sh/docs/chart_best_practices/
+  [✓] https://artifacthub.io/
+  [✓] https://github.com/jkroepke/helm-secrets
+  [✓] https://github.com/helm/chart-testing
+
+  5 links checked.
+
+🔍 Checking links in labs/10-gitops-argocd.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/10-gitops-argocd.md
+  [✓] https://argo-cd.readthedocs.io/
+  [✓] https://opengitops.dev/
+  [✓] https://argoproj.github.io/argo-rollouts/
+  [✓] https://sealed-secrets.netlify.app/
+  [✓] https://toolkit.fluxcd.io/
+
+  5 links checked.
+
+🔍 Checking links in labs/11-external-secrets.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/11-external-secrets.md
+  [✓] 12-kubernetes-fundamentals.md
+
+  1 links checked.
+
+🔍 Checking links in labs/12-kubernetes-fundamentals.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/12-kubernetes-fundamentals.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/ARCHITECTURE-DECISIONS.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/ARCHITECTURE-DECISIONS.md
+  [/] #labs-7-11-why-no-kustomize-overlays
+  [/] #labs-4-6-why-consolidated-files
+  [/] #summary-three-tier-approach
+  [✓] IMAGE-TAG-UPDATES.md
+  [✓] README.md
+
+  5 links checked.
+
+🔍 Checking links in labs/manifests/IMAGE-TAG-UPDATES.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/IMAGE-TAG-UPDATES.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/README.md
+  [✓] lab-01/
+  [✓] lab-02/
+  [✓] lab-03/
+  [✓] lab-04/
+  [✓] lab-05/
+  [✓] lab-06/
+  [✓] lab-07/
+  [✓] lab-08/
+  [✓] lab-09/
+  [✓] lab-10/
+  [✓] lab-11/
+  [✓] lab-12/
+  [✓] ARCHITECTURE-DECISIONS.md
+  [✓] IMAGE-TAG-UPDATES.md
+
+  14 links checked.
+
+🔍 Checking links in labs/manifests/lab-02/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-02/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-03/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-03/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-04/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-04/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-05/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-05/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-06/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-06/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-07/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-07/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-08/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-08/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-09/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-09/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-10/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-10/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-11/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-11/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in labs/manifests/lab-12/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/labs/manifests/lab-12/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in medical-care-system/ARCHITECTURE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/medical-care-system/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in medical-care-system/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/medical-care-system/README.md
+  [✓] ../labs/05-medical-security.md
+  [✓] ../docs/KUBERNETES-LABS.md
+
+  2 links checked.
+
+🔍 Checking links in medical-care-system/k8s/advanced-features/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/medical-care-system/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in scripts/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/scripts/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in social-media-platform/ARCHITECTURE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/social-media-platform/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in social-media-platform/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/social-media-platform/README.md
+  [✓] ../labs/06-social-scaling.md
+  [✓] ../docs/KUBERNETES-LABS.md
+
+  2 links checked.
+
+🔍 Checking links in social-media-platform/backend/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/social-media-platform/backend/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in social-media-platform/frontend/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/social-media-platform/frontend/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in social-media-platform/k8s/advanced-features/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/social-media-platform/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in task-management-app/ARCHITECTURE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/task-management-app/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in task-management-app/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/task-management-app/README.md
+  [✓] ../labs/04-task-ingress.md
+  [✓] ../docs/KUBERNETES-LABS.md
+
+  2 links checked.
+
+🔍 Checking links in task-management-app/k8s/advanced-features/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/task-management-app/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in weather-app/ARCHITECTURE.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/weather-app/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+
+🔍 Checking links in weather-app/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/weather-app/README.md
+  [✓] ../labs/01-weather-basics.md
+  [✓] ../docs/KUBERNETES-LABS.md
+
+  2 links checked.
+
+🔍 Checking links in weather-app/k8s/advanced-features/README.md
+
+FILE: /Volumes/512-B/Documents/PERSONAL/full-stack-apps/weather-app/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+
+--- STDERR ---
+
+  ERROR: 1 dead links found!

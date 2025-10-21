@@ -1,0 +1,197 @@
+# Pod Disruption Budgets for High Availability
+# Ensures minimum availability during maintenance and updates
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: educational-platform-pdb
+  namespace: educational-platform
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: educational-backend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: educational-frontend-pdb
+  namespace: educational-platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: educational-frontend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: educational-database-pdb
+  namespace: educational-platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-care-pdb
+  namespace: medical-care
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: medical-backend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-frontend-pdb
+  namespace: medical-care
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: medical-frontend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-database-pdb
+  namespace: medical-care
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: sqlserver
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-app-pdb
+  namespace: weather-app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: weather-backend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-frontend-pdb
+  namespace: weather-app
+spec:
+  maxUnavailable: 50%
+  selector:
+    matchLabels:
+      app: weather-frontend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: weather-redis-pdb
+  namespace: weather-app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: redis
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-management-pdb
+  namespace: task-management
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: task-backend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-frontend-pdb
+  namespace: task-management
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: task-frontend
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: task-database-pdb
+  namespace: task-management
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+---
+# Monitoring Stack PDBs
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: prometheus-pdb
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grafana-pdb
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: grafana
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: alertmanager-pdb
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  unhealthyPodEvictionPolicy: IfHealthyBudget

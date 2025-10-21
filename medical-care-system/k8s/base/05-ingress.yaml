@@ -1,0 +1,37 @@
+# ====================================
+# Ingress for Medical Care System
+# ====================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: medical-ingress
+  namespace: medical-care
+  labels:
+    app: medical-care-system
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"  # Force HTTPS for HIPAA compliance
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: medical.local
+    http:
+      paths:
+      # Frontend routes
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: medical-frontend
+            port:
+              number: 80
+      
+      # API routes
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: medical-api
+            port:
+              number: 5170

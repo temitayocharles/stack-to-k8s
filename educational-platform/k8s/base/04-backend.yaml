@@ -1,0 +1,552 @@
+# ====================================apiVersion: apps/v1
+
+# Backend Deployment for Educational Platformkind: Deployment
+
+# Spring Boot API with PostgreSQL, Redis, JWT auth, and file uploadsmetadata:
+
+# ====================================  name: backend
+
+apiVersion: v1  namespace: educational-platform
+
+kind: PersistentVolumeClaim  labels:
+
+metadata:    app: backend
+
+  name: educational-uploads-pvc    app.kubernetes.io/name: educational-platform
+
+  namespace: educational    app.kubernetes.io/component: backend
+
+  labels:    app.kubernetes.io/version: "1.0.0"
+
+    app: educational-platformspec:
+
+    component: backend  replicas: 3
+
+spec:  strategy:
+
+  accessModes:    type: RollingUpdate
+
+  - ReadWriteOnce    rollingUpdate:
+
+  resources:      maxSurge: 1
+
+    requests:      maxUnavailable: 1
+
+      storage: 5Gi  selector:
+
+    matchLabels:
+
+---      app: backend
+
+apiVersion: apps/v1  template:
+
+kind: Deployment    metadata:
+
+metadata:      labels:
+
+  name: educational-backend        app: backend
+
+  namespace: educational        app.kubernetes.io/name: educational-platform
+
+  labels:        app.kubernetes.io/component: backend
+
+    app: educational-platform      annotations:
+
+    component: backend        prometheus.io/scrape: "true"
+
+spec:        prometheus.io/port: "8080"
+
+  replicas: 2        prometheus.io/path: "/actuator/prometheus"
+
+  selector:    spec:
+
+    matchLabels:      initContainers:
+
+      app: educational-platform      - name: wait-for-postgres
+
+      component: backend        image: postgres:15-alpine
+
+  template:        command:
+
+    metadata:        - sh
+
+      labels:        - -c
+
+        app: educational-platform        - |
+
+        component: backend          until pg_isready -h postgres-service -p 5432 -U $(POSTGRES_USER); do
+
+    spec:            echo "Waiting for PostgreSQL to be ready..."
+
+      containers:            sleep 2
+
+      - name: backend          done
+
+        image: temitayocharles/educational-backend:latest        env:
+
+        ports:        - name: POSTGRES_USER
+
+        - containerPort: 8080          valueFrom:
+
+          name: http            secretKeyRef:
+
+        env:              name: app-secrets
+
+        # Application settings              key: POSTGRES_USER
+
+        - name: SPRING_PROFILES_ACTIVE      - name: wait-for-redis
+
+          valueFrom:        image: redis:7-alpine
+
+            configMapKeyRef:        command:
+
+              name: educational-config        - sh
+
+              key: SPRING_PROFILES_ACTIVE        - -c
+
+        - name: SERVER_PORT        - |
+
+          valueFrom:          until redis-cli -h redis-service -p 6379 -a $(REDIS_PASSWORD) ping; do
+
+            configMapKeyRef:            echo "Waiting for Redis to be ready..."
+
+              name: educational-config            sleep 2
+
+              key: SERVER_PORT          done
+
+                env:
+
+        # Database connection        - name: REDIS_PASSWORD
+
+        - name: SPRING_DATASOURCE_URL          valueFrom:
+
+          valueFrom:            secretKeyRef:
+
+            configMapKeyRef:              name: app-secrets
+
+              name: educational-config              key: REDIS_PASSWORD
+
+              key: SPRING_DATASOURCE_URL      containers:
+
+        - name: SPRING_DATASOURCE_USERNAME      - name: backend
+
+          valueFrom:        image: educational-platform/backend:latest
+
+            secretKeyRef:        imagePullPolicy: Always
+
+              name: educational-secret        ports:
+
+              key: SPRING_DATASOURCE_USERNAME        - containerPort: 8080
+
+        - name: SPRING_DATASOURCE_PASSWORD          name: http
+
+          valueFrom:          protocol: TCP
+
+            secretKeyRef:        env:
+
+              name: educational-secret        # Database Configuration
+
+              key: SPRING_DATASOURCE_PASSWORD        - name: SPRING_DATASOURCE_URL
+
+        - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME          value: "jdbc:postgresql://postgres-service:5432/$(POSTGRES_DB)"
+
+          valueFrom:        - name: SPRING_DATASOURCE_USERNAME
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            secretKeyRef:
+
+              key: SPRING_DATASOURCE_DRIVER_CLASS_NAME              name: app-secrets
+
+        - name: SPRING_JPA_DATABASE_PLATFORM              key: POSTGRES_USER
+
+          valueFrom:        - name: SPRING_DATASOURCE_PASSWORD
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            secretKeyRef:
+
+              key: SPRING_JPA_DATABASE_PLATFORM              name: app-secrets
+
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO              key: POSTGRES_PASSWORD
+
+          valueFrom:        - name: POSTGRES_DB
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            configMapKeyRef:
+
+              key: SPRING_JPA_HIBERNATE_DDL_AUTO              name: app-config
+
+        - name: SPRING_JPA_SHOW_SQL              key: POSTGRES_DB
+
+          valueFrom:        
+
+            configMapKeyRef:        # Redis Configuration
+
+              name: educational-config        - name: SPRING_REDIS_HOST
+
+              key: SPRING_JPA_SHOW_SQL          valueFrom:
+
+                    configMapKeyRef:
+
+        # Redis connection              name: app-config
+
+        - name: SPRING_REDIS_HOST              key: REDIS_HOST
+
+          valueFrom:        - name: SPRING_REDIS_PORT
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            configMapKeyRef:
+
+              key: SPRING_REDIS_HOST              name: app-config
+
+        - name: SPRING_REDIS_PORT              key: REDIS_PORT
+
+          valueFrom:        - name: SPRING_REDIS_PASSWORD
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            secretKeyRef:
+
+              key: SPRING_REDIS_PORT              name: app-secrets
+
+        - name: SPRING_REDIS_PASSWORD              key: REDIS_PASSWORD
+
+          valueFrom:        
+
+            secretKeyRef:        # JWT Configuration
+
+              name: educational-secret        - name: JWT_SECRET
+
+              key: SPRING_REDIS_PASSWORD          valueFrom:
+
+        - name: SPRING_REDIS_DATABASE            secretKeyRef:
+
+          valueFrom:              name: app-secrets
+
+            configMapKeyRef:              key: JWT_SECRET
+
+              name: educational-config        - name: JWT_EXPIRATION
+
+              key: SPRING_REDIS_DATABASE          valueFrom:
+
+                    configMapKeyRef:
+
+        # JWT settings              name: app-config
+
+        - name: JWT_SECRET              key: JWT_EXPIRATION
+
+          valueFrom:        - name: JWT_REFRESH_EXPIRATION
+
+            secretKeyRef:          valueFrom:
+
+              name: educational-secret            configMapKeyRef:
+
+              key: JWT_SECRET              name: app-config
+
+        - name: JWT_EXPIRATION              key: JWT_REFRESH_EXPIRATION
+
+          valueFrom:        
+
+            configMapKeyRef:        # Application Configuration
+
+              name: educational-config        - name: SPRING_PROFILES_ACTIVE
+
+              key: JWT_EXPIRATION          valueFrom:
+
+                    configMapKeyRef:
+
+        # File storage              name: app-config
+
+        - name: FILE_STORAGE_LOCATION              key: SPRING_PROFILES_ACTIVE
+
+          valueFrom:        - name: SERVER_PORT
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            configMapKeyRef:
+
+              key: FILE_STORAGE_LOCATION              name: app-config
+
+        - name: MAX_FILE_SIZE              key: SERVER_PORT
+
+          valueFrom:        - name: CORS_ALLOWED_ORIGINS
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            configMapKeyRef:
+
+              key: MAX_FILE_SIZE              name: app-config
+
+        - name: MAX_REQUEST_SIZE              key: CORS_ALLOWED_ORIGINS
+
+          valueFrom:        
+
+            configMapKeyRef:        # File Upload Configuration
+
+              name: educational-config        - name: SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE
+
+              key: MAX_REQUEST_SIZE          valueFrom:
+
+                    configMapKeyRef:
+
+        # Flyway              name: app-config
+
+        - name: SPRING_FLYWAY_ENABLED              key: SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE
+
+          valueFrom:        - name: SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE
+
+            configMapKeyRef:          valueFrom:
+
+              name: educational-config            configMapKeyRef:
+
+              key: SPRING_FLYWAY_ENABLED              name: app-config
+
+        - name: SPRING_FLYWAY_BASELINE_ON_MIGRATE              key: SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE
+
+          valueFrom:        - name: FILE_STORAGE_LOCATION
+
+            configMapKeyRef:          value: "/app/uploads"
+
+              name: educational-config        
+
+              key: SPRING_FLYWAY_BASELINE_ON_MIGRATE        # Email Configuration
+
+                - name: SPRING_MAIL_USERNAME
+
+        # Admin credentials          valueFrom:
+
+        - name: ADMIN_EMAIL            secretKeyRef:
+
+          valueFrom:              name: app-secrets
+
+            secretKeyRef:              key: MAIL_USERNAME
+
+              name: educational-secret        - name: SPRING_MAIL_PASSWORD
+
+              key: ADMIN_EMAIL          valueFrom:
+
+        - name: ADMIN_PASSWORD            secretKeyRef:
+
+          valueFrom:              name: app-secrets
+
+            secretKeyRef:              key: MAIL_PASSWORD
+
+              name: educational-secret        
+
+              key: ADMIN_PASSWORD        # JPA Configuration
+
+                - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+
+        volumeMounts:          valueFrom:
+
+        - name: uploads            configMapKeyRef:
+
+          mountPath: /app/uploads              name: app-config
+
+                      key: SPRING_JPA_HIBERNATE_DDL_AUTO
+
+        resources:        - name: SPRING_JPA_SHOW_SQL
+
+          requests:          valueFrom:
+
+            memory: "512Mi"            configMapKeyRef:
+
+            cpu: "500m"              name: app-config
+
+          limits:              key: SPRING_JPA_SHOW_SQL
+
+            memory: "1Gi"        
+
+            cpu: "1000m"        # Logging Configuration
+
+                - name: LOGGING_LEVEL_COM_EDUPLATFORM
+
+        livenessProbe:          valueFrom:
+
+          httpGet:            configMapKeyRef:
+
+            path: /actuator/health              name: app-config
+
+            port: 8080              key: LOGGING_LEVEL_COM_EDUPLATFORM
+
+          initialDelaySeconds: 60        
+
+          periodSeconds: 10        volumeMounts:
+
+          timeoutSeconds: 5        - name: uploads-storage
+
+          failureThreshold: 3          mountPath: /app/uploads
+
+                - name: temp-storage
+
+        readinessProbe:          mountPath: /tmp
+
+          httpGet:        
+
+            path: /actuator/health        resources:
+
+            port: 8080          requests:
+
+          initialDelaySeconds: 30            memory: "512Mi"
+
+          periodSeconds: 5            cpu: "500m"
+
+          timeoutSeconds: 3          limits:
+
+          failureThreshold: 3            memory: "1Gi"
+
+                  cpu: "1000m"
+
+      volumes:        
+
+      - name: uploads        livenessProbe:
+
+        persistentVolumeClaim:          httpGet:
+
+          claimName: educational-uploads-pvc            path: /actuator/health/liveness
+
+            port: 8080
+
+---          initialDelaySeconds: 60
+
+apiVersion: v1          periodSeconds: 10
+
+kind: Service          timeoutSeconds: 5
+
+metadata:          failureThreshold: 3
+
+  name: educational-backend        
+
+  namespace: educational        readinessProbe:
+
+  labels:          httpGet:
+
+    app: educational-platform            path: /actuator/health/readiness
+
+    component: backend            port: 8080
+
+spec:          initialDelaySeconds: 30
+
+  type: ClusterIP          periodSeconds: 5
+
+  selector:          timeoutSeconds: 3
+
+    app: educational-platform          failureThreshold: 3
+
+    component: backend        
+
+  ports:        startupProbe:
+
+  - name: http          httpGet:
+
+    port: 8080            path: /actuator/health
+
+    targetPort: 8080            port: 8080
+
+    protocol: TCP          initialDelaySeconds: 30
+
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 10
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      
+      volumes:
+      - name: uploads-storage
+        persistentVolumeClaim:
+          claimName: backend-uploads-pvc
+      - name: temp-storage
+        emptyDir: {}
+      
+      securityContext:
+        fsGroup: 1000
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - backend
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: educational-platform
+  labels:
+    app: backend
+    app.kubernetes.io/name: educational-platform
+    app.kubernetes.io/component: backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/actuator/prometheus"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: backend
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: educational-platform
+  labels:
+    app: backend
+    app.kubernetes.io/name: educational-platform
+    app.kubernetes.io/component: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60

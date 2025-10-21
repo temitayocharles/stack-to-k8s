@@ -1,0 +1,473 @@
+@page "/records"
+@inject ApiService ApiService
+@inject IJSRuntime JSRuntime
+@using MedicalCareSystem.Frontend.Services
+@using MedicalCareSystem.Frontend.Models
+
+<PageTitle>Medical Records - Medical Care System</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-file-medical me-2"></i>
+                        Medical Records Management
+                    </h3>
+                    <button class="btn btn-warning" @onclick="ShowCreateModal">
+                        <i class="fas fa-plus me-2"></i>
+                        Add New Record
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="patientFilter" class="form-label">Filter by Patient</label>
+                            <InputSelect id="patientFilter" class="form-control" @bind-Value="selectedPatientId">
+                                <option value="0">All Patients</option>
+                                @if (patients != null)
+                                {
+                                    @foreach (var patient in patients)
+                                    {
+                                        <option value="@patient.Id">@patient.FullName</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="recordTypeFilter" class="form-label">Filter by Record Type</label>
+                            <InputSelect id="recordTypeFilter" class="form-control" @bind-Value="selectedRecordType">
+                                <option value="">All Types</option>
+                                <option value="Diagnosis">Diagnosis</option>
+                                <option value="Prescription">Prescription</option>
+                                <option value="Lab Results">Lab Results</option>
+                                <option value="Consultation">Consultation</option>
+                                <option value="Treatment">Treatment</option>
+                                <option value="Follow-up">Follow-up</option>
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary me-2" @onclick="ClearFilters">
+                                <i class="fas fa-times me-1"></i>
+                                Clear Filters
+                            </button>
+                            <button class="btn btn-outline-primary" @onclick="ApplyFilters">
+                                <i class="fas fa-filter me-1"></i>
+                                Apply Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (medicalRecords == null)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading medical records...</p>
+                        </div>
+                    }
+                    else if (filteredRecords.Count == 0)
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No medical records found</h5>
+                            <p class="text-muted">Add the first medical record for a patient.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Patient</th>
+                                        <th>Doctor</th>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in filteredRecords)
+                                    {
+                                        <tr>
+                                            <td>@record.Id</td>
+                                            <td>@record.PatientName</td>
+                                            <td>@record.DoctorName</td>
+                                            <td>@record.FormattedDate</td>
+                                            <td>
+                                                <span class="badge bg-@record.RecordTypeColor">@record.RecordType</span>
+                                            </td>
+                                            <td>
+                                                <span title="@record.Description">
+                                                    @(record.Description?.Length > 50 ? $"{record.Description.Substring(0, 50)}..." : record.Description)
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => ViewRecord(record)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning me-2" @onclick="() => EditRecord(record)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRecord(record.Id)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+@if (showModal)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEditing ? "Edit Medical Record" : "Add New Medical Record")</h5>
+                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="currentRecord" OnValidSubmit="SaveRecordAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="patientId" class="form-label">Patient</label>
+                                <InputSelect id="patientId" class="form-control" @bind-Value="currentRecord.PatientId">
+                                    <option value="0">Select Patient</option>
+                                    @if (patients != null)
+                                    {
+                                        @foreach (var patient in patients)
+                                        {
+                                            <option value="@patient.Id">@patient.FullName</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="doctorId" class="form-label">Doctor</label>
+                                <InputSelect id="doctorId" class="form-control" @bind-Value="currentRecord.DoctorId">
+                                    <option value="0">Select Doctor</option>
+                                    @if (doctors != null)
+                                    {
+                                        @foreach (var doctor in doctors)
+                                        {
+                                            <option value="@doctor.Id">@doctor.FullName (@doctor.Specialty)</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="recordDate" class="form-label">Record Date</label>
+                                <InputDate id="recordDate" class="form-control" @bind-Value="recordDate" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="recordType" class="form-label">Record Type</label>
+                                <InputSelect id="recordType" class="form-control" @bind-Value="currentRecord.RecordType">
+                                    <option value="">Select Type</option>
+                                    <option value="Diagnosis">Diagnosis</option>
+                                    <option value="Prescription">Prescription</option>
+                                    <option value="Lab Results">Lab Results</option>
+                                    <option value="Consultation">Consultation</option>
+                                    <option value="Treatment">Treatment</option>
+                                    <option value="Follow-up">Follow-up</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <InputText id="description" class="form-control" @bind-Value="currentRecord.Description" placeholder="Brief description of the record" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="diagnosis" class="form-label">Diagnosis</label>
+                            <InputTextArea id="diagnosis" class="form-control" rows="2" @bind-Value="currentRecord.Diagnosis" placeholder="Medical diagnosis..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="treatment" class="form-label">Treatment</label>
+                            <InputTextArea id="treatment" class="form-control" rows="3" @bind-Value="currentRecord.Treatment" placeholder="Treatment plan and procedures..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="medications" class="form-label">Medications</label>
+                            <InputTextArea id="medications" class="form-control" rows="2" @bind-Value="currentRecord.Medications" placeholder="Prescribed medications and dosages..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="details" class="form-label">Additional Details</label>
+                            <InputTextArea id="details" class="form-control" rows="3" @bind-Value="currentRecord.Details" placeholder="Additional medical details..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <InputTextArea id="notes" class="form-control" rows="2" @bind-Value="currentRecord.Notes" placeholder="Additional notes..." />
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideModal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Save Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- View Modal -->
+@if (showViewModal)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Medical Record Details</h5>
+                    <button type="button" class="btn-close" @onclick="HideViewModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (viewRecord != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Patient Information</h6>
+                                <p><strong>Name:</strong> @viewRecord.PatientName</p>
+                                <p><strong>Doctor:</strong> @viewRecord.DoctorName</p>
+                                <p><strong>Date:</strong> @viewRecord.FormattedDate</p>
+                                <p><strong>Type:</strong> <span class="badge bg-@viewRecord.RecordTypeColor">@viewRecord.RecordType</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Record Information</h6>
+                                <p><strong>Description:</strong> @viewRecord.Description</p>
+                                @if (!string.IsNullOrEmpty(viewRecord.Diagnosis))
+                                {
+                                    <p><strong>Diagnosis:</strong> @viewRecord.Diagnosis</p>
+                                }
+                                @if (!string.IsNullOrEmpty(viewRecord.Treatment))
+                                {
+                                    <p><strong>Treatment:</strong> @viewRecord.Treatment</p>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(viewRecord.Medications) || !string.IsNullOrEmpty(viewRecord.Details) || !string.IsNullOrEmpty(viewRecord.Notes))
+                        {
+                            <hr>
+                            <div class="row">
+                                @if (!string.IsNullOrEmpty(viewRecord.Medications))
+                                {
+                                    <div class="col-md-6">
+                                        <h6>Medications</h6>
+                                        <p>@viewRecord.Medications</p>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(viewRecord.Details))
+                                {
+                                    <div class="col-md-6">
+                                        <h6>Additional Details</h6>
+                                        <p>@viewRecord.Details</p>
+                                    </div>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(viewRecord.Notes))
+                            {
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h6>Notes</h6>
+                                        <p>@viewRecord.Notes</p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideViewModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="() => { if (viewRecord != null) EditRecord(viewRecord); }">Edit Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<MedicalRecord> medicalRecords = new();
+    private List<Patient> patients = new();
+    private List<Doctor> doctors = new();
+    private MedicalRecord currentRecord = new();
+    private MedicalRecord? viewRecord = null;
+    private bool showModal = false;
+    private bool showViewModal = false;
+    private bool isEditing = false;
+    private int selectedPatientId = 0;
+    private string selectedRecordType = "";
+    private DateTime recordDate = DateTime.Today;
+
+    private List<MedicalRecord> filteredRecords => medicalRecords
+        .Where(r => selectedPatientId == 0 || r.PatientId == selectedPatientId)
+        .Where(r => string.IsNullOrEmpty(selectedRecordType) || r.RecordType == selectedRecordType)
+        .OrderByDescending(r => r.RecordDate)
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMedicalRecords();
+        await LoadPatients();
+        await LoadDoctors();
+    }
+
+    private async Task LoadMedicalRecords()
+    {
+        try
+        {
+            medicalRecords = await ApiService.GetAllMedicalRecordsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading medical records: {ex.Message}");
+        }
+    }
+
+    private async Task LoadPatients()
+    {
+        try
+        {
+            patients = await ApiService.GetPatientsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading patients: {ex.Message}");
+        }
+    }
+
+    private async Task LoadDoctors()
+    {
+        try
+        {
+            doctors = await ApiService.GetDoctorsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading doctors: {ex.Message}");
+        }
+    }
+
+    private void ShowCreateModal()
+    {
+        currentRecord = new MedicalRecord();
+        recordDate = DateTime.Today;
+        isEditing = false;
+        showModal = true;
+    }
+
+    private void ViewRecord(MedicalRecord record)
+    {
+        viewRecord = record;
+        showViewModal = true;
+    }
+
+    private void EditRecord(MedicalRecord record)
+    {
+        currentRecord = new MedicalRecord
+        {
+            Id = record.Id,
+            PatientId = record.PatientId,
+            DoctorId = record.DoctorId,
+            RecordDate = record.RecordDate,
+            RecordType = record.RecordType,
+            Description = record.Description,
+            Details = record.Details,
+            Diagnosis = record.Diagnosis,
+            Treatment = record.Treatment,
+            Medications = record.Medications,
+            Notes = record.Notes
+        };
+        recordDate = record.RecordDate.Date;
+        isEditing = true;
+        showModal = true;
+        showViewModal = false;
+    }
+
+    private void HideModal()
+    {
+        showModal = false;
+        currentRecord = new MedicalRecord();
+    }
+
+    private void HideViewModal()
+    {
+        showViewModal = false;
+        viewRecord = null;
+    }
+
+    private async Task SaveRecordAsync()
+    {
+        currentRecord.RecordDate = recordDate;
+
+        try
+        {
+            if (isEditing)
+            {
+                await ApiService.UpdateMedicalRecordAsync(currentRecord.Id, currentRecord);
+            }
+            else
+            {
+                await ApiService.CreateMedicalRecordAsync(currentRecord);
+            }
+            await LoadMedicalRecords();
+            HideModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving medical record: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteRecord(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this medical record?"))
+        {
+            try
+            {
+                await ApiService.DeleteMedicalRecordAsync(id);
+                await LoadMedicalRecords();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting medical record: {ex.Message}");
+            }
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        // Filters are applied automatically through the filteredRecords property
+        StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        selectedPatientId = 0;
+        selectedRecordType = "";
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,118 @@
+# ====================================
+# Flask Backend for Weather Application
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-backend
+  namespace: weather
+  labels:
+    app: weather-backend
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: weather-backend
+  template:
+    metadata:
+      labels:
+        app: weather-backend
+        tier: backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/weather-backend:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - name: http
+          containerPort: 5002
+          protocol: TCP
+        
+        env:
+        # From ConfigMap
+        - name: FLASK_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: weather-config
+              key: FLASK_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: weather-config
+              key: PORT
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: weather-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: weather-config
+              key: REDIS_PORT
+        - name: REDIS_DB
+          valueFrom:
+            configMapKeyRef:
+              name: weather-config
+              key: REDIS_DB
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: weather-config
+              key: CORS_ORIGINS
+        
+        # From Secret
+        - name: OPENWEATHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: weather-secrets
+              key: OPENWEATHER_API_KEY
+        
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5002
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+      
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-backend
+  namespace: weather
+  labels:
+    app: weather-backend
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: weather-backend
+  ports:
+  - name: http
+    port: 5002
+    targetPort: 5002
+    protocol: TCP

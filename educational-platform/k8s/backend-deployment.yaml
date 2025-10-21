@@ -1,0 +1,70 @@
+# ====================================
+# Backend Deployment for Educational Platform
+# Spring Boot API with PostgreSQL and Redis
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: educational-backend
+  namespace: educational-lab
+  labels:
+    app: educational-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: educational-backend
+  template:
+    metadata:
+      labels:
+        app: educational-backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/educational-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/educationaldb"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "educationaluser"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "password"
+        - name: SPRING_REDIS_HOST
+          value: "redis"
+        - name: SPRING_REDIS_PORT
+          value: "6379"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: educational-secrets
+              key: jwt-secret
+              optional: true
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      restartPolicy: Always

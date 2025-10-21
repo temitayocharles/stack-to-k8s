@@ -1,0 +1,58 @@
+# ====================================
+# Frontend Deployment for E-commerce Application
+# React application served by Nginx
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-frontend
+  namespace: ecommerce-lab
+  labels:
+    app: ecommerce-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-frontend
+  template:
+    metadata:
+      labels:
+        app: ecommerce-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: temitayocharles/ecommerce-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://ecommerce-backend:5000"
+        - name: REACT_APP_STRIPE_PUBLISHABLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: stripe-publishable-key
+              optional: true
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      restartPolicy: Always

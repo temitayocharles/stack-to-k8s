@@ -1,0 +1,117 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# .NET Core Tools
+.dotnet/
+tools/
+toolchains/
+
+# Visual Studio
+.vs/
+.vscode/
+*.swp
+*.swo
+
+# Rider
+.idea/
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# JustCode
+.JustCode
+
+# TeamCity
+_TeamCity*
+
+# DotCover
+*.dotCover
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# AppVeyor
+appspec.yml
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+
+# Microsoft Azure
+.publish/
+.azure/
+*.pubxml
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# Build artifacts
+dist/
+build/
+publish/
+
+# Temporary files
+tmp/
+temp/
+
+# User secrets
+secrets.json

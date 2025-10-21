@@ -1,0 +1,19 @@
+# ====================================
+# Backend Service for Educational Platform
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: educational-backend
+  namespace: educational-lab
+  labels:
+    app: educational-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: educational-backend
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP

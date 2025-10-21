@@ -1,0 +1,11 @@
+# ====================================
+# Namespace for Task Management Application
+# ====================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: task-management
+  labels:
+    name: task-management
+    app: task-management-app
+    environment: production

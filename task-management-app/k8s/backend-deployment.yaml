@@ -1,0 +1,56 @@
+# ====================================
+# Backend Deployment for Task Management Application
+# Go API with PostgreSQL
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-backend
+  namespace: task-lab
+  labels:
+    app: task-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: task-backend
+  template:
+    metadata:
+      labels:
+        app: task-backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/task-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8080"
+        - name: DATABASE_URL
+          value: "postgres://taskuser:password@postgres:5432/taskmanager?sslmode=disable"
+        - name: GIN_MODE
+          value: "release"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      restartPolicy: Always

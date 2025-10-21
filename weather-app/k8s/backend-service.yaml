@@ -1,0 +1,19 @@
+# ====================================
+# Backend Service for Weather Application
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-backend
+  namespace: weather-lab
+  labels:
+    app: weather-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: weather-backend
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+    protocol: TCP

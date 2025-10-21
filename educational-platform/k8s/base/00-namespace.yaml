@@ -1,0 +1,11 @@
+# ====================================
+# Namespace for Educational Platform
+# ====================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: educational
+  labels:
+    name: educational
+    app: educational-platform
+    environment: production

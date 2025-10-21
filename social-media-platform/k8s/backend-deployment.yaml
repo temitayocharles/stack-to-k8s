@@ -1,0 +1,66 @@
+# ====================================
+# Backend Deployment for Social Media Platform
+# Ruby Sinatra API with PostgreSQL and Redis
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-backend
+  namespace: social-lab
+  labels:
+    app: social-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: social-backend
+  template:
+    metadata:
+      labels:
+        app: social-backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/social-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        env:
+        - name: RACK_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: DATABASE_URL
+          value: "postgresql://socialuser:password@postgres:5432/socialdb"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: social-secrets
+              key: openai-key
+              optional: true
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      restartPolicy: Always

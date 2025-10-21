@@ -1,0 +1,349 @@
+# 📂 Repository Structure & File Map
+
+Complete inventory of all documentation and resources in this repository.
+
+---
+
+## 🎯 Quick Navigation
+
+**New to this repo?** → Start with [README.md](README.md)  
+**New to Kubernetes?** → Start with [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)  
+**Looking for a specific lab?** → See [docs/KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)  
+**Need help?** → Check [docs/troubleshooting/troubleshooting.md](docs/troubleshooting/troubleshooting.md)
+
+---
+
+## 📚 Main Documentation
+
+### Root Level
+- **[README.md](README.md)** - Repository home page, quick start, lab table
+- **REPOSITORY-STRUCTURE.md** - This file (complete inventory)
+
+### Documentation Hub (`docs/`)
+- **[docs/README.md](docs/README.md)** - Documentation central hub
+- **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** - Complete onboarding guide (START HERE for beginners)
+- **[docs/KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)** - Full lab roadmap with dependencies
+- **[docs/MARKDOWN-INDEX.md](docs/MARKDOWN-INDEX.md)** - Auto-generated file inventory
+- **[docs/STYLE-GUIDE.md](docs/STYLE-GUIDE.md)** - Contribution guidelines
+
+---
+
+## 🎓 Learning Resources (`docs/learning/`)
+
+- **[COMMON-MISTAKES.md](docs/learning/COMMON-MISTAKES.md)** - Beginner pitfalls and how to avoid them
+- **[LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md)** - Progress tracker checklist
+- **[SELF-ASSESSMENT.md](docs/learning/SELF-ASSESSMENT.md)** - Knowledge checks after each stage
+
+---
+
+## 📖 Reference Guides (`docs/reference/`)
+
+- **[kubectl-cheatsheet.md](docs/reference/kubectl-cheatsheet.md)** - Essential kubectl commands
+- **[secrets-management.md](docs/reference/secrets-management.md)** - Vault, ExternalSecrets patterns
+- **[api-keys-guide.md](docs/reference/api-keys-guide.md)** - API key management
+- **[configuration-patterns.md](docs/reference/configuration-patterns.md)** - ConfigMap/Helm best practices
+- **[decision-trees.md](docs/reference/decision-trees.md)** - Resource selection flowcharts
+- **[certification-guide.md](docs/reference/certification-guide.md)** - CKA/CKAD exam prep
+- **[production-war-stories.md](docs/reference/production-war-stories.md)** - Real-world incidents
+
+---
+
+## 🛠️ Setup Guides (`docs/setup/`)
+
+- **[rancher-desktop.md](docs/setup/rancher-desktop.md)** - macOS/Windows setup
+- **[linux-kind-k3d.md](docs/setup/linux-kind-k3d.md)** - Linux setup (kind/k3d)
+
+---
+
+## 🆘 Troubleshooting (`docs/troubleshooting/`)
+
+- **[troubleshooting.md](docs/troubleshooting/troubleshooting.md)** - Problem-solving playbook
+
+---
+
+## 🧪 Labs (`labs/`)
+
+### Setup & Foundation (Labs 0-4)
+- **[00-visual-kubernetes.md](labs/00-visual-kubernetes.md)** - k9s, stern, kubectl-tree setup
+- **[00.5-docker-compose-to-kubernetes.md](labs/00.5-docker-compose-to-kubernetes.md)** - Migrate from Compose
+- **[01-weather-basics.md](labs/01-weather-basics.md)** - First app: Weather (Vue+Python+Redis)
+- **[02-ecommerce-basics.md](labs/02-ecommerce-basics.md)** - E-commerce (React+Node+MongoDB)
+- **[03-educational-stateful.md](labs/03-educational-stateful.md)** - Stateful apps (Angular+Java+Postgres)
+- **[03.5-kubernetes-under-the-hood.md](labs/03.5-kubernetes-under-the-hood.md)** - K8s internals deep dive
+- **[04-kubernetes-fundamentals.md](labs/04-kubernetes-fundamentals.md)** - Labels, selectors, troubleshooting
+
+### Production Operations (Labs 5-7)
+- **[05-task-ingress.md](labs/05-task-ingress.md)** - Task Manager + Ingress (Svelte+Go+Postgres)
+- **[06-medical-security.md](labs/06-medical-security.md)** - Security: RBAC, NetworkPolicies (Blazor+.NET)
+- **[07-social-scaling.md](labs/07-social-scaling.md)** - Autoscaling HPA (React Native+Ruby+Postgres)
+
+### Platform Engineering (Labs 8-9)
+- **[08-multi-app.md](labs/08-multi-app.md)** - Multi-app orchestration
+- **[08.5-multi-tenancy.md](labs/08.5-multi-tenancy.md)** - Multi-tenancy patterns
+- **[09-chaos.md](labs/09-chaos.md)** - Chaos engineering
+- **[09.5-complex-microservices.md](labs/09.5-complex-microservices.md)** - Service mesh
+
+### Automation (Labs 10-13)
+- **[10-helm-package-management.md](labs/10-helm-package-management.md)** - Helm charts
+- **[11-gitops-argocd.md](labs/11-gitops-argocd.md)** - GitOps with ArgoCD
+- **[11.5-disaster-recovery.md](labs/11.5-disaster-recovery.md)** - Backup & restore
+- **[12-external-secrets.md](labs/12-external-secrets.md)** - External Secrets Operator
+- **[12.5-multi-cloud-secrets.md](labs/12.5-multi-cloud-secrets.md)** - Multi-cloud secrets
+- **[13-ai-ml-gpu.md](labs/13-ai-ml-gpu.md)** - AI/ML GPU workloads
+
+### Challenge Labs
+- **[challenge-a-midnight-incident.md](labs/challenge-a-midnight-incident.md)** - Incident response drill
+- **[challenge-a-broken.yaml](labs/challenge-a-broken.yaml)** - Intentionally broken manifest
+- **[challenge-b-black-friday.md](labs/challenge-b-black-friday.md)** - Scaling under pressure
+- **[challenge-c-platform-migration.md](labs/challenge-c-platform-migration.md)** - Zero-downtime migration
+
+---
+
+## 📦 Lab Manifests (`labs/manifests/`)
+
+- **[README.md](labs/manifests/README.md)** - Manifest overlays documentation
+- **[ARCHITECTURE-DECISIONS.md](labs/manifests/ARCHITECTURE-DECISIONS.md)** - Design decisions
+- **[IMAGE-TAG-UPDATES.md](labs/manifests/IMAGE-TAG-UPDATES.md)** - Image versioning
+
+### Per-Lab Manifests
+- **[lab-01/](labs/manifests/lab-01/)** - Weather app manifests (no README - uses base manifests)
+- **[lab-02/README.md](labs/manifests/lab-02/README.md)** - E-commerce manifests
+- **[lab-03/README.md](labs/manifests/lab-03/README.md)** - Educational app manifests
+- **[lab-04/README.md](labs/manifests/lab-04/README.md)** - Task manager manifests
+- **[lab-05/README.md](labs/manifests/lab-05/README.md)** - Medical care manifests
+- **[lab-06/README.md](labs/manifests/lab-06/README.md)** - Social media manifests
+- **[lab-07/README.md](labs/manifests/lab-07/README.md)** - Multi-app manifests
+- **[lab-08/README.md](labs/manifests/lab-08/README.md)** - Chaos manifests
+- **[lab-09/README.md](labs/manifests/lab-09/README.md)** - Helm manifests
+- **[lab-10/README.md](labs/manifests/lab-10/README.md)** - ArgoCD manifests
+- **[lab-11/README.md](labs/manifests/lab-11/README.md)** - External Secrets manifests
+- **[lab-12/README.md](labs/manifests/lab-12/README.md)** - Fundamentals practice manifests
+
+---
+
+## 🏗️ Application Folders
+
+Each app has: README, ARCHITECTURE, k8s manifests, Dockerfile(s), source code
+
+### Weather App (`weather-app/`)
+- **[README.md](weather-app/README.md)** - Points to Lab 1
+- **[ARCHITECTURE.md](weather-app/ARCHITECTURE.md)** - System design
+- **[k8s/](weather-app/k8s/)** - Kubernetes manifests
+- **[k8s/advanced-features/README.md](weather-app/k8s/advanced-features/README.md)** - Advanced patterns
+
+### E-commerce (`ecommerce-app/`)
+- **[README.md](ecommerce-app/README.md)** - Points to Lab 2
+- **[ARCHITECTURE.md](ecommerce-app/ARCHITECTURE.md)** - System design
+- **[k8s/](ecommerce-app/k8s/)** - Kubernetes manifests
+- **[k8s/advanced-features/README.md](ecommerce-app/k8s/advanced-features/README.md)** - Advanced patterns
+
+### Educational Platform (`educational-platform/`)
+- **[README.md](educational-platform/README.md)** - Points to Lab 3
+- **[ARCHITECTURE.md](educational-platform/ARCHITECTURE.md)** - System design
+- **[k8s/](educational-platform/k8s/)** - Kubernetes manifests
+- **[k8s/advanced-features/README.md](educational-platform/k8s/advanced-features/README.md)** - Advanced patterns
+
+### Task Management (`task-management-app/`)
+- **[README.md](task-management-app/README.md)** - Points to Lab 5
+- **[ARCHITECTURE.md](task-management-app/ARCHITECTURE.md)** - System design
+- **[k8s/](task-management-app/k8s/)** - Kubernetes manifests
+- **[k8s/advanced-features/README.md](task-management-app/k8s/advanced-features/README.md)** - Advanced patterns
+
+### Medical Care System (`medical-care-system/`)
+- **[README.md](medical-care-system/README.md)** - Points to Lab 6
+- **[ARCHITECTURE.md](medical-care-system/ARCHITECTURE.md)** - System design
+- **[k8s/](medical-care-system/k8s/)** - Kubernetes manifests
+- **[k8s/advanced-features/README.md](medical-care-system/k8s/advanced-features/README.md)** - Advanced patterns
+
+### Social Media Platform (`social-media-platform/`)
+- **[README.md](social-media-platform/README.md)** - Points to Lab 7
+- **[ARCHITECTURE.md](social-media-platform/ARCHITECTURE.md)** - System design
+- **[backend/README.md](social-media-platform/backend/README.md)** - Backend specifics
+- **[frontend/README.md](social-media-platform/frontend/README.md)** - Frontend specifics
+- **[k8s/](social-media-platform/k8s/)** - Kubernetes manifests
+- **[k8s/advanced-features/README.md](social-media-platform/k8s/advanced-features/README.md)** - Advanced patterns
+
+---
+
+## 🌐 Global Configs (`global-configs/`)
+
+- **[README.md](global-configs/README.md)** - Docker Compose for all 6 apps (Lab 8)
+- **[docker-compose.yml](global-configs/docker-compose.yml)** - Multi-app orchestration
+
+---
+
+## 🔧 Scripts (`scripts/`)
+
+- **[README.md](scripts/README.md)** - Scripts documentation
+- **check-lab-prereqs.sh** - Verify prerequisites for labs
+- **cleanup-containers.sh** - Clean Docker resources
+- **cleanup-workspace.sh** - Clean workspace artifacts
+- **build-multiarch-images.sh** - Build multi-arch images
+- **run-link-check-full.sh** - Validate all markdown links
+- **_run-link-check-per-file.sh** - Internal link checker helper
+- **regenerate-markdown-index.py** - Rebuild markdown inventory
+
+---
+
+## 🗺️ Visual Repository Map
+
+```
+stack-to-k8s-main/
+├── README.md                          # → START: Main entry point
+├── REPOSITORY-STRUCTURE.md            # → This file
+│
+├── docs/                              # All documentation
+│   ├── README.md                      # Documentation hub
+│   ├── GETTING-STARTED.md             # → Onboarding guide
+│   ├── KUBERNETES-LABS.md             # Full lab roadmap
+│   ├── MARKDOWN-INDEX.md              # File inventory
+│   ├── STYLE-GUIDE.md                 # Contribution guide
+│   ├── learning/                      # Learning resources
+│   │   ├── COMMON-MISTAKES.md
+│   │   ├── LAB-PROGRESS.md
+│   │   └── SELF-ASSESSMENT.md
+│   ├── reference/                     # Reference guides
+│   │   ├── kubectl-cheatsheet.md
+│   │   ├── secrets-management.md
+│   │   ├── api-keys-guide.md
+│   │   ├── configuration-patterns.md
+│   │   ├── decision-trees.md
+│   │   ├── certification-guide.md
+│   │   └── production-war-stories.md
+│   ├── setup/                         # Setup guides
+│   │   ├── rancher-desktop.md
+│   │   └── linux-kind-k3d.md
+│   └── troubleshooting/               # Problem solving
+│       └── troubleshooting.md
+│
+├── labs/                              # 23 labs + 3 challenges
+│   ├── 00-visual-kubernetes.md        # Setup
+│   ├── 00.5-docker-compose-to-kubernetes.md
+│   ├── 01-13 (core labs)              # Main learning path
+│   ├── 3.5, 8.5, 9.5, 11.5, 12.5      # Deep dive labs
+│   ├── challenge-a-midnight-incident.md
+│   ├── challenge-a-broken.yaml
+│   ├── challenge-b-black-friday.md
+│   ├── challenge-c-platform-migration.md
+│   └── manifests/                     # Lab-specific manifests
+│       ├── README.md
+│       ├── ARCHITECTURE-DECISIONS.md
+│       ├── IMAGE-TAG-UPDATES.md
+│       └── lab-01/ through lab-12/
+│
+├── scripts/                           # Automation tools
+│   ├── README.md
+│   ├── check-lab-prereqs.sh
+│   ├── cleanup-*.sh
+│   ├── build-multiarch-images.sh
+│   ├── run-link-check-full.sh
+│   └── regenerate-markdown-index.py
+│
+├── global-configs/                    # Multi-app configs
+│   ├── README.md
+│   └── docker-compose.yml
+│
+└── [APP]-app/                         # 6 applications
+    ├── README.md                      # Points to lab
+    ├── ARCHITECTURE.md                # System design
+    ├── Dockerfile
+    ├── k8s/                           # K8s manifests
+    │   ├── *.yaml
+    │   └── advanced-features/
+    │       └── README.md
+    ├── backend/                       # Source code
+    ├── frontend/
+    └── ...
+```
+
+---
+
+## 📊 Documentation Statistics
+
+- **Total markdown files**: 77
+- **Main documentation**: 5 files
+- **Learning resources**: 3 files
+- **Reference guides**: 7 files
+- **Setup guides**: 2 files
+- **Labs**: 23 core labs + 3 challenges
+- **Application docs**: 6 apps × 2-3 docs each
+- **Scripts**: 7 utilities
+
+---
+
+## 🔗 Cross-Reference Index
+
+### By Purpose
+
+**Onboarding**:
+- README.md → docs/GETTING-STARTED.md → labs/00-visual-kubernetes.md → labs/01-weather-basics.md
+
+**Learning Path**:
+- docs/KUBERNETES-LABS.md (master roadmap)
+- docs/learning/LAB-PROGRESS.md (track completion)
+- docs/learning/SELF-ASSESSMENT.md (test knowledge)
+
+**Reference During Labs**:
+- docs/reference/kubectl-cheatsheet.md
+- docs/troubleshooting/troubleshooting.md
+- docs/learning/COMMON-MISTAKES.md
+
+**Advanced Topics**:
+- docs/reference/certification-guide.md
+- docs/reference/decision-trees.md
+- docs/reference/production-war-stories.md
+
+### By Audience
+
+**Absolute Beginners**:
+1. README.md
+2. docs/GETTING-STARTED.md
+3. docs/setup/ (rancher-desktop or linux)
+4. labs/00-visual-kubernetes.md
+5. labs/01-weather-basics.md
+
+**Intermediate Users**:
+- docs/KUBERNETES-LABS.md (skip to Labs 5-7)
+- docs/reference/ (best practices)
+- Challenge labs
+
+**Advanced Users**:
+- Labs 8-13 (platform engineering, automation)
+- docs/reference/production-war-stories.md
+- Challenge C (platform migration)
+
+**Contributors**:
+- docs/STYLE-GUIDE.md
+- scripts/README.md
+- labs/manifests/ARCHITECTURE-DECISIONS.md
+
+---
+
+## ✅ Verification Checklist
+
+All files properly referenced:
+- ✅ All 23 labs listed in README.md and KUBERNETES-LABS.md
+- ✅ All 3 challenges documented
+- ✅ All 7 reference guides linked in docs/README.md
+- ✅ All 6 apps have README + ARCHITECTURE
+- ✅ All scripts documented in scripts/README.md
+- ✅ No broken internal links
+- ✅ No orphaned documentation
+- ✅ Clear navigation paths for all user types
+
+---
+
+## 🔄 Maintenance
+
+This file is manually maintained. Update when:
+- Adding new labs
+- Adding new documentation
+- Restructuring folders
+- Adding new applications
+- Creating new reference guides
+
+**Last updated**: October 20, 2025
+
+---
+
+**Navigation**: [Back to README](README.md) | [Documentation Hub](docs/README.md) | [Getting Started](docs/GETTING-STARTED.md)

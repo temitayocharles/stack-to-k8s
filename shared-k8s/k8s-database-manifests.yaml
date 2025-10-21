@@ -1,0 +1,516 @@
+# Kubernetes Manifests for Multi-Application Database Infrastructure
+# Generated from Docker Compose for Enterprise Deployment
+
+---
+# Namespace for all database services
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multi-app-databases
+  labels:
+    purpose: database-infrastructure
+    environment: development
+
+---
+# MongoDB for E-commerce App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-mongodb
+  namespace: multi-app-databases
+  labels:
+    app: ecommerce-mongodb
+    service: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-mongodb
+  template:
+    metadata:
+      labels:
+        app: ecommerce-mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:7.0
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: admin
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: password123
+        - name: MONGO_INITDB_DATABASE
+          value: ecommerce
+        volumeMounts:
+        - name: mongo-storage
+          mountPath: /data/db
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: mongo-storage
+        persistentVolumeClaim:
+          claimName: ecommerce-mongodb-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-mongodb-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: ecommerce-mongodb
+  ports:
+  - port: 27017
+    targetPort: 27017
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ecommerce-mongodb-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Redis for Weather App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-redis
+  namespace: multi-app-databases
+  labels:
+    app: weather-redis
+    service: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-redis
+  template:
+    metadata:
+      labels:
+        app: weather-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.2-alpine
+        ports:
+        - containerPort: 6379
+        command: ["redis-server", "--appendonly", "yes"]
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: weather-redis-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-redis-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: weather-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weather-redis-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# PostgreSQL for Educational Platform
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: educational-postgresql
+  namespace: multi-app-databases
+  labels:
+    app: educational-postgresql
+    service: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: educational-postgresql
+  template:
+    metadata:
+      labels:
+        app: educational-postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: educational_platform
+        - name: POSTGRES_USER
+          value: eduuser
+        - name: POSTGRES_PASSWORD
+          value: edupass123
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: educational-postgresql-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: educational-postgresql-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: educational-postgresql
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: educational-postgresql-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Redis for Educational Platform (Caching)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: educational-redis
+  namespace: multi-app-databases
+  labels:
+    app: educational-redis
+    service: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: educational-redis
+  template:
+    metadata:
+      labels:
+        app: educational-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.2-alpine
+        ports:
+        - containerPort: 6379
+        command: ["redis-server", "--appendonly", "yes"]
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: educational-redis-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: educational-redis-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: educational-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: educational-redis-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# SQL Server for Medical Care System
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-sqlserver
+  namespace: multi-app-databases
+  labels:
+    app: medical-sqlserver
+    service: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medical-sqlserver
+  template:
+    metadata:
+      labels:
+        app: medical-sqlserver
+    spec:
+      containers:
+      - name: sqlserver
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+        - containerPort: 1433
+        env:
+        - name: SA_PASSWORD
+          value: MedicalCare123!
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_DB
+          value: MedicalCareDB
+        volumeMounts:
+        - name: sqlserver-storage
+          mountPath: /var/opt/mssql
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "1000m"
+      volumes:
+      - name: sqlserver-storage
+        persistentVolumeClaim:
+          claimName: medical-sqlserver-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medical-sqlserver-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: medical-sqlserver
+  ports:
+  - port: 1433
+    targetPort: 1433
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: medical-sqlserver-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# CouchDB for Task Management App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-couchdb
+  namespace: multi-app-databases
+  labels:
+    app: task-couchdb
+    service: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-couchdb
+  template:
+    metadata:
+      labels:
+        app: task-couchdb
+    spec:
+      containers:
+      - name: couchdb
+        image: couchdb:3.3
+        ports:
+        - containerPort: 5984
+        env:
+        - name: COUCHDB_USER
+          value: taskadmin
+        - name: COUCHDB_PASSWORD
+          value: taskpass123
+        volumeMounts:
+        - name: couchdb-storage
+          mountPath: /opt/couchdb/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: couchdb-storage
+        persistentVolumeClaim:
+          claimName: task-couchdb-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-couchdb-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: task-couchdb
+  ports:
+  - port: 5984
+    targetPort: 5984
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-couchdb-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# PostgreSQL for Social Media Platform
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-postgresql
+  namespace: multi-app-databases
+  labels:
+    app: social-postgresql
+    service: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-postgresql
+  template:
+    metadata:
+      labels:
+        app: social-postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: social_media
+        - name: POSTGRES_USER
+          value: socialuser
+        - name: POSTGRES_PASSWORD
+          value: socialpass123
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: social-postgresql-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-postgresql-service
+  namespace: multi-app-databases
+spec:
+  selector:
+    app: social-postgresql
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: social-postgresql-pvc
+  namespace: multi-app-databases
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

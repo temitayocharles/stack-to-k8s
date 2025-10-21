@@ -1,0 +1,211 @@
+# ====================================
+# Backend Deployment for E-commerce App
+# Node.js API with MongoDB and Redis
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-backend
+  namespace: ecommerce
+  labels:
+    app: ecommerce-app
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-app
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: ecommerce-app
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/ecommerce-backend:latest
+        ports:
+        - containerPort: 5001
+          name: http
+        env:
+        # Application settings
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: PORT
+        
+        # MongoDB connection
+        - name: MONGODB_URI
+          value: "mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@$(MONGODB_HOST):$(MONGODB_PORT)/$(MONGODB_DATABASE)?authSource=admin"
+        - name: MONGODB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: MONGODB_HOST
+        - name: MONGODB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: MONGODB_PORT
+        - name: MONGODB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: MONGODB_DATABASE
+        - name: MONGODB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: MONGODB_USERNAME
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: MONGODB_PASSWORD
+        
+        # Redis connection
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: REDIS_PORT
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: REDIS_PASSWORD
+        - name: REDIS_DB
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: REDIS_DB
+        
+        # JWT settings
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: JWT_SECRET
+        - name: JWT_EXPIRES_IN
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: JWT_EXPIRES_IN
+        
+        # Stripe settings
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: STRIPE_SECRET_KEY
+        - name: STRIPE_PUBLISHABLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: STRIPE_PUBLISHABLE_KEY
+        
+        # Email settings
+        - name: EMAIL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: EMAIL_HOST
+        - name: EMAIL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: EMAIL_PORT
+        - name: EMAIL_USER
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: EMAIL_USER
+        - name: EMAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: EMAIL_PASSWORD
+        - name: EMAIL_FROM
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: EMAIL_FROM
+        
+        # Session secret
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: SESSION_SECRET
+        
+        # CORS
+        - name: CORS_ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: CORS_ORIGIN
+        
+        # File upload
+        - name: MAX_FILE_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: MAX_FILE_SIZE
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-backend
+  namespace: ecommerce
+  labels:
+    app: ecommerce-app
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: ecommerce-app
+    component: backend
+  ports:
+  - name: http
+    port: 5001
+    targetPort: 5001
+    protocol: TCP

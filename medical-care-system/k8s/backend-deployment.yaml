@@ -1,0 +1,56 @@
+# ====================================
+# Backend Deployment for Medical Care System
+# .NET API with PostgreSQL
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-backend
+  namespace: medical-lab
+  labels:
+    app: medical-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: medical-backend
+  template:
+    metadata:
+      labels:
+        app: medical-backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/medical-api:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:5000"
+        - name: ConnectionStrings__DefaultConnection
+          value: "Host=postgres;Port=5432;Database=medicaldb;Username=medicaluser;Password=password"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "750m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      restartPolicy: Always

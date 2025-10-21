@@ -1,0 +1,56 @@
+# 🔒 POD DISRUPTION BUDGETS (PDB)
+# Ensure high availability during cluster maintenance for medical-care-system
+
+---
+# Pod Disruption Budget for Backend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-backend-pdb
+  namespace: medical-production
+  labels:
+    app: medical-backend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: medical-backend
+  minAvailable: 2
+  maxUnavailable: 1
+
+---
+# Pod Disruption Budget for Frontend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-frontend-pdb
+  namespace: medical-production
+  labels:
+    app: medical-frontend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: medical-frontend
+  minAvailable: 1
+  maxUnavailable: 50%
+
+---
+# Pod Disruption Budget for Database
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: medical-database-pdb
+  namespace: medical-production
+  labels:
+    app: database
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: database
+  minAvailable: 1
+  maxUnavailable: 0

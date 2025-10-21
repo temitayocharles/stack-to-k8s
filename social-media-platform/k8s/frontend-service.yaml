@@ -1,0 +1,19 @@
+# ====================================
+# Frontend Service for Social Media Platform
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-frontend
+  namespace: social-lab
+  labels:
+    app: social-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: social-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP

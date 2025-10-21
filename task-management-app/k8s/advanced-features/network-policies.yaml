@@ -1,0 +1,132 @@
+# 🛡️ NETWORK POLICIES FOR MICRO-SEGMENTATION
+# Zero-trust network security for task-management-app production workloads
+
+---
+# Network Policy - Backend Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: taskmanager-backend-network-policy
+  namespace: taskmanager-production
+  labels:
+    app: taskmanager-backend
+    tier: production
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: taskmanager-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: taskmanager-frontend
+    - podSelector:
+        matchLabels:
+          app: nginx-ingress
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 5000
+    - protocol: TCP
+      port: 8080  # Health check port
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: database
+    ports:
+    - protocol: TCP
+      port: 27017
+  - to: []  # Allow DNS
+    ports:
+    - protocol: UDP
+      port: 53
+  - to: []  # Allow HTTPS outbound for external APIs
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+# Network Policy - Frontend Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: taskmanager-frontend-network-policy
+  namespace: taskmanager-production
+  labels:
+    app: taskmanager-frontend
+    tier: production
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: taskmanager-frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: nginx-ingress
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: taskmanager-backend
+    ports:
+    - protocol: TCP
+      port: 5000
+  - to: []  # Allow DNS
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# Network Policy - Database Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: taskmanager-database-network-policy
+  namespace: taskmanager-production
+  labels:
+    app: database
+    tier: production
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: taskmanager-backend
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring  # For Prometheus monitoring
+    ports:
+    - protocol: TCP
+      port: 27017
+  egress:
+  - to: []  # Allow DNS
+    ports:
+    - protocol: UDP
+      port: 53

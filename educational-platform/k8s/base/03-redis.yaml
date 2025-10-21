@@ -1,0 +1,211 @@
+# ====================================apiVersion: apps/v1
+
+# Redis Deployment for Educational Platformkind: Deployment
+
+# Session store and cachemetadata:
+
+# ====================================  name: redis
+
+apiVersion: v1  namespace: educational-platform
+
+kind: PersistentVolumeClaim  labels:
+
+metadata:    app: redis
+
+  name: educational-redis-pvc    app.kubernetes.io/name: educational-platform
+
+  namespace: educational    app.kubernetes.io/component: cache
+
+  labels:    app.kubernetes.io/version: "7"
+
+    app: educational-platformspec:
+
+    component: redis  replicas: 1
+
+spec:  strategy:
+
+  accessModes:    type: Recreate
+
+  - ReadWriteOnce  selector:
+
+  resources:    matchLabels:
+
+    requests:      app: redis
+
+      storage: 1Gi  template:
+
+    metadata:
+
+---      labels:
+
+apiVersion: apps/v1        app: redis
+
+kind: Deployment        app.kubernetes.io/name: educational-platform
+
+metadata:        app.kubernetes.io/component: cache
+
+  name: educational-redis    spec:
+
+  namespace: educational      containers:
+
+  labels:      - name: redis
+
+    app: educational-platform        image: redis:7-alpine
+
+    component: redis        ports:
+
+spec:        - containerPort: 6379
+
+  replicas: 1          name: redis
+
+  selector:        command:
+
+    matchLabels:        - redis-server
+
+      app: educational-platform        - --appendonly
+
+      component: redis        - "yes"
+
+  template:        - --requirepass
+
+    metadata:        - $(REDIS_PASSWORD)
+
+      labels:        env:
+
+        app: educational-platform        - name: REDIS_PASSWORD
+
+        component: redis          valueFrom:
+
+    spec:            secretKeyRef:
+
+      containers:              name: app-secrets
+
+      - name: redis              key: REDIS_PASSWORD
+
+        image: redis:7-alpine        volumeMounts:
+
+        command:        - name: redis-storage
+
+        - redis-server          mountPath: /data
+
+        - --requirepass        resources:
+
+        - $(REDIS_PASSWORD)          requests:
+
+        - --appendonly            memory: "128Mi"
+
+        - "yes"            cpu: "100m"
+
+        ports:          limits:
+
+        - containerPort: 6379            memory: "256Mi"
+
+          name: redis            cpu: "200m"
+
+        env:        livenessProbe:
+
+        - name: REDIS_PASSWORD          exec:
+
+          valueFrom:            command:
+
+            secretKeyRef:            - redis-cli
+
+              name: educational-secret            - -a
+
+              key: SPRING_REDIS_PASSWORD            - $(REDIS_PASSWORD)
+
+        volumeMounts:            - ping
+
+        - name: redis-data          initialDelaySeconds: 30
+
+          mountPath: /data          periodSeconds: 10
+
+        resources:          timeoutSeconds: 5
+
+          requests:          failureThreshold: 3
+
+            memory: "64Mi"        readinessProbe:
+
+            cpu: "50m"          exec:
+
+          limits:            command:
+
+            memory: "128Mi"            - redis-cli
+
+            cpu: "100m"            - -a
+
+        livenessProbe:            - $(REDIS_PASSWORD)
+
+          exec:            - ping
+
+            command:          initialDelaySeconds: 5
+
+            - sh          periodSeconds: 5
+
+            - -c          timeoutSeconds: 3
+
+            - redis-cli -a $REDIS_PASSWORD ping | grep PONG          failureThreshold: 3
+
+          initialDelaySeconds: 20      volumes:
+
+          periodSeconds: 10      - name: redis-storage
+
+          timeoutSeconds: 5        persistentVolumeClaim:
+
+        readinessProbe:          claimName: redis-pvc
+
+          exec:      securityContext:
+
+            command:        fsGroup: 999
+
+            - sh        runAsUser: 999
+
+            - -c        runAsGroup: 999
+
+            - redis-cli -a $REDIS_PASSWORD ping | grep PONG---
+
+          initialDelaySeconds: 5apiVersion: v1
+
+          periodSeconds: 5kind: Service
+
+          timeoutSeconds: 3metadata:
+
+      volumes:  name: redis-service
+
+      - name: redis-data  namespace: educational-platform
+
+        persistentVolumeClaim:  labels:
+
+          claimName: educational-redis-pvc    app: redis
+
+    app.kubernetes.io/name: educational-platform
+
+---    app.kubernetes.io/component: cache
+
+apiVersion: v1spec:
+
+kind: Service  type: ClusterIP
+
+metadata:  ports:
+
+  name: educational-redis  - port: 6379
+
+  namespace: educational    targetPort: 6379
+
+  labels:    protocol: TCP
+
+    app: educational-platform    name: redis
+
+    component: redis  selector:
+
+spec:    app: redis
+
+  type: ClusterIP
+  selector:
+    app: educational-platform
+    component: redis
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP

@@ -1,0 +1,19 @@
+# ====================================
+# Backend Service for Task Management Application
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-backend
+  namespace: task-lab
+  labels:
+    app: task-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: task-backend
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP

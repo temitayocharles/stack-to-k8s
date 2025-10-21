@@ -1,0 +1,112 @@
+# ====================================
+# PostgreSQL StatefulSet for Social Media Platform
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-postgresql
+  namespace: social-media
+  labels:
+    app: social-media-platform
+    component: postgresql
+spec:
+  clusterIP: None  # Headless service for StatefulSet
+  selector:
+    app: social-media-platform
+    component: postgresql
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: social-postgresql
+  namespace: social-media
+  labels:
+    app: social-media-platform
+    component: postgresql
+spec:
+  serviceName: social-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-media-platform
+      component: postgresql
+  template:
+    metadata:
+      labels:
+        app: social-media-platform
+        component: postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: social-config
+              key: DATABASE_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: social-secret
+              key: DATABASE_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: social-secret
+              key: DATABASE_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgresql-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresql-data
+      labels:
+        app: social-media-platform
+        component: postgresql
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi

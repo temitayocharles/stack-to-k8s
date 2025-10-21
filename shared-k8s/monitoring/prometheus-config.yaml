@@ -1,0 +1,174 @@
+# Prometheus Configuration for Enterprise Monitoring
+# Comprehensive metrics collection and alerting
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'production-cluster'
+    environment: 'production'
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Kubernetes API Server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+    - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+      action: keep
+      regex: default;kubernetes;https
+
+  # Kubernetes Nodes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+    - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+
+  # Kubernetes Pods
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      action: keep
+      regex: true
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      action: replace
+      target_label: __metrics_path__
+      regex: (.+)
+    - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      action: replace
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $1:$2
+      target_label: __address__
+    - action: labelmap
+      regex: __meta_kubernetes_pod_label_(.+)
+    - source_labels: [__meta_kubernetes_namespace]
+      action: replace
+      target_label: kubernetes_namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      action: replace
+      target_label: kubernetes_pod_name
+
+  # Educational Platform Backend
+  - job_name: 'educational-platform-backend'
+    static_configs:
+      - targets: ['educational-backend.educational-platform.svc.cluster.local:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+
+  # Medical Care System Backend
+  - job_name: 'medical-care-backend'
+    static_configs:
+      - targets: ['medical-backend.medical-care.svc.cluster.local:5170']
+    metrics_path: '/api/metrics'
+    scrape_interval: 10s
+
+  # Weather App Backend
+  - job_name: 'weather-app-backend'
+    static_configs:
+      - targets: ['weather-backend.weather-app.svc.cluster.local:5002']
+    metrics_path: '/api/metrics'
+    scrape_interval: 10s
+
+  # Task Management Backend
+  - job_name: 'task-management-backend'
+    static_configs:
+      - targets: ['task-backend.task-management.svc.cluster.local:8082']
+    metrics_path: '/api/v1/metrics'
+    scrape_interval: 10s
+
+  # Database Exporters
+  - job_name: 'postgresql-exporter'
+    static_configs:
+      - targets: ['postgres-exporter.educational-platform.svc.cluster.local:9187']
+      - targets: ['postgres-exporter.task-management.svc.cluster.local:9187']
+
+  - job_name: 'sqlserver-exporter'
+    static_configs:
+      - targets: ['sqlserver-exporter.medical-care.svc.cluster.local:9399']
+
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter.weather-app.svc.cluster.local:9121']
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    kubernetes_sd_configs:
+    - role: endpoints
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_endpoints_name]
+      regex: 'node-exporter'
+      action: keep
+
+  # Cadvisor for container metrics
+  - job_name: 'cadvisor'
+    kubernetes_sd_configs:
+    - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - target_label: __address__
+      replacement: kubernetes.default.svc:443
+    - source_labels: [__meta_kubernetes_node_name]
+      regex: (.+)
+      target_label: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+  # Kube State Metrics
+  - job_name: 'kube-state-metrics'
+    static_configs:
+      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+
+  # NGINX Ingress Controller
+  - job_name: 'nginx-ingress'
+    kubernetes_sd_configs:
+    - role: pod
+      namespaces:
+        names:
+        - ingress-nginx
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      action: keep
+      regex: true
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scheme]
+      action: replace
+      target_label: __scheme__
+      regex: (https?)
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      action: replace
+      target_label: __metrics_path__
+      regex: (.+)
+    - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      action: replace
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $1:$2
+      target_label: __address__

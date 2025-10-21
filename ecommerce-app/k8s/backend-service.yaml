@@ -1,0 +1,19 @@
+# ====================================
+# Backend Service for E-commerce Application
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-backend
+  namespace: ecommerce-lab
+  labels:
+    app: ecommerce-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: ecommerce-backend
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+    protocol: TCP

@@ -1,0 +1,372 @@
+# Multi-Application Kubernetes Practice Workspace .gitignore
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor files - COMPREHENSIVE COVERAGE
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.template
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+*.code-workspace.tmp
+.brackets.json
+.atom/
+.vim/
+.nvim/
+*.tmProject
+*.tmproj
+.editorconfig.local
+.vs/
+.vscode-test/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.project
+.externalToolBuilders/
+*.launch
+.pydevproject
+.cproject
+.buildpath
+.factorypath
+.target
+.tern-project
+.texlipse
+.springBeans
+.recommenders/
+.apt_generated/
+.cache-main
+.scala_dependencies
+.worksheet
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+mono_crash.*
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+.build/
+
+# Xcode
+*.xcworkspace
+*.xcuserdata
+*.xcscheme
+DerivedData/
+.xcode-version
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+*.env
+*.key
+*.pem
+*.p12
+*.pfx
+*secret*
+*Secret*
+
+# PRIVATE FILES - YOUR PERSONAL DATA ONLY (NOT PUBLIC INFRASTRUCTURE)
+docker-compose.personal.yml
+vault-data/
+vault-secrets-summary.txt
+vault-setup-summary.md
+VAULT-CONFIGURATION-SUMMARY.md
+configurations/
+.vault-token
+personal-vault-*
+*-personal.*
+
+# Temporary and backup files - CRITICAL CLEANUP
+*.tmp
+*.temp
+*.bak
+*.backup
+*temp*
+*draft*
+*-draft.*
+*.old
+*.orig
+
+# Test results and artifacts - SHOULD NOT BE COMMITTED
+test-results/
+coverage/
+.nyc_output/
+junit.xml
+*.xml
+enterprise-test-results/
+chaos-test-results/
+security-scan-results/
+screenshots/
+performance-data/
+
+# Log files - SHOULD NOT BE COMMITTED
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+server.log
+debug.log
+error.log
+build.log
+
+# Learning progress and tracking files - USER-SPECIFIC DATA
+.learning-progress.json
+.session-history.log
+.time-tracking.json
+.current-session.tmp
+learning-progress-report.md
+time-investment-report.md
+monitoring-validation-report.md
+
+# Internal development and implementation tracking - LOCAL ONLY
+SESSION_LOG.md
+PROGRESS_LOG.md
+CORRECTED_TEST_REPORT.md
+ENTERPRISE_FINAL_REPORT.md
+*COMPLETE*.md
+*IMPLEMENTATION*.md
+*TRANSFORMATION*.md
+*STATUS-REPORT*.md
+*VALIDATION-REPORT*.md
+*-internal-*.md
+INTERNAL-*.md
+*-INTERNAL.md
+
+# Documentation organization and status tracking - DEVELOPMENT ONLY
+docs/*STATUS*.md
+docs/*COMPLETE*.md
+docs/*REPORT*.md
+docs/*VALIDATION*.md
+DOCUMENTATION-*.md
+APPLICATIONS_STATUS_REPORT.md
+
+# Implementation completion reports - NOT FOR PUBLIC
+SMART-OPTIMIZER-IMPLEMENTATION-COMPLETE.md
+REPOSITORY-TRANSFORMATION-COMPLETE.md
+DOCUMENTATION-ORGANIZATION-COMPLETE.md
+LOCAL-FILES-GUIDE.md
+
+# Auto-approval and notification files - NOT FOR UPSTREAM
+AUTONOMOUS-OPERATION-CONFIG.md
+UNIVERSAL-AUTO-APPROVAL-VERIFICATION.md
+NOTIFICATION_README.md
+notification_config.json
+notification_demo.go
+.shell-auto-approval.sh
+.zshrc-auto-approval
+.zshrc_auto_approve
+setup-universal-auto-approval.sh
+universal-terminal-auto-approval.sh
+
+# Validation and optimization scripts - TEMPORARY TOOLS
+validate-optimizer-setup.sh
+validate-*.sh
+*-validation-*.sh
+setup-optimize.sh
+test-optimizer.sh
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm
+.yarn-integrity
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Java
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/wrapper/maven-wrapper.jar
+.gradle/
+build/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+packages/
+.vs/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+vendor/
+
+# Ruby
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+/.bundle/
+/vendor/bundle
+/log/*
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/public/system
+/coverage/
+/spec/tmp
+/.sass-cache
+/connect.lock
+/libpeerconnection.log
+
+# Docker
+.dockerignore
+
+# Database files
+*.sqlite
+*.db
+*.sql
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Next.js build output
+.next
+
+# Nuxt.js build output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local database files
+*.sqlite3
+*.db-journal
+
+# Upload directories
+uploads/
+static/uploads/
+
+# Generated files
+dist/
+*.generated.*

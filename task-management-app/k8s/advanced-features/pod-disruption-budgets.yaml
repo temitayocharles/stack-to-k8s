@@ -1,0 +1,56 @@
+# 🔒 POD DISRUPTION BUDGETS (PDB)
+# Ensure high availability during cluster maintenance for task-management-app
+
+---
+# Pod Disruption Budget for Backend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: taskmanager-backend-pdb
+  namespace: taskmanager-production
+  labels:
+    app: taskmanager-backend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: taskmanager-backend
+  minAvailable: 2
+  maxUnavailable: 1
+
+---
+# Pod Disruption Budget for Frontend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: taskmanager-frontend-pdb
+  namespace: taskmanager-production
+  labels:
+    app: taskmanager-frontend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: taskmanager-frontend
+  minAvailable: 1
+  maxUnavailable: 50%
+
+---
+# Pod Disruption Budget for Database
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: taskmanager-database-pdb
+  namespace: taskmanager-production
+  labels:
+    app: database
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: database
+  minAvailable: 1
+  maxUnavailable: 0

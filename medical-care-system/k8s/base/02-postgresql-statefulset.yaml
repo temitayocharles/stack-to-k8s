@@ -1,0 +1,113 @@
+# ====================================
+# PostgreSQL StatefulSet for Medical Care System
+# HIPAA-ready database configuration
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: medical-postgresql
+  namespace: medical-care
+  labels:
+    app: medical-care-system
+    component: postgresql
+spec:
+  clusterIP: None  # Headless service for StatefulSet
+  selector:
+    app: medical-care-system
+    component: postgresql
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: medical-postgresql
+  namespace: medical-care
+  labels:
+    app: medical-care-system
+    component: postgresql
+spec:
+  serviceName: medical-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medical-care-system
+      component: postgresql
+  template:
+    metadata:
+      labels:
+        app: medical-care-system
+        component: postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: medical-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: medical-secret
+              key: DB_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: medical-secret
+              key: DB_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgresql-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresql-data
+      labels:
+        app: medical-care-system
+        component: postgresql
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 20Gi  # Larger storage for medical records

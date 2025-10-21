@@ -1,0 +1,515 @@
+@page "/patient-monitoring"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@using System.Text.Json
+@using System.Timers
+
+<PageTitle>Patient Monitoring</PageTitle>
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body p-4">
+                    <h3 class="mb-0">💓 Patient Monitoring Center</h3>
+                    <p class="mb-0 opacity-8">Real-time vital signs monitoring and health tracking</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Overview -->
+    <div class="row mb-4">
+        @if (dashboardData != null)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-primary">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                        </div>
+                        <h4 class="mb-1">@dashboardData.dashboard_data.active_patients</h4>
+                        <small class="text-muted">Active Patients</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        </div>
+                        <h4 class="mb-1">@dashboardData.dashboard_data.critical_alerts</h4>
+                        <small class="text-muted">Critical Alerts</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-info">
+                            <i class="fas fa-heartbeat fa-2x mb-2"></i>
+                        </div>
+                        <h4 class="mb-1">@dashboardData.dashboard_data.recent_readings</h4>
+                        <small class="text-muted">Recent Readings</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div class="text-success">
+                            <i class="fas fa-chart-line fa-2x mb-2"></i>
+                        </div>
+                        <h4 class="mb-1">@dashboardData.real_time_stats.patients_with_abnormal_vitals</h4>
+                        <small class="text-muted">Abnormal Vitals</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Vital Signs Recording -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Record Vital Signs</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@vitalSignsRequest" OnValidSubmit="@RecordVitalSigns">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Patient ID</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.PatientId" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Heart Rate (bpm)</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.HeartRate" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">BP Systolic (mmHg)</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.BloodPressureSystolic" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">BP Diastolic (mmHg)</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.BloodPressureDiastolic" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Temperature (°C)</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.Temperature" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">O2 Saturation (%)</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.OxygenSaturation" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Respiratory Rate</label>
+                                <InputNumber @bind-Value="vitalSignsRequest.RespiratoryRate" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Device ID</label>
+                                <InputText @bind-Value="vitalSignsRequest.DeviceId" class="form-control" placeholder="e.g., MON-001" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Location</label>
+                                <InputText @bind-Value="vitalSignsRequest.Location" class="form-control" placeholder="e.g., Room 101" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" disabled="@isRecording">
+                            @if (isRecording)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <text>Recording...</text>
+                            }
+                            else
+                            {
+                                <text>💾 Record Vital Signs</text>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Patient Vitals -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🔍 Current Patient Vitals</h5>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="LoadCurrentVitals">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Patient ID to Monitor</label>
+                        <div class="input-group">
+                            <InputNumber @bind-Value="monitorPatientId" class="form-control" />
+                            <button class="btn btn-outline-secondary" @onclick="LoadCurrentVitals">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (currentVitals != null)
+                    {
+                        <div class="alert alert-@GetVitalAlertClass(currentVitals.current_vitals.alert_level)">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-heartbeat me-2"></i>
+                                Latest Reading - @DateTime.Parse(currentVitals.current_vitals.timestamp.ToString()).ToString("MMM dd, HH:mm")
+                            </h6>
+                            
+                            <div class="row mt-3">
+                                <div class="col-6 col-md-4 mb-2">
+                                    <strong>❤️ Heart Rate:</strong><br>
+                                    <span class="h5">@currentVitals.current_vitals.heart_rate bpm</span>
+                                </div>
+                                <div class="col-6 col-md-4 mb-2">
+                                    <strong>🩸 Blood Pressure:</strong><br>
+                                    <span class="h5">@currentVitals.current_vitals.blood_pressure mmHg</span>
+                                </div>
+                                <div class="col-6 col-md-4 mb-2">
+                                    <strong>🌡️ Temperature:</strong><br>
+                                    <span class="h5">@currentVitals.current_vitals.temperature°C</span>
+                                </div>
+                                <div class="col-6 col-md-4 mb-2">
+                                    <strong>🫁 O2 Saturation:</strong><br>
+                                    <span class="h5">@currentVitals.current_vitals.oxygen_saturation%</span>
+                                </div>
+                                <div class="col-6 col-md-4 mb-2">
+                                    <strong>💨 Respiratory Rate:</strong><br>
+                                    <span class="h5">@currentVitals.current_vitals.respiratory_rate</span>
+                                </div>
+                                <div class="col-6 col-md-4 mb-2">
+                                    <strong>📍 Location:</strong><br>
+                                    <span class="h5">@currentVitals.current_vitals.location</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <strong>📈 Trends:</strong>
+                                <ul class="mb-0">
+                                    <li>Heart Rate: @currentVitals.trends.heart_rate_trend</li>
+                                    <li>Blood Pressure: @currentVitals.trends.blood_pressure_trend</li>
+                                    <li>Temperature: @currentVitals.trends.temperature_trend</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        @if (currentVitals.active_alerts?.Count > 0)
+                        {
+                            <div class="mt-3">
+                                <h6>🚨 Active Alerts:</h6>
+                                @foreach (var alert in currentVitals.active_alerts)
+                                {
+                                    <div class="alert alert-warning py-2">
+                                        <small>
+                                            <strong>@alert.title</strong> - @alert.severity
+                                            <br><small class="text-muted">@DateTime.Parse(alert.created_date.ToString()).ToString("MMM dd, HH:mm")</small>
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(vitalError))
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>@vitalError
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-stethoscope fa-3x mb-3"></i>
+                            <p>Enter Patient ID to view current vital signs</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient History -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📊 Patient Monitoring History</h5>
+                    <div>
+                        <select @bind="historyHours" class="form-select d-inline-block w-auto me-2">
+                            <option value="6">Last 6 hours</option>
+                            <option value="24">Last 24 hours</option>
+                            <option value="72">Last 3 days</option>
+                            <option value="168">Last week</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary" @onclick="LoadPatientHistory">
+                            <i class="fas fa-history"></i> Load History
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (patientHistory != null)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@patientHistory.total_readings</h5>
+                                        <small>Total Readings</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@patientHistory.summary.avg_heart_rate.ToString("F1")</h5>
+                                        <small>Avg Heart Rate</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@patientHistory.summary.warning_alerts</h5>
+                                        <small>Warning Alerts</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@patientHistory.summary.critical_alerts</h5>
+                                        <small>Critical Alerts</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>HR</th>
+                                        <th>BP</th>
+                                        <th>Temp</th>
+                                        <th>O2</th>
+                                        <th>RR</th>
+                                        <th>Alert</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var reading in patientHistory.monitoring_history.Take(20))
+                                    {
+                                        <tr class="@GetRowClass(reading.alert_level)">
+                                            <td>@DateTime.Parse(reading.timestamp.ToString()).ToString("MM/dd HH:mm")</td>
+                                            <td>@reading.heart_rate</td>
+                                            <td>@reading.blood_pressure_systolic/@reading.blood_pressure_diastolic</td>
+                                            <td>@reading.temperature°C</td>
+                                            <td>@reading.oxygen_saturation%</td>
+                                            <td>@reading.respiratory_rate</td>
+                                            <td>
+                                                <span class="badge bg-@GetAlertBadgeColor(reading.alert_level)">
+                                                    @reading.alert_level
+                                                </span>
+                                            </td>
+                                            <td>@reading.location</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show position-fixed bottom-0 end-0 m-3" role="alert" style="z-index: 1050;">
+        <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+    </div>
+}
+
+@code {
+    private VitalSignsRequest vitalSignsRequest = new();
+    private bool isRecording = false;
+    private string errorMessage = string.Empty;
+    private string vitalError = string.Empty;
+    private int monitorPatientId = 0;
+    private int historyHours = 24;
+
+    // Data
+    private dynamic? dashboardData;
+    private dynamic? currentVitals;
+    private dynamic? patientHistory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboard();
+    }
+
+    private async Task LoadDashboard()
+    {
+        try
+        {
+            var response = await Http.GetAsync("http://localhost:5170/api/patientmonitoring/dashboard/overview");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                dashboardData = JsonSerializer.Deserialize<dynamic>(content);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load dashboard: {ex.Message}";
+        }
+    }
+
+    private async Task RecordVitalSigns()
+    {
+        try
+        {
+            isRecording = true;
+            errorMessage = string.Empty;
+
+            var json = JsonSerializer.Serialize(vitalSignsRequest);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await Http.PostAsync("http://localhost:5170/api/patientmonitoring/vital-signs", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Vital signs recorded successfully!");
+                
+                // Clear form and refresh dashboard
+                vitalSignsRequest = new VitalSignsRequest();
+                await LoadDashboard();
+
+                // If monitoring this patient, refresh current vitals
+                if (monitorPatientId == vitalSignsRequest.PatientId)
+                {
+                    await LoadCurrentVitals();
+                }
+            }
+            else
+            {
+                errorMessage = $"Failed to record vital signs: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error recording vital signs: {ex.Message}";
+        }
+        finally
+        {
+            isRecording = false;
+        }
+    }
+
+    private async Task LoadCurrentVitals()
+    {
+        if (monitorPatientId <= 0) return;
+
+        try
+        {
+            vitalError = string.Empty;
+            currentVitals = null;
+
+            var response = await Http.GetAsync($"http://localhost:5170/api/patientmonitoring/patient/{monitorPatientId}/current");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                currentVitals = JsonSerializer.Deserialize<dynamic>(content);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                vitalError = "No vital signs recorded for this patient";
+            }
+            else
+            {
+                vitalError = $"Failed to load vital signs: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            vitalError = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task LoadPatientHistory()
+    {
+        if (monitorPatientId <= 0)
+        {
+            errorMessage = "Please enter a patient ID to view history";
+            return;
+        }
+
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5170/api/patientmonitoring/patient/{monitorPatientId}/history?hours={historyHours}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                patientHistory = JsonSerializer.Deserialize<dynamic>(content);
+            }
+            else
+            {
+                errorMessage = $"Failed to load patient history: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading patient history: {ex.Message}";
+        }
+    }
+
+    private string GetVitalAlertClass(string alertLevel) => alertLevel switch
+    {
+        "Critical" => "danger",
+        "Warning" => "warning",
+        "Normal" => "success",
+        _ => "info"
+    };
+
+    private string GetRowClass(string alertLevel) => alertLevel switch
+    {
+        "Critical" => "table-danger",
+        "Warning" => "table-warning",
+        _ => ""
+    };
+
+    private string GetAlertBadgeColor(string alertLevel) => alertLevel switch
+    {
+        "Critical" => "danger",
+        "Warning" => "warning",
+        "Normal" => "success",
+        _ => "secondary"
+    };
+
+    public class VitalSignsRequest
+    {
+        public int PatientId { get; set; }
+        public double HeartRate { get; set; } = 72;
+        public double BloodPressureSystolic { get; set; } = 120;
+        public double BloodPressureDiastolic { get; set; } = 80;
+        public double Temperature { get; set; } = 36.5;
+        public double OxygenSaturation { get; set; } = 98;
+        public double RespiratoryRate { get; set; } = 16;
+        public string DeviceId { get; set; } = "MON-001";
+        public string Location { get; set; } = "Room 101";
+    }
+}

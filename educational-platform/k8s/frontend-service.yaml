@@ -1,0 +1,19 @@
+# ====================================
+# Frontend Service for Educational Platform
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: educational-frontend
+  namespace: educational-lab
+  labels:
+    app: educational-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: educational-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP

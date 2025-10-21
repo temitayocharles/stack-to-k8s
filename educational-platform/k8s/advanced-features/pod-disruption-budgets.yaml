@@ -1,0 +1,56 @@
+# 🔒 POD DISRUPTION BUDGETS (PDB)
+# Ensure high availability during cluster maintenance for educational-platform
+
+---
+# Pod Disruption Budget for Backend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: education-backend-pdb
+  namespace: education-production
+  labels:
+    app: education-backend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: education-backend
+  minAvailable: 2
+  maxUnavailable: 1
+
+---
+# Pod Disruption Budget for Frontend
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: education-frontend-pdb
+  namespace: education-production
+  labels:
+    app: education-frontend
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: education-frontend
+  minAvailable: 1
+  maxUnavailable: 50%
+
+---
+# Pod Disruption Budget for Database
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: education-database-pdb
+  namespace: education-production
+  labels:
+    app: database
+    tier: production
+    component: reliability
+spec:
+  selector:
+    matchLabels:
+      app: database
+  minAvailable: 1
+  maxUnavailable: 0

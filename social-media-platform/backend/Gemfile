@@ -1,0 +1,29 @@
+source 'https://rubygems.org'
+
+ruby '3.2.9'
+
+# Core web framework
+gem 'sinatra'
+
+# JSON handling
+gem 'json'
+
+# Database and cache
+gem 'pg'
+gem 'redis'
+
+# Web server
+gem 'puma'
+gem 'rackup'
+
+# Utilities
+gem 'rack-cors'
+
+# AI and ML dependencies
+gem 'httparty'        # For making HTTP requests to AI APIs
+gem 'nokogiri'        # For HTML parsing if needed
+gem 'set'            # For Set data structure used in recommendation engine
+
+group :development do
+  gem 'rerun'
+end

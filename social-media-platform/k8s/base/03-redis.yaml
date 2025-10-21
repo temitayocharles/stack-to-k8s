@@ -1,0 +1,110 @@
+# ====================================
+# Redis Deployment for Social Media Platform
+# Session store and background job queue
+# ====================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: social-redis-pvc
+  namespace: social-media
+  labels:
+    app: social-media-platform
+    component: redis
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-redis
+  namespace: social-media
+  labels:
+    app: social-media-platform
+    component: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-media-platform
+      component: redis
+  template:
+    metadata:
+      labels:
+        app: social-media-platform
+        component: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --appendonly
+        - "yes"
+        ports:
+        - containerPort: 6379
+          name: redis
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: social-secret
+              key: REDIS_PASSWORD
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - redis-cli -a $REDIS_PASSWORD ping | grep PONG
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - redis-cli -a $REDIS_PASSWORD ping | grep PONG
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: social-redis-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-redis
+  namespace: social-media
+  labels:
+    app: social-media-platform
+    component: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: social-media-platform
+    component: redis
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP

@@ -1,0 +1,713 @@
+@page "/telemedicine"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@using System.Text.Json
+
+<PageTitle>Telemedicine Platform</PageTitle>
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body p-4">
+                    <h3 class="mb-0">📹 Telemedicine Platform</h3>
+                    <p class="mb-0 opacity-8">Virtual consultations and remote patient care</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule New Session -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📅 Schedule New Session</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@sessionRequest" OnValidSubmit="@ScheduleSession">
+                        <div class="mb-3">
+                            <label class="form-label">Patient ID</label>
+                            <InputNumber @bind-Value="sessionRequest.PatientId" class="form-control" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Doctor ID</label>
+                            <InputNumber @bind-Value="sessionRequest.DoctorId" class="form-control" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Scheduled Date & Time</label>
+                            <input type="datetime-local" @bind="sessionRequest.ScheduledTime" class="form-control" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Session Notes</label>
+                            <InputTextArea @bind-Value="sessionRequest.Notes" class="form-control" rows="3" 
+                                         placeholder="Reason for consultation, symptoms, etc." />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" disabled="@isScheduling">
+                            @if (isScheduling)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <text>Scheduling...</text>
+                            }
+                            else
+                            {
+                                <text>📅 Schedule Session</text>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Info -->
+        <div class="col-lg-6">
+            @if (scheduledSession != null)
+            {
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">✅ Session Scheduled Successfully</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-video me-2"></i>
+                                Session ID: @scheduledSession.session_id
+                            </h6>
+                            <hr>
+                            <p class="mb-2">
+                                <strong>📅 Scheduled:</strong> @DateTime.Parse(scheduledSession.scheduled_time.ToString()).ToString("MMM dd, yyyy HH:mm")
+                            </p>
+                            <p class="mb-2">
+                                <strong>🏥 Room ID:</strong> @scheduledSession.meeting_details.room_id
+                            </p>
+                            <p class="mb-2">
+                                <strong>🔗 Join URL:</strong><br>
+                                <a href="@scheduledSession.meeting_details.join_url" class="text-break" target="_blank">
+                                    @scheduledSession.meeting_details.join_url
+                                </a>
+                            </p>
+                            <p class="mb-2">
+                                <strong>📞 Backup Phone:</strong> @scheduledSession.meeting_details.backup_phone
+                            </p>
+                        </div>
+
+                        <div class="mt-3">
+                            <h6>📋 Preparation Instructions:</h6>
+                            <ul class="mb-0">
+                                @foreach (var instruction in scheduledSession.session_info.preparation_instructions)
+                                {
+                                    <li>@instruction</li>
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-success me-2" @onclick="() => StartSession(scheduledSession.session_id)">
+                                <i class="fas fa-play"></i> Start Session
+                            </button>
+                            <button class="btn btn-info" @onclick="() => LoadPatientSessions(scheduledSession.patient_id)">
+                                <i class="fas fa-history"></i> View Patient History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-body text-center text-muted py-5">
+                        <i class="fas fa-calendar-plus fa-3x mb-3"></i>
+                        <p>Schedule a telemedicine session to see details here</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Active Session Controls -->
+    @if (activeSession != null)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            🔴 LIVE SESSION - ID: @activeSession.session_id
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">📹 Session Details</h6>
+                                    <p class="mb-1"><strong>Status:</strong> @activeSession.status</p>
+                                    <p class="mb-1"><strong>Started:</strong> @DateTime.Parse(activeSession.start_time.ToString()).ToString("HH:mm")</p>
+                                    <p class="mb-0"><strong>Room:</strong> @activeSession.meeting_room.room_id</p>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <a href="@activeSession.meeting_room.video_url" class="btn btn-success" target="_blank">
+                                        <i class="fas fa-video me-2"></i>Join Video Call
+                                    </a>
+                                    <button class="btn btn-danger" @onclick="ShowEndSessionModal">
+                                        <i class="fas fa-stop me-2"></i>End Session
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6>🛠️ Session Tools:</h6>
+                                <div class="list-group list-group-flush">
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        Patient Chart Access
+                                        <span class="badge bg-success">@(activeSession.session_tools.patient_chart_access ? "✅" : "❌")</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        Prescription Module
+                                        <span class="badge bg-success">@(activeSession.session_tools.prescription_module ? "✅" : "❌")</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        Note Taking
+                                        <span class="badge bg-success">@(activeSession.session_tools.note_taking ? "✅" : "❌")</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        Vital Signs Integration
+                                        <span class="badge bg-success">@(activeSession.session_tools.vital_signs_integration ? "✅" : "❌")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Doctor Schedule -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">👨‍⚕️ Doctor Schedule</h5>
+                    <div>
+                        <InputNumber @bind-Value="scheduleDoctorId" class="form-control d-inline-block w-auto me-2" placeholder="Doctor ID" />
+                        <button class="btn btn-sm btn-primary" @onclick="LoadDoctorSchedule">
+                            <i class="fas fa-calendar"></i> Load Schedule
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (doctorSchedule != null)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@doctorSchedule.total_appointments</h5>
+                                        <small>Today's Appointments</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@doctorSchedule.availability.busy_hours</h5>
+                                        <small>Busy Hours</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body py-2">
+                                        <h5 class="mb-1">@doctorSchedule.availability.available_slots.Count</h5>
+                                        <small>Available Slots</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Patient</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>
+                                        <th>Room</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var appointment in doctorSchedule.schedule)
+                                    {
+                                        <tr>
+                                            <td>@DateTime.Parse(appointment.scheduled_time.ToString()).ToString("HH:mm")</td>
+                                            <td>@appointment.patient_name</td>
+                                            <td>
+                                                <span class="badge bg-@GetStatusColor(appointment.status.ToString())">
+                                                    @appointment.status
+                                                </span>
+                                            </td>
+                                            <td>@appointment.estimated_duration min</td>
+                                            <td>@appointment.meeting_room_id</td>
+                                            <td>
+                                                @if (appointment.status.ToString() == "Scheduled")
+                                                {
+                                                    <button class="btn btn-sm btn-success" @onclick="() => StartSession(appointment.id)">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                }
+                                                else if (appointment.status.ToString() == "InProgress")
+                                                {
+                                                    <button class="btn btn-sm btn-info" @onclick="() => JoinSession(appointment.id)">
+                                                        <i class="fas fa-video"></i>
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if (doctorSchedule.availability.available_slots?.Count > 0)
+                        {
+                            <div class="mt-3">
+                                <h6>⏰ Available Time Slots:</h6>
+                                <div class="row">
+                                    @foreach (var slot in doctorSchedule.availability.available_slots)
+                                    {
+                                        <div class="col-md-2 mb-2">
+                                            <span class="badge bg-success">@slot</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Telemedicine Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-outline-primary mb-3" @onclick="LoadAnalytics">
+                        <i class="fas fa-chart-bar me-2"></i>Load Analytics
+                    </button>
+
+                    @if (analytics != null)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Analysis Period: @analytics.analytics_period</small>
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Session Statistics</h6>
+                                <p class="card-text">
+                                    <strong>Total Sessions:</strong> @analytics.session_statistics.total_sessions<br>
+                                    <strong>Completed:</strong> @analytics.session_statistics.completed_sessions<br>
+                                    <strong>Completion Rate:</strong> @analytics.session_statistics.completion_rate.ToString("F1")%
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Performance</h6>
+                                <p class="card-text">
+                                    <strong>Avg Duration:</strong> @analytics.performance_metrics.average_duration_minutes min<br>
+                                    <strong>Total Hours:</strong> @analytics.performance_metrics.total_consultation_hours<br>
+                                    <strong>Success Rate:</strong> @analytics.performance_metrics.technical_success_rate%
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Usage Trends</h6>
+                                <p class="card-text">
+                                    <strong>Sessions/Day:</strong> @analytics.usage_trends.sessions_per_day<br>
+                                    <strong>Follow-up Rate:</strong> @analytics.usage_trends.follow_up_rate.ToString("F1")%
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Sessions History -->
+    @if (patientSessions != null)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📋 Patient Session History - ID: @patientSessions.patient_id</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4 text-center">
+                                <h4 class="text-primary">@patientSessions.total_sessions</h4>
+                                <small class="text-muted">Total Sessions</small>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h4 class="text-warning">@patientSessions.upcoming_sessions</h4>
+                                <small class="text-muted">Upcoming</small>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h4 class="text-success">@patientSessions.completed_sessions</h4>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Doctor</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>
+                                        <th>Follow-up</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var session in patientSessions.sessions)
+                                    {
+                                        <tr>
+                                            <td>@DateTime.Parse(session.scheduled_time.ToString()).ToString("MMM dd, yyyy HH:mm")</td>
+                                            <td>@session.doctor_name</td>
+                                            <td>
+                                                <span class="badge bg-@GetStatusColor(session.status.ToString())">
+                                                    @session.status
+                                                </span>
+                                            </td>
+                                            <td>@session.duration_minutes min</td>
+                                            <td>
+                                                @if (session.has_follow_up)
+                                                {
+                                                    <span class="badge bg-info">
+                                                        @DateTime.Parse(session.follow_up_date.ToString()).ToString("MMM dd")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">None</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- End Session Modal -->
+@if (showEndModal)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🏁 End Telemedicine Session</h5>
+                    <button type="button" class="btn-close" @onclick="HideEndSessionModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@endSessionRequest">
+                        <div class="mb-3">
+                            <label class="form-label">Session Notes</label>
+                            <InputTextArea @bind-Value="endSessionRequest.SessionNotes" class="form-control" rows="4" 
+                                         placeholder="Summary of consultation, findings, etc." />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Treatment Plan</label>
+                            <InputTextArea @bind-Value="endSessionRequest.TreatmentPlan" class="form-control" rows="3" 
+                                         placeholder="Recommended treatment, medications, etc." />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="endSessionRequest.PrescriptionIssued" class="form-check-input" id="prescriptionCheck" />
+                                <label class="form-check-label" for="prescriptionCheck">
+                                    Prescription Issued
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="endSessionRequest.FollowUpRequired" class="form-check-input" id="followUpCheck" />
+                                <label class="form-check-label" for="followUpCheck">
+                                    Follow-up Required
+                                </label>
+                            </div>
+                        </div>
+                        
+                        @if (endSessionRequest.FollowUpRequired)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Follow-up Date</label>
+                                <input type="datetime-local" @bind="endSessionRequest.FollowUpDate" class="form-control" />
+                            </div>
+                        }
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideEndSessionModal">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="EndSession" disabled="@isEndingSession">
+                        @if (isEndingSession)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        End Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show position-fixed bottom-0 end-0 m-3" role="alert" style="z-index: 1060;">
+        <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+    </div>
+}
+
+@code {
+    private ScheduleSessionRequest sessionRequest = new() { ScheduledTime = DateTime.Now.AddDays(1) };
+    private EndSessionRequest endSessionRequest = new();
+    private bool isScheduling = false;
+    private bool isEndingSession = false;
+    private bool showEndModal = false;
+    private string errorMessage = string.Empty;
+    private int scheduleDoctorId = 1;
+    private int activeSessionId = 0;
+
+    // Data
+    private dynamic? scheduledSession;
+    private dynamic? activeSession;
+    private dynamic? doctorSchedule;
+    private dynamic? analytics;
+    private dynamic? patientSessions;
+
+    private async Task ScheduleSession()
+    {
+        try
+        {
+            isScheduling = true;
+            errorMessage = string.Empty;
+
+            var json = JsonSerializer.Serialize(sessionRequest);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await Http.PostAsync("http://localhost:5170/api/telemedicine/sessions/schedule", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                scheduledSession = JsonSerializer.Deserialize<dynamic>(responseContent);
+                
+                // Reset form
+                sessionRequest = new ScheduleSessionRequest { ScheduledTime = DateTime.Now.AddDays(1) };
+            }
+            else
+            {
+                errorMessage = $"Failed to schedule session: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error scheduling session: {ex.Message}";
+        }
+        finally
+        {
+            isScheduling = false;
+        }
+    }
+
+    private async Task StartSession(int sessionId)
+    {
+        try
+        {
+            var startRequest = new { DeviceInfo = "Web Browser", VideoEnabled = true, AudioEnabled = true };
+            var json = JsonSerializer.Serialize(startRequest);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await Http.PostAsync($"http://localhost:5170/api/telemedicine/sessions/{sessionId}/start", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                activeSession = JsonSerializer.Deserialize<dynamic>(responseContent);
+                activeSessionId = sessionId;
+            }
+            else
+            {
+                errorMessage = $"Failed to start session: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error starting session: {ex.Message}";
+        }
+    }
+
+    private async Task JoinSession(int sessionId)
+    {
+        await JSRuntime.InvokeVoidAsync("open", $"https://medical-video.com/room/TELE-{sessionId:X8}", "_blank");
+    }
+
+    private void ShowEndSessionModal()
+    {
+        showEndModal = true;
+        endSessionRequest = new EndSessionRequest();
+    }
+
+    private void HideEndSessionModal()
+    {
+        showEndModal = false;
+    }
+
+    private async Task EndSession()
+    {
+        try
+        {
+            isEndingSession = true;
+
+            var json = JsonSerializer.Serialize(endSessionRequest);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await Http.PostAsync($"http://localhost:5170/api/telemedicine/sessions/{activeSessionId}/end", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var endResult = JsonSerializer.Deserialize<dynamic>(responseContent);
+                
+                await JSRuntime.InvokeVoidAsync("alert", "Session ended successfully!");
+                
+                activeSession = null;
+                activeSessionId = 0;
+                showEndModal = false;
+            }
+            else
+            {
+                errorMessage = $"Failed to end session: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error ending session: {ex.Message}";
+        }
+        finally
+        {
+            isEndingSession = false;
+        }
+    }
+
+    private async Task LoadDoctorSchedule()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5170/api/telemedicine/sessions/doctor/{scheduleDoctorId}/schedule");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                doctorSchedule = JsonSerializer.Deserialize<dynamic>(content);
+            }
+            else
+            {
+                errorMessage = $"Failed to load doctor schedule: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading doctor schedule: {ex.Message}";
+        }
+    }
+
+    private async Task LoadAnalytics()
+    {
+        try
+        {
+            var response = await Http.GetAsync("http://localhost:5170/api/telemedicine/analytics/telemedicine");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                analytics = JsonSerializer.Deserialize<dynamic>(content);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading analytics: {ex.Message}";
+        }
+    }
+
+    private async Task LoadPatientSessions(int patientId)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5170/api/telemedicine/sessions/patient/{patientId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                patientSessions = JsonSerializer.Deserialize<dynamic>(content);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading patient sessions: {ex.Message}";
+        }
+    }
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Scheduled" => "primary",
+        "InProgress" => "success",
+        "Completed" => "info",
+        "Cancelled" => "danger",
+        _ => "secondary"
+    };
+
+    public class ScheduleSessionRequest
+    {
+        public int PatientId { get; set; }
+        public int DoctorId { get; set; }
+        public DateTime ScheduledTime { get; set; } = DateTime.Now.AddDays(1);
+        public string Notes { get; set; } = string.Empty;
+    }
+
+    public class EndSessionRequest
+    {
+        public string SessionNotes { get; set; } = string.Empty;
+        public string TreatmentPlan { get; set; } = string.Empty;
+        public bool PrescriptionIssued { get; set; } = false;
+        public bool FollowUpRequired { get; set; } = false;
+        public DateTime? FollowUpDate { get; set; }
+    }
+}

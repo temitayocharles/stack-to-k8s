@@ -1,0 +1,106 @@
+# ====================================
+# MongoDB StatefulSet for E-commerce
+# ====================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-mongodb
+  namespace: ecommerce
+  labels:
+    app: ecommerce-app
+    component: mongodb
+spec:
+  clusterIP: None  # Headless service for StatefulSet
+  selector:
+    app: ecommerce-app
+    component: mongodb
+  ports:
+  - name: mongodb
+    port: 27017
+    targetPort: 27017
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ecommerce-mongodb
+  namespace: ecommerce
+  labels:
+    app: ecommerce-app
+    component: mongodb
+spec:
+  serviceName: ecommerce-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-app
+      component: mongodb
+  template:
+    metadata:
+      labels:
+        app: ecommerce-app
+        component: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:7
+        ports:
+        - containerPort: 27017
+          name: mongodb
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: MONGODB_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secret
+              key: MONGODB_PASSWORD
+        - name: MONGO_INITDB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: ecommerce-config
+              key: MONGODB_DATABASE
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+      labels:
+        app: ecommerce-app
+        component: mongodb
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi

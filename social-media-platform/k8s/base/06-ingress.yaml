@@ -1,0 +1,50 @@
+# ====================================
+# Ingress for Social Media Platform
+# Supports WebSocket connections
+# ====================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: social-ingress
+  namespace: social-media
+  labels:
+    app: social-media-platform
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # WebSocket support
+    nginx.ingress.kubernetes.io/websocket-services: "social-backend"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: social.local
+    http:
+      paths:
+      # Frontend routes
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: social-frontend
+            port:
+              number: 80
+      
+      # Backend API routes
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: social-backend
+            port:
+              number: 3005
+      
+      # WebSocket routes
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: social-backend
+            port:
+              number: 3005

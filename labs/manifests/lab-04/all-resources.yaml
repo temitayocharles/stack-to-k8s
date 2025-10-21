@@ -1,0 +1,254 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: task-lab
+  labels:
+    app.kubernetes.io/name: task-lab
+    app.kubernetes.io/part-of: lab-04-task-manager
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-secret
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/component: database
+type: Opaque
+stringData:
+  MONGO_INITDB_ROOT_USERNAME: admin
+  MONGO_INITDB_ROOT_PASSWORD: secure_mongo_789
+  MONGODB_DATABASE: taskmanager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-mongo
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: task-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongo
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mongo
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: task-manager
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: mongo
+          image: mongo:7.0.2
+          ports:
+            - containerPort: 27017
+              name: mongo
+          envFrom:
+            - secretRef:
+                name: mongo-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 200Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-mongo
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/component: database
+spec:
+  selector:
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/component: database
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-backend
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: task-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: task-manager
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: task-backend
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: task-backend
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: task-manager
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: backend
+          image: temitayocharles/task-backend:latest
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+            - name: MONGODB_URI
+              value: mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@task-mongo:27017/taskmanager?authSource=admin
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 100Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+              ephemeral-storage: 300Mi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-backend
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: task-backend
+    app.kubernetes.io/component: api
+spec:
+  selector:
+    app.kubernetes.io/name: task-backend
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-frontend
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: task-frontend
+    app.kubernetes.io/component: ui
+    app.kubernetes.io/part-of: task-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: task-frontend
+      app.kubernetes.io/component: ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: task-frontend
+        app.kubernetes.io/component: ui
+        app.kubernetes.io/part-of: task-manager
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: frontend
+          image: temitayocharles/task-frontend:latest
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: API_URL
+              value: http://task-backend:5000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 50Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-frontend
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: task-frontend
+    app.kubernetes.io/component: ui
+spec:
+  selector:
+    app.kubernetes.io/name: task-frontend
+    app.kubernetes.io/component: ui
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: task-ingress
+  namespace: task-lab
+  labels:
+    app.kubernetes.io/name: task-ingress
+    app.kubernetes.io/part-of: task-manager
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: task.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: task-frontend
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: task-backend
+                port:
+                  number: 5000

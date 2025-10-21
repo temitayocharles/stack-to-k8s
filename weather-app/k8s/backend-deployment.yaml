@@ -1,0 +1,72 @@
+# ====================================
+# Backend Deployment for Weather Application
+# Flask API with Redis caching and OpenWeather API integration
+# ====================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-backend
+  namespace: weather-lab
+  labels:
+    app: weather-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: weather-backend
+  template:
+    metadata:
+      labels:
+        app: weather-backend
+    spec:
+      containers:
+      - name: backend
+        image: temitayocharles/weather-backend:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+        
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        - name: PORT
+          value: "5000"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        - name: OPENWEATHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: weather-secrets
+              key: api-key
+              optional: true
+        
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      
+      restartPolicy: Always

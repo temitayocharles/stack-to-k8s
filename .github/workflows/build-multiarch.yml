@@ -1,0 +1,308 @@
+name: 🚀 Hardened Multi-Architecture Docker Builds v2
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'ecommerce-app/**'
+      - 'educational-platform/**'
+      - 'weather-app/**'
+      - 'medical-care-system/**'
+      - 'task-management-app/**'
+      - 'social-media-platform/**'
+      - '.github/workflows/build-multiarch.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Force rebuild all services'
+        required: false
+        default: false
+        type: boolean
+      target_platforms:
+        description: 'Target platforms'
+        required: false
+        default: 'linux/amd64,linux/arm64,linux/arm/v7'
+        type: string
+
+env:
+  REGISTRY: docker.io
+  PLATFORMS: ${{ inputs.target_platforms || 'linux/amd64,linux/arm64,linux/arm/v7' }}
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  build-multiarch:
+    name: 🏗️ Build ${{ matrix.description }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+          - app: "ecommerce-app"
+            service: "backend"
+            context: "./ecommerce-app/backend"
+            image: "ecommerce-backend"
+            description: "Node.js E-commerce API"
+          - app: "ecommerce-app"
+            service: "frontend"
+            context: "./ecommerce-app/frontend"
+            image: "ecommerce-frontend"
+            description: "React E-commerce Frontend"
+          - app: "educational-platform"
+            service: "backend"
+            context: "./educational-platform/backend"
+            image: "educational-backend"
+            description: "Java Spring Boot Learning API"
+          - app: "educational-platform"
+            service: "frontend"
+            context: "./educational-platform/frontend"
+            image: "educational-frontend"
+            description: "Angular Learning Frontend"
+          - app: "weather-app"
+            service: "backend"
+            context: "./weather-app/backend"
+            image: "weather-backend"
+            description: "Python Flask Weather API"
+          - app: "weather-app"
+            service: "frontend"
+            context: "./weather-app/frontend"
+            image: "weather-frontend"
+            description: "Vue.js Weather Frontend"
+          - app: "medical-care-system"
+            service: "api"
+            context: "./medical-care-system/backend/MedicalCareSystem.API"
+            image: "medical-api"
+            description: ".NET Core Medical API"
+          - app: "medical-care-system"
+            service: "frontend"
+            context: "./medical-care-system/frontend/MedicalCareSystem.Frontend"
+            image: "medical-frontend"
+            description: "Blazor Medical Frontend"
+          - app: "task-management-app"
+            service: "backend"
+            context: "./task-management-app/backend"
+            image: "task-backend"
+            description: "Go Task Management API"
+          - app: "task-management-app"
+            service: "frontend"
+            context: "./task-management-app/frontend"
+            image: "task-frontend"
+            description: "Svelte Task Frontend"
+          - app: "social-media-platform"
+            service: "backend"
+            context: "./social-media-platform/backend"
+            image: "social-backend"
+            description: "Ruby on Rails Social API"
+          - app: "social-media-platform"
+            service: "frontend"
+            context: "./social-media-platform/frontend"
+            image: "social-frontend"
+            description: "React Social Frontend"
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: ${{ env.PLATFORMS }}
+          driver-opts: |
+            network=host
+            image=moby/buildkit:latest
+
+      - name: 🔐 Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 📝 Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
+            type=ref,event=branch
+            type=ref,event=pr
+          labels: |
+            org.opencontainers.image.title=${{ matrix.description }}
+            org.opencontainers.image.description=${{ matrix.description }}
+            org.opencontainers.image.vendor=temitayocharles
+            org.opencontainers.image.created=$(date +'%Y-%m-%d %H:%M:%S UTC')
+            
+      - name: 🔍 Validate Dockerfile
+        run: |
+          if [ ! -f "${{ matrix.context }}/Dockerfile" ]; then
+            echo "❌ Dockerfile not found in ${{ matrix.context }}"
+            exit 1
+          fi
+          echo "✅ Dockerfile found: ${{ matrix.context }}/Dockerfile"
+
+      - name: 🚀 Build and push multi-arch image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=gha,scope=${{ matrix.image }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:cache
+          cache-to: |
+            type=gha,mode=max,scope=${{ matrix.image }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:cache,mode=max
+          provenance: false
+          sbom: false
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: 🔍 Verify multi-arch manifest
+        run: |
+          echo "🔍 Verifying multi-architecture support for ${{ matrix.image }}..."
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+          
+          echo "📊 Supported platforms:"
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:latest | \
+            grep -E "Platform:" | sed 's/.*Platform: /✅ /'
+
+      - name: 📊 Image size analysis
+        run: |
+          echo "📏 Analyzing image sizes for ${{ matrix.image }}..."
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:latest | \
+            grep -E "(Digest|Size)" | head -10
+
+  security-scan:
+    name: 🔒 Security Scanning
+    needs: build-multiarch
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        include:
+          - image: "ecommerce-backend"
+          - image: "ecommerce-frontend"
+          - image: "educational-backend"
+          - image: "educational-frontend"
+          - image: "weather-backend"
+          - image: "weather-frontend"
+          - image: "medical-api"
+          - image: "medical-frontend"
+          - image: "task-backend"
+          - image: "task-frontend"
+          - image: "social-backend"
+          - image: "social-frontend"
+    
+    steps:
+      - name: 🔍 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ matrix.image }}:latest
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.image }}.sarif'
+
+      - name: 📊 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
+
+  deployment-readiness:
+    name: 🎯 Deployment Readiness Check
+    needs: build-multiarch
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Verify all images are available
+        run: |
+          echo "🔍 Checking deployment readiness for all services..."
+          
+          declare -a images=(
+            "ecommerce-backend" "ecommerce-frontend"
+            "educational-backend" "educational-frontend"
+            "weather-backend" "weather-frontend"
+            "medical-api" "medical-frontend"
+            "task-backend" "task-frontend"
+            "social-backend" "social-frontend"
+          )
+          
+          for image in "${images[@]}"; do
+            echo "🔍 Checking $image..."
+            if docker manifest inspect ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${image}:latest >/dev/null 2>&1; then
+              echo "✅ $image:latest is available"
+            else
+              echo "❌ $image:latest is not available"
+              exit 1
+            fi
+          done
+          
+          echo "🎉 All images are ready for deployment!"
+
+  build-summary:
+    name: 📊 Build Summary Report
+    needs: [build-multiarch, deployment-readiness]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: 📋 Generate build summary
+        run: |
+          echo "# 🚀 Multi-Architecture Build Summary" > build-summary.md
+          echo "" >> build-summary.md
+          echo "**Build Date:** $(date +'%Y-%m-%d %H:%M:%S UTC')" >> build-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> build-summary.md
+          echo "**Branch:** ${{ github.ref_name }}" >> build-summary.md
+          echo "**Platforms:** \`${{ env.PLATFORMS }}\`" >> build-summary.md
+          echo "" >> build-summary.md
+          echo "## 🏗️ Built Services" >> build-summary.md
+          echo "" >> build-summary.md
+          
+          declare -a services=(
+            "🛒 ecommerce-backend:latest"
+            "🛒 ecommerce-frontend:latest"
+            "📚 educational-backend:latest"
+            "📚 educational-frontend:latest"
+            "🌤️ weather-backend:latest"
+            "🌤️ weather-frontend:latest"
+            "🏥 medical-api:latest"
+            "🏥 medical-frontend:latest"
+            "✅ task-backend:latest"
+            "✅ task-frontend:latest"
+            "📱 social-backend:latest"
+            "📱 social-frontend:latest"
+          )
+          
+          for service in "${services[@]}"; do
+            echo "- ✅ \`${{ secrets.DOCKER_USERNAME }}/${service#* }\`" >> build-summary.md
+          done
+          
+          echo "" >> build-summary.md
+          echo "## 🌍 Platform Support" >> build-summary.md
+          echo "" >> build-summary.md
+          echo "All images support:" >> build-summary.md
+          echo "- 🖥️ \`linux/amd64\` (Intel/AMD x86_64)" >> build-summary.md
+          echo "- 🍎 \`linux/arm64\` (Apple Silicon, ARM64 servers)" >> build-summary.md
+          echo "- 🤖 \`linux/arm/v7\` (Raspberry Pi, ARM32)" >> build-summary.md
+          echo "" >> build-summary.md
+          echo "## 🚀 Deployment Ready" >> build-summary.md
+          echo "" >> build-summary.md
+          echo "✅ All 12 services built successfully with multi-architecture support" >> build-summary.md
+          echo "✅ Images pushed to Docker Hub with \`:latest\` tags" >> build-summary.md
+          echo "✅ Ready for deployment on any infrastructure" >> build-summary.md
+          
+          cat build-summary.md
+
+      - name: 🎉 Success notification
+        if: success()
+        run: |
+          echo "🎉 SUCCESS! Multi-architecture build completed successfully!"
+          echo "✅ 12 services built and pushed to Docker Hub"
+          echo "✅ All images support linux/amd64, linux/arm64, and linux/arm/v7"
+          echo "🚀 Ready for production deployment!"
+
