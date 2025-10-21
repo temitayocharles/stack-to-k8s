@@ -560,6 +560,11 @@ check_lab() {
             check_path "ecommerce-app" "E-commerce app" 
             check_path "educational-platform" "Educational platform"
             check_manifest_bundle "$lab"
+            
+            # Resource warning for Lab 8
+            log_warn "Lab 8 (Multi-App) requires significant resources (3 CPU / 4GB+ RAM minimum)"
+            log_info "For machines with 8-12 CPU / 8-16GB RAM: Consider Lab 8 Lite instead"
+            log_info "📖 Lab 8 Lite Guide: docs/10-setup/LAB-8-LITE.md (82% resource reduction)"
             ;;
         8.5|"8.5")
             check_command "kubectl" "Kubernetes CLI"

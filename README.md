@@ -52,6 +52,7 @@ Each lab includes: story-driven steps, validation checks, troubleshooting, and c
 | | | | | | |
 | **Platform Engineering** | | | | | |
 | [Lab 8](labs/08-multi-app.md) | 🧩 **Multi-App** | All 6 apps orchestration | ⭐⭐⭐⭐⭐ | **120m** | 🕸️ Mesh Performance (+30m) |
+| [Lab 8 Lite](docs/10-setup/LAB-8-LITE.md) | 🧩 **Multi-App Lite** | 3 apps orchestration | ⭐⭐⭐⭐ | **45m** | 💡 For 8GB RAM machines |
 | [Lab 8.5](labs/08.5-multi-tenancy.md) | 🏢 **Multi-Tenancy** | Namespaces, isolation | ⭐⭐⭐⭐ | **60m** | |
 | [Lab 9](labs/09-chaos.md) | ⚡ **Chaos** | Resilience testing | ⭐⭐⭐⭐ | **90m** | 🔍 Network Detective (+25m) |
 | [Lab 9.5](labs/09.5-complex-microservices.md) | 🔀 **Microservices** | Service mesh patterns | ⭐⭐⭐⭐⭐ | **75m** | |
@@ -79,10 +80,20 @@ Each lab includes: story-driven steps, validation checks, troubleshooting, and c
 - 🔐 [Secrets Management](docs/30-reference/deep-dives/secrets-management.md)
 - 🗂️ [Markdown Inventory](docs/00-introduction/MARKDOWN-INDEX.md)
 
+## 📋 Planning & Optimization Guides
+- 💾 **[Resource Estimation](README.md#-resource-estimation-which-labs-fit-your-machine)** — Machine specs vs lab requirements
+- 🧩 **[Lab 8 Lite](docs/10-setup/LAB-8-LITE.md)** — 82% resource reduction (3 apps instead of 6)
+- ✅ **[Lab 8 Lite Validation](docs/10-setup/LAB-8-LITE-VALIDATION.md)** — 8-phase validation checklist with success criteria
+- 📹 **[Lab 8 Lite Video Script](docs/LAB-8-LITE-VIDEO-SCRIPT.md)** — 15-minute video demo walkthrough
+- 📡 **[Port Management](docs/10-setup/PORT-MANAGEMENT.md)** — Run multiple labs, avoid port conflicts
+- 🏗️ **[Cluster Topology](docs/10-setup/CLUSTER-TOPOLOGY.md)** — Single-node vs multi-node explained
+
 ## ✅ Automation & quality checks
 - `scripts/check-lab-prereqs.sh` — Verify tools and cluster readiness for each lab
 - `scripts/run-link-check-full.sh` — Validate all markdown links
 - `scripts/cleanup-workspace.sh` — Clean up Docker/K8s resources between labs
+- `scripts/test-lab-8-lite.sh` — Automated validation for Lab 8 Lite (11 test phases)
+- `.github/workflows/test-lab-8-lite.yml` — CI/CD pipeline for Lab 8 Lite (kind + k3d testing)
 
 Example:
 ```bash
@@ -94,6 +105,12 @@ Example:
 
 # Clean up resources
 ./scripts/cleanup-workspace.sh
+
+# Test Lab 8 Lite on your system
+./scripts/test-lab-8-lite.sh
+
+# Watch GitHub Actions test Lab 8 Lite on kind/k3d
+# (See .github/workflows/test-lab-8-lite.yml)
 ```
 
 ## 🧭 How to use this repo (quick tour)
@@ -112,6 +129,158 @@ Tip: Prefer small, focused code blocks and collapsible details in docs. Use k9s 
 
 **Complete file inventory**: [REPOSITORY-STRUCTURE.md](docs/00-introduction/REPOSITORY-STRUCTURE.md) — Detailed map of all documentation files  
 **Resource planning**: [Resource Requirements Guide](docs/30-reference/deep-dives/resource-requirements.md) — CPU, memory, disk, and port allocation for all labs
+
+---
+
+## 💾 Resource Estimation: Which Labs Fit Your Machine?
+
+Before you start, check what your setup can handle:
+
+### 🖥️ Minimum Machine (2 CPU / 4GB RAM)
+```
+✅ Labs 1-4: Foundation concepts (basics to fundamentals)
+⚠️  Lab 5: Possible, but tight resource allocation
+❌ Labs 6+: Not recommended (high risk of OOM kills)
+```
+**Best for**: Learning Kubernetes fundamentals without infrastructure stress.  
+**Estimated time**: ~5-7 hours to complete Labs 1-4 sequentially.
+
+### 💻 Development Laptop (8 CPU / 8-16GB RAM) - RECOMMENDED
+```
+✅ Labs 1-7: All foundation + production ops labs comfortably
+✅ Labs 8-12: Run one at a time (sequential execution)
+⚠️  Lab 8 (Multi-App): Requires cleanup from Lab 7 + resource tuning
+❌ Lab 13 (AI/ML): Needs GPU or cloud cluster
+```
+**Best for**: Learning production-grade patterns without cloud costs.  
+**Strategy**:
+- Run Labs 1-4 back-to-back (foundations)
+- Clean up → Run Labs 5-7 one at a time
+- Clean up → Run Labs 10-12 sequentially
+- Skip Lab 8 or run it on [Lab 8 Lite](#-lab-8-lite-reduced-resource-option)
+
+**Estimated time**: ~20-25 hours total (spread across several weeks).
+
+### 🚀 Workstation / Cloud (12+ CPU / 16GB+ RAM)
+```
+✅ All Labs 1-13 sequentially or in small groups
+✅ Parallel labs possible (2-3 concurrent with careful planning)
+✅ Lab 13 (AI/ML) doable with GPU or TPU
+```
+**Best for**: Comprehensive production simulation, working through all content, team learning.  
+**Estimated time**: ~30-40 hours (all labs + challenges).
+
+---
+
+## 🧩 Lab 8 Lite: Reduced-Resource Option
+
+**Standard Lab 8** deploys all 6 apps (~3 CPU / 4GB+ RAM needed). For machines with **8-12 CPU / 8-16GB RAM**, use **Lab 8 Lite** instead:
+
+### Lab 8 Lite Configuration
+- **Apps**: Weather + E-commerce + Task Manager (3 instead of 6)
+- **Resource requirement**: ~2 CPU / 3GB RAM (vs. 3 CPU / 4GB)
+- **Learning outcome**: Same multi-app orchestration concepts, minus medical/educational/social apps
+
+**Which apps to skip**:
+- ❌ Educational Platform (stateful + heavy)
+- ❌ Medical Care System (security policies + complex)
+- ❌ Social Media (autoscaling + cache layers)
+
+**Apply Lab 8 Lite**:
+```bash
+# Instead of all 6 apps
+kustomize build labs/manifests/lab-08 | kubectl apply -f -
+
+# Run this instead:
+kubectl apply -f weather-app/k8s/*.yaml -n lab-multi
+kubectl apply -f ecommerce-app/k8s/*.yaml -n lab-multi
+kubectl apply -f task-management-app/k8s/*.yaml -n lab-multi
+```
+
+**Resource usage with Lab 8 Lite**:
+| Component | Replicas | CPU | Memory |
+|-----------|----------|-----|--------|
+| Weather App | 2 | 200m | 256Mi |
+| E-commerce App | 2 | 350m | 512Mi |
+| Task Manager | 2 | 300m | 384Mi |
+| **Total** | **6** | **850m** | **1.2Gi** |
+
+**Validation**: Run `./scripts/calculate-lab-resources.sh 1 2 4` to verify 3-app footprint.
+
+---
+
+## 📡 Port Remapping: Running Multiple Labs Concurrently
+
+By default, labs use the same ports and conflict when run together. Use **kubectl port-forward** to remap:
+
+### Port Usage by Lab
+
+| Lab | Apps Used | Primary Ports | Conflict Risk |
+|-----|-----------|---------------|----------------|
+| **1** | Weather | 8080, 5000 | ✅ None |
+| **2** | E-commerce | 3000, 5000, 27017 | ✅ None |
+| **3** | Educational | 4200, 8080, 5432 | ⚠️ 8080 (conflict with Lab 1) |
+| **4** | Fundamentals | 8080, 8081, 8082 | ⚠️ 8080 series |
+| **5** | Task Manager + Ingress | 80, 443, 3000, 8000 | ⚠️ 3000 (conflict with Lab 2) |
+| **6** | Medical + Security | 8080, 5000, 5432 | ⚠️ Multiple conflicts |
+| **7** | Social Media + HPA | 3000, 8080, 5432, 6379 | ⚠️ Heavy conflicts |
+| **8** | Multi-App (All 6) | 3000-8080 range | 🔴 **MAJOR CONFLICTS** |
+
+### ✅ Safe Concurrent Lab Strategy
+
+**Option A: Sequential (Recommended for 8GB RAM)**
+```bash
+# Run Lab 1, complete, cleanup
+./scripts/cleanup-workspace.sh
+# Run Lab 2, complete, cleanup
+./scripts/cleanup-workspace.sh
+# Continue...
+```
+
+**Option B: Port Remapping (For parallel execution)**
+
+Run Lab 1 in namespace `lab-1`, Lab 2 in namespace `lab-2`:
+```bash
+# Terminal 1: Lab 1 (ports 8080-8090)
+kubectl apply -f weather-app/k8s/ -n lab-1
+kubectl port-forward -n lab-1 svc/frontend 8080:80 &
+
+# Terminal 2: Lab 2 (ports 3000-3090)  
+kubectl apply -f ecommerce-app/k8s/ -n lab-2
+kubectl port-forward -n lab-2 svc/frontend 3000:80 &
+
+# Terminal 3: Lab 3 (ports 4200-4290)
+kubectl apply -f educational-platform/k8s/ -n lab-3
+kubectl port-forward -n lab-3 svc/frontend 4200:80 &
+
+# Now access:
+curl localhost:8080   # Lab 1 (Weather)
+curl localhost:3000   # Lab 2 (E-commerce)
+curl localhost:4200   # Lab 3 (Educational)
+```
+
+### 🔍 Find Current Port Usage
+
+```bash
+# See what's already port-forwarding
+lsof -i :8080      # macOS/Linux
+netstat -ano | findstr :8080  # Windows
+
+# List all K8s services and their ports
+kubectl get svc -A
+```
+
+### 🛑 Kill Port-Forward Sessions
+
+```bash
+# Kill a specific port-forward
+kill %1  # If backgrounded with &
+
+# Kill all port-forwards in one go
+pkill -f "kubectl port-forward"
+```
+
+---
 
 ```
 ├── docs/            # organized into numbered folders

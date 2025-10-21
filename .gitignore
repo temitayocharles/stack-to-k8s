@@ -154,6 +154,11 @@ chaos-test-results/
 security-scan-results/
 screenshots/
 performance-data/
+*.txt
+*-report.txt
+validate-links.full-report.txt
+test-*.txt
+*-test-results.txt
 
 # Log files - SHOULD NOT BE COMMITTED
 logs/

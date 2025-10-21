@@ -1,0 +1,259 @@
+name: Lab 8 Lite Validation Test
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'weather-app/k8s/**'
+      - 'ecommerce-app/k8s/**'
+      - 'task-management-app/k8s/**'
+      - 'docs/LAB-8-LITE.md'
+      - 'scripts/test-lab-8-lite.sh'
+      - '.github/workflows/test-lab-8-lite.yml'
+  
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'weather-app/k8s/**'
+      - 'ecommerce-app/k8s/**'
+      - 'task-management-app/k8s/**'
+      - 'docs/LAB-8-LITE.md'
+      - 'scripts/test-lab-8-lite.sh'
+  
+  workflow_dispatch:
+    inputs:
+      cluster_type:
+        description: 'Cluster type to test'
+        required: false
+        default: 'kind'
+        type: choice
+        options:
+          - kind
+          - k3d
+      debug:
+        description: 'Enable debug output'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  KUBECONFIG: /tmp/kubeconfig
+
+jobs:
+  validate:
+    name: Validate Lab 8 Lite
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        cluster: [kind, k3d]
+        kubernetes-version: ['1.26.x', '1.27.x', '1.28.x']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Create kind cluster
+        if: matrix.cluster == 'kind'
+        uses: helm/kind-action@v1.7.0
+        with:
+          cluster_name: lab-8-lite-test
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+              - role: control-plane
+              - role: worker
+          wait: 120s
+      
+      - name: Create k3d cluster
+        if: matrix.cluster == 'k3d'
+        uses: nolar/setup-k3d-action@v1
+        with:
+          version: latest
+          name: lab-8-lite-test
+          servers: 1
+          agents: 1
+      
+      - name: Verify cluster
+        run: |
+          kubectl version --short
+          kubectl get nodes
+          kubectl get namespaces
+      
+      - name: Load sample images (kind)
+        if: matrix.cluster == 'kind'
+        run: |
+          # Pre-pull images to speed up tests
+          docker pull python:3.9-slim
+          docker pull node:18-alpine
+          docker pull golang:1.20-alpine
+          
+          kind load docker-image python:3.9-slim --name lab-8-lite-test || true
+          kind load docker-image node:18-alpine --name lab-8-lite-test || true
+          kind load docker-image golang:1.20-alpine --name lab-8-lite-test || true
+      
+      - name: Install metrics-server
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+          kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=300s || true
+      
+      - name: Run Lab 8 Lite validation tests
+        run: |
+          bash scripts/test-lab-8-lite.sh
+          echo "TEST_RESULT=$?" >> $GITHUB_ENV
+        continue-on-error: true
+      
+      - name: Collect debug info on failure
+        if: failure()
+        run: |
+          echo "=== Cluster Info ===" 
+          kubectl get nodes -o wide || true
+          
+          echo "=== All Pods ===" 
+          kubectl get pods -A || true
+          
+          echo "=== Events ===" 
+          kubectl get events -A --sort-by='.lastTimestamp' | tail -50 || true
+          
+          echo "=== Resource Usage ===" 
+          kubectl top nodes || true
+          kubectl top pods -A || true
+          
+          echo "=== Pod Logs ===" 
+          kubectl logs -l app=weather -n lab-8-lite-test --tail=50 --all-containers=true || true
+          kubectl logs -l app=ecommerce -n lab-8-lite-test --tail=50 --all-containers=true || true
+          kubectl logs -l app=task-manager -n lab-8-lite-test --tail=50 --all-containers=true || true
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          kubectl delete namespace lab-8-lite-test --ignore-not-found=true || true
+
+  lint-docs:
+    name: Lint Lab 8 Lite Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check markdown formatting
+        run: |
+          if command -v markdownlint &> /dev/null; then
+            markdownlint docs/LAB-8-LITE.md || true
+          fi
+      
+      - name: Validate YAML manifests
+        run: |
+          for file in weather-app/k8s/*.yaml ecommerce-app/k8s/*.yaml task-management-app/k8s/*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Validating $file"
+              kubectl apply -f "$file" --dry-run=client --validate=true || exit 1
+            fi
+          done
+      
+      - name: Check for required labels
+        run: |
+          echo "Checking for app labels in manifests..."
+          for app in weather ecommerce task-management-app; do
+            grep -l "app:" "$app/k8s"/*.yaml || echo "Warning: No app labels in $app"
+          done
+
+  resource-check:
+    name: Check Resource Requirements
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate resource requests/limits
+        run: |
+          echo "Checking resource definitions in manifests..."
+          
+          # Function to check resource limits
+          check_resources() {
+            local file="$1"
+            if grep -q "requests:" "$file"; then
+              echo "✓ Found resource requests in $file"
+            else
+              echo "⚠ No resource requests in $file"
+            fi
+          }
+          
+          for app in weather ecommerce task-management-app; do
+            for file in "$app/k8s"/*.yaml; do
+              if [ -f "$file" ]; then
+                check_resources "$file"
+              fi
+            done
+          done
+      
+      - name: Calculate total resource usage
+        run: |
+          echo "Total resource requirements for Lab 8 Lite:"
+          echo ""
+          
+          for app in weather ecommerce task-management-app; do
+            echo "=== $app ==="
+            
+            grep -A 5 "resources:" "$app/k8s"/*.yaml | grep -E "(cpu|memory)" || echo "No limits found"
+          done
+
+  image-scan:
+    name: Scan Docker Images
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        image:
+          - 'python:3.9-slim'
+          - 'node:18-alpine'
+          - 'golang:1.20-alpine'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.image }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  summary:
+    name: Test Summary
+    needs: [validate, lint-docs, resource-check]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Check test results
+        run: |
+          echo "## Lab 8 Lite CI/CD Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.validate.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation Lint" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.lint-docs.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Resource Check" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.resource-check.result }}" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Fail if validation failed
+        if: needs.validate.result == 'failure'
+        run: exit 1

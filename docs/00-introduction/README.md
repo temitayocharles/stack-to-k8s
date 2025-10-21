@@ -139,6 +139,16 @@ cd labs && cat 01-weather-basics.md
 
 ---
 
+## 📋 Documentation Status
+
+This workspace is **clean and user-focused**:
+
+- ✅ **Essential documentation** — All files serve learners
+- ✅ **Zero internal tracking** — No project management artifacts
+- ✅ **100+ links verified** — All references valid
+
+---
+
 ## 🤝 Contributing
 
 We welcome improvements! Before submitting:

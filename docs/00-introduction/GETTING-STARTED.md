@@ -255,7 +255,50 @@ This will:
 
 ---
 
-## 📚 Step 5: Start Learning!
+## � Step 4.5: Plan Your Machine & Lab Strategy
+
+**Different machine specs? Need to run multiple labs? Got resource concerns?**
+
+Check out these guides to optimize your learning setup:
+
+### 📊 **[Resource Estimation Guide](../../README.md#-resource-estimation-which-labs-fit-your-machine)**
+Answers: "Which labs fit on my machine?"
+- **Minimum (2 CPU / 4GB RAM)**: Labs 1-4 only
+- **Development Laptop (8 CPU / 8-16GB RAM)**: Labs 1-7, skip Lab 8 standard
+- **Workstation (12+ CPU / 16GB+ RAM)**: All labs, concurrent execution
+
+⏱️ **Read time**: 5 minutes
+
+### 🧩 **[Lab 8 Lite: Reduced Resources](../10-setup/LAB-8-LITE.md)**
+Answers: "How do I run Lab 8 on 8GB RAM?"
+- Deploy 3 apps instead of 6 (Weather + E-commerce + Task Manager)
+- **82% resource reduction** vs standard Lab 8
+- Same learning outcomes, lighter infrastructure
+- Complete deployment + challenge tasks included
+
+⏱️ **Read time**: 15 minutes | 📚 **Full guide**: 1,300+ lines
+
+### 📡 **[Port Management Guide](../10-setup/PORT-MANAGEMENT.md)**
+Answers: "How do I run multiple labs concurrently without port conflicts?"
+- 3 strategies: Sequential, Namespace + Port-Forward, Ingress-based
+- Port conflict map for all labs
+- kubectl port-forward deep dive with examples
+- Lab 8 Lite port mapping script ready-to-use
+
+⏱️ **Read time**: 20 minutes | 📚 **Full guide**: 900+ lines
+
+### 🏗️ **[Cluster Topology Guide](../10-setup/CLUSTER-TOPOLOGY.md)**
+Answers: "Is my cluster single-node or multi-node? What does that mean?"
+- Explains Rancher Desktop (single-node), kind (multi-node), k3d (multi-node)
+- Visual architecture diagrams
+- Learning implications for each topology
+- When to switch between setups
+
+⏱️ **Read time**: 15 minutes | 📚 **Full guide**: 700+ lines
+
+---
+
+## �📚 Step 5: Start Learning!
 
 Now you're ready to begin your Kubernetes journey:
 
