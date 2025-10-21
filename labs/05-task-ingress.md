@@ -1268,7 +1268,7 @@ kubectl get secret task-tls -n task-lab -o jsonpath='{.data.tls\.crt}' | base64 
 
 ---
 
-## � Performance Benchmarking (Optional)
+## 📈 Performance benchmarking (optional)
 
 ### Load Testing Ingress Routing
 
@@ -1373,7 +1373,7 @@ hey -n 100 -c 10 -H "Host: task.local" http://$INGRESS_IP/api/tasks
 
 ---
 
-## �🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 6: Medical System - Security & RBAC](06-medical-security.md)**
 

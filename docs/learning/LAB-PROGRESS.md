@@ -23,7 +23,7 @@ Track your Kubernetes hero journey and celebrate every milestone with sparkles. 
   _Labels & selectors mastery · Troubleshooting gauntlet · kubectl pro tips_  
   Completed on: __________
 
-## �️ Stage 2 · Production Ops (⭐⭐)
+## 🛠️ Stage 2 · Production Ops (⭐⭐)
 - [ ] **Lab 5 · Task Manager Ingress** (45 min) ✅  
   _Ingress controllers · TLS · DNS routing_  
   Completed on: __________
@@ -55,7 +55,7 @@ Track your Kubernetes hero journey and celebrate every milestone with sparkles. 
 
 ---
 
-## �️ Expert Badge System (Optional Advanced Challenges)
+## 🏅 Expert badge system (optional advanced challenges)
 
 > 💡 **These are 100% OPTIONAL!** Complete the standard labs to master Kubernetes. Expert badges are for those who want to dive deeper into production debugging, performance tuning, and senior-level topics. **You don't need these to graduate!**
 
@@ -225,7 +225,7 @@ Want more context? Every Expert Mode links to the comprehensive reference doc:
 
 ---
 
-## �🏆 Milestones Unlocked
+## 🏆 Milestones unlocked
 - [ ] 🐣 **First Pod Online** — You made it to the cluster!
 - [ ] 🔌 **Services Talking** — Multi-tier traffic flowing
 - [ ] 💾 **Data Stays Put** — StatefulSets + backups configured

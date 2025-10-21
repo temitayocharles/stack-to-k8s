@@ -10,11 +10,11 @@ Implement GitOps workflows using ArgoCD to keep cluster state synchronized with 
 ## 🎯 Objective
 Master GitOps - the modern way to deploy and manage Kubernetes applications. Learn to set up ArgoCD, create GitOps workflows, and achieve continuous deployment where Git is the single source of truth.
 
-## � Assumed Knowledge
+## 📘 Assumed knowledge
 **Required**: Helm (Lab 10), Kubernetes manifests (Labs 1-4), Git basics  
 **Helpful**: CI/CD concepts, multi-environment deployment strategies
 
-## �📋 What You'll Learn
+## 📋 What you'll learn
 - GitOps principles and benefits
 - ArgoCD installation and configuration
 - Application deployment via Git repositories

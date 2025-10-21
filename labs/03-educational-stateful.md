@@ -1340,7 +1340,7 @@ Ready to verify your mastery? Take the **[Lab 3 Self-Assessment Quiz](../docs/le
 
 **⏱️ Time**: +15 minutes  
 **🎯 Difficulty**: ⭐⭐⭐⭐ (Advanced)  
-**�� Prerequisites**: Complete Lab 3 Observability section above
+**Prerequisites**: Complete Lab 3 observability section above
 
 ### The Scenario
 
@@ -1407,7 +1407,7 @@ Complete this challenge and you've earned:
 
 ---
 
-## � Ready for a Real Challenge?
+## 💪 Ready for a real challenge?
 
 **You've mastered StatefulSets and persistent storage!** Now test your skills under pressure:
 
@@ -1432,7 +1432,7 @@ This challenge cements everything you've learned in Labs 1-3. It's optional but 
 
 ---
 
-## �🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 4: Kubernetes Fundamentals Deep Dive](04-kubernetes-fundamentals.md)**
 

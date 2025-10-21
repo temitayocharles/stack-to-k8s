@@ -465,7 +465,7 @@ kubectl delete namespace <name>
 
 ---
 
-## � Production vs Lab: What Changes in Real Life?
+## 🏭 Production vs lab: what changes in real life?
 
 You've learned to deploy pods with basic manifests. But **production Kubernetes** looks very different! Here's what you'd actually deploy at scale:
 

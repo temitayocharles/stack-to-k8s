@@ -7,7 +7,7 @@ Build a multi-service storefront (backend, frontend, DB) and validate service di
 **Difficulty**: ⭐⭐ Intermediate  
 **Focus**: Multi-tier apps, ConfigMaps, Service Discovery, MongoDB, Redis
 
-## � Production vs Lab: What Changes in Real Life?
+## 🏭 Production vs lab: what changes in real life?
 
 Before diving into debugging, let's see how **Lab 2's simplified multi-tier deployment** compares to **real-world production e-commerce systems**. This lab focuses on core concepts (service discovery, StatefulSets, persistence), but production adds critical layers for data integrity, security, and performance.
 
@@ -416,7 +416,7 @@ Ready to debug some broken e-commerce infrastructure? Let's go! 🛠️
 
 ---
 
-## 🔨 Break ## �🔨 Break & Fix Challenge Fix Challenge
+## 🔨 Break & fix challenge
 
 **🟡 Debug Level 2** - Intermediate: Service discovery, multi-service communication
 
@@ -1209,7 +1209,7 @@ kubectl exec -n ecommerce-lab $BACKEND_POD -- env | grep DATABASE
 
 ---
 
-## � Performance Benchmarking (Optional)
+## 📈 Performance benchmarking (optional)
 
 ### Load Testing with `hey`
 
@@ -1302,7 +1302,7 @@ hey -n 10000 -c 50 http://$BACKEND_IP:3001/api/products
 
 ---
 
-## �🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 3: Educational Platform - Stateful Apps](03-educational-stateful.md)**
 

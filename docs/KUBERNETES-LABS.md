@@ -171,7 +171,7 @@ graph TD
 
 ---
 
-## �🚀 Quick Start
+## 🚀 Quick start
 
 ### Prerequisites (smoke checks)
 ```bash

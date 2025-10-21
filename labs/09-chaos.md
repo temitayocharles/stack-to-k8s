@@ -10,11 +10,11 @@ Practice resilience by injecting controlled failures and validating system recov
 ## 🎯 Objective
 Learn chaos engineering by intentionally breaking things and watching how Kubernetes recovers. Test application resilience under failure conditions.
 
-## � Assumed Knowledge
+## 📘 Assumed knowledge
 **Required**: Deployments & Self-healing (Labs 1-4), Resource limits (Lab 4), Scaling (Lab 7)  
 **Helpful**: Observability and monitoring concepts (Lab 8)
 
-## �📋 What You'll Learn
+## 📋 What you'll learn
 - Chaos Mesh basics
 - Pod failure scenarios
 - Network delays & partitions

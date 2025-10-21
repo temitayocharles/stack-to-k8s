@@ -10,11 +10,11 @@ Learn Helm to package, templatize, and deliver Kubernetes applications reproduci
 ## 🎯 Objective
 Master Helm - the "package manager for Kubernetes". Learn to use existing charts, customize them, and create your own charts for deployment automation.
 
-## � Assumed Knowledge
+## 📘 Assumed knowledge
 **Required**: YAML manifests (Labs 1-4), ConfigMaps (Lab 2), Multi-app patterns (Lab 8)  
 **Helpful**: Templating concepts, version control basics
 
-## �📋 What You'll Learn
+## 📋 What you'll learn
 - Helm basics (chart, release, repository)
 - Installing public charts (nginx, PostgreSQL)
 - Values customization and overrides

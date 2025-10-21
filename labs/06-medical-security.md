@@ -584,11 +584,11 @@ Ready to harden your medical system? Let's go! 🔒
 ## 🎯 Objective
 Deploy medical care system with production-grade security. Learn Kubernetes security fundamentals including RBAC, network policies, and secrets management.
 
-## � Assumed Knowledge
+## 📘 Assumed knowledge
 **Required**: Services & Selectors (Labs 1-4), Ingress concepts (Lab 5)  
 **Helpful**: Basic security concepts, least-privilege principles
 
-## �📋 What You'll Learn
+## 📋 What you'll learn
 - Role-Based Access Control (RBAC)
 - Service Accounts
 - Network Policies

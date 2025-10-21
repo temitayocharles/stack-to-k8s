@@ -28,7 +28,7 @@ Ready to verify your mastery? Take the **[Lab 7 Self-Assessment Quiz](../docs/le
 
 ---
 
-## � Ready for the Ultimate Scaling Challenge?
+## 💪 Ready for the ultimate scaling challenge?
 
 **You've mastered autoscaling and performance optimization!** Now face a real Black Friday scenario:
 
@@ -54,7 +54,7 @@ This challenge tests everything you learned about scaling, HPA, resource managem
 
 ---
 
-## �🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 8: Multi-App Orchestration](08-multi-app.md)**
 - Resource requests & limits
@@ -795,7 +795,7 @@ kubectl describe pod <name> -n <namespace>
 
 ---
 
-## � Performance Benchmarking (Optional)
+## 📈 Performance benchmarking (optional)
 
 ### Autoscaling Under Load
 
@@ -929,7 +929,7 @@ Recommendations:
 
 ---
 
-## �🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 8: Multi-App Orchestration](08-multi-app.md)**
 

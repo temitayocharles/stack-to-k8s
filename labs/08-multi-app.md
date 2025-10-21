@@ -10,11 +10,11 @@ Deploy and observe multiple apps together with a service mesh and centralized mo
 ## 🎯 Objective
 Deploy all 6 applications together and learn how to manage complex multi-app environments with service mesh, monitoring, and logging.
 
-## � Assumed Knowledge
+## 📘 Assumed knowledge
 **Required**: All Labs 1-7 (especially selectors, ingress, RBAC, scaling)  
 **Why build up first**: Multi-app orchestration combines every concept from previous labs.
 
-## �📋 What You'll Learn
+## 📋 What you'll learn
 - Deploy multiple apps simultaneously
 - Service mesh basics (Istio)
 - Centralized logging (Loki)

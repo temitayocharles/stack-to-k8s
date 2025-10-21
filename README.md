@@ -4,11 +4,11 @@ Six real-world apps. Twenty hands-on labs. One rigorous journey to production-gr
 
 ---
 
-## � New Here? Start Here!
+## 🎯 New here? Start here
 
 **→ [📖 GETTING STARTED GUIDE](docs/GETTING-STARTED.md) ← START HERE**
 
-Complete onboarding in 30 minutes:
+Complete onboarding in ~30 minutes:
 - ✅ Tool installation (Rancher Desktop or kind/k3d)
 - ✅ Verification steps
 - ✅ Your first kubectl command
