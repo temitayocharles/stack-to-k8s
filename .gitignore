@@ -370,3 +370,12 @@ static/uploads/
 # Generated files
 dist/
 *.generated.*
+
+# Documentation and site generators
+docs/_build/
+docs/.jekyll-cache/
+docs/site/
+docs/public/
+docs/.sass-cache/
+site/
+
