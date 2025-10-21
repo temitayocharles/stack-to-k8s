@@ -723,7 +723,7 @@ Ready to verify your mastery? Take the **[Lab 2 Self-Assessment Quiz](../docs/le
 
 ---
 
-## 🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 3: Educational Platform Stateful Apps](03-educational-stateful.md)**ce discovery, ConfigMaps
 

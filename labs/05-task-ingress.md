@@ -681,7 +681,7 @@ Ready to verify your mastery? Take the **[Lab 5 Self-Assessment Quiz](../docs/le
 
 ---
 
-## 🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 6: Medical System with Security](06-medical-security.md)** (RBAC)
 - Path-based routing

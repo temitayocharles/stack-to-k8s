@@ -1155,7 +1155,7 @@ Complete this challenge and you've earned:
 
 ---
 
-## 🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 9: Chaos Engineering](09-chaos.md)**
 

@@ -1222,7 +1222,7 @@ Ready to verify your mastery? Take the **[Lab 1 Self-Assessment Quiz](../docs/le
 
 ---
 
-## 🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 2: E-commerce Multi-Service](02-ecommerce-basics.md)**
 

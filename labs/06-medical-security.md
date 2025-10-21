@@ -1687,7 +1687,7 @@ Ready to verify your mastery? Take the **[Lab 6 Self-Assessment Quiz](../docs/le
 
 ---
 
-## 🚀 Next Lab
+## 🚀 Next lab
 
 **[Lab 7: Social Platform with Scaling](07-social-scaling.md)**
 

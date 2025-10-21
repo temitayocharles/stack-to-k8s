@@ -1,5 +1,23 @@
-# Social Media Platform
+# 📱 Social media platform
 
-**Practice this app in**: [Lab 7: Social Media Scaling](../labs/07-social-scaling.md)
+Sample app (React Native + Ruby + Postgres) for autoscaling and performance labs.
 
-See [KUBERNETES-LABS.md](../docs/KUBERNETES-LABS.md) for complete learning path.
+## 📍 Where to practice
+
+- Primary: [Lab 7 · Social scaling](../labs/07-social-scaling.md)
+- Roadmap: [Kubernetes labs](../docs/KUBERNETES-LABS.md)
+
+## 🧱 Architecture
+
+- Overview: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Kubernetes manifests: [`k8s/`](k8s/) · Advanced: [`k8s/advanced-features/README.md`](k8s/advanced-features/README.md)
+
+## ▶️ How to run
+
+- In Kubernetes: follow [Lab 7](../labs/07-social-scaling.md)
+- Locally: use `docker-compose.yml`
+
+## 🔗 Related
+
+- Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
+- Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)
