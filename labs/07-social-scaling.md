@@ -67,10 +67,60 @@ This challenge tests everything you learned about scaling, HPA, resource managem
 ## ✅ Prerequisites Check
 
 ```bash
-./scripts/check-lab-prereqs.sh 6
+./scripts/check-lab-prereqs.sh 7
 ```
 
 Ensures `kubectl`, `helm`, and the social media manifests are ready to go.
+
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 7`
+
+**This lab needs**:
+- **CPU**: 900m requests, 3.4 CPU limits
+- **Memory**: 1.2Gi requests, 4.5Gi limits
+- **Pods**: 8 total (2-4 frontend, 2-4 backend with HPA, 1 PostgreSQL, 1 Redis)
+- **Disk**: ~1200MB for container images + 2Gi PVC
+- **Ports**: 3000, 8080, 5432, 6379, 30300, 30380
+
+**Minimum cluster**: 4 CPU cores, 5GB RAM, 3GB disk  
+**Estimated time**: 50 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| React Frontend (HPA: 2-4) | 2 | 100m | 500m | 128Mi | 512Mi |
+| Go Backend API (HPA: 2-4) | 2 | 200m | 800m | 256Mi | 1Gi |
+| PostgreSQL | 1 | 200m | 500m | 384Mi | 1Gi |
+| Redis Cache | 1 | 100m | 200m | 128Mi | 256Mi |
+| Metrics Server | 1 | 100m | 200m | 128Mi | 256Mi |
+| **Totals (min)** | **8** | **900m** | **3.4** | **1.2Gi** | **4.5Gi** |
+
+**Port Allocation**:
+- **3000**: React frontend
+- **8080**: Go backend API
+- **5432**: PostgreSQL database
+- **6379**: Redis cache
+- **30300**: NodePort for frontend access
+- **30380**: NodePort for backend API
+
+**Horizontal Pod Autoscaler (HPA) Behavior**:
+- **Frontend**: Scales 2 → 4 replicas when CPU > 70%
+- **Backend**: Scales 2 → 4 replicas when CPU > 70%
+- **Metrics Server**: Required for HPA to function
+- **Max resources**: Can grow to 1.3 CPU request, 5.2 CPU limits at full scale
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- **HPA requires Metrics Server** (automatically installed in most clusters)
+- Resource requests enable proper autoscaling decisions
+- Redis caching reduces database load during traffic spikes
+- This lab simulates viral content scenarios with load testing
+
+</details>
 
 ## 🧭 Architecture Snapshot
 
@@ -888,6 +938,94 @@ Recommendations:
 1. What metric does the basic HPA example use to scale pods?
 2. Why are resource requests required for HPA to function properly?
 3. What does `stabilizationWindowSeconds` control in HPA behavior?
+
+
+---
+
+## 🎖️ Expert Mode: Cluster Autoscaler Debugging
+
+> 💡 **Optional Challenge** — Master production scaling mysteries! **This is NOT required** to progress, but completing it unlocks the **📈 Scaling Architect** badge!
+
+**⏱️ Time**: +20 minutes  
+**🎯 Difficulty**: ⭐⭐⭐⭐ (Advanced)  
+**📋 Prerequisites**: Complete Lab 7 HPA setup above
+
+### The Scenario
+
+Your HPA scaled up pods to 10 replicas, but 5 pods are stuck `Pending`. You have Cluster Autoscaler installed, but **it's not adding nodes**:
+
+```bash
+kubectl get pods -n social-lab
+# NAME                      READY   STATUS    AGE
+# social-backend-abc-1      1/1     Running   10m
+# social-backend-abc-2      1/1     Running   10m
+# social-backend-abc-3      0/1     Pending   5m
+# social-backend-abc-4      0/1     Pending   5m
+# social-backend-abc-5      0/1     Pending   5m
+```
+
+**Your application is degraded because pods can't schedule!**
+
+### Challenge: Debug Why Autoscaler Won't Scale
+
+**Your Mission**:
+1. Check Cluster Autoscaler logs
+2. Verify node group limits (min/max)
+3. Inspect pod events for scheduling failures
+4. Check PodDisruptionBudgets
+5. Fix the issue and verify scale-up
+
+**Hints**:
+```bash
+# Find autoscaler pod
+kubectl get pods -n kube-system | grep cluster-autoscaler
+
+# Check logs
+kubectl logs -n kube-system cluster-autoscaler-xxx --tail=50
+
+# Check node group config (AWS example)
+aws autoscaling describe-auto-scaling-groups --query 'AutoScalingGroups[*].[AutoScalingGroupName,MinSize,MaxSize,DesiredCapacity]'
+
+# Check pod events
+kubectl describe pod social-backend-abc-3 -n social-lab
+
+# Check PDBs
+kubectl get pdb --all-namespaces
+```
+
+### Expected Outcome
+
+- ✅ Identify root cause (max nodes, IAM perms, PDB, etc.)
+- ✅ Fix configuration
+- ✅ Autoscaler adds nodes
+- ✅ Pending pods schedule successfully
+
+### Deep Dive: What You're Learning
+
+**Production Skills**:
+- Cluster Autoscaler troubleshooting
+- Node group configuration
+- Pod scheduling constraints
+- PodDisruptionBudget impact
+
+**Interview Topics**:
+- "Pods are pending, autoscaler won't scale—walk me through your top 3 debugging steps"
+- "How do PodDisruptionBudgets affect autoscaling?"
+- "What's the difference between HPA and Cluster Autoscaler?"
+
+**Real-World Impact**: **Airbnb's 2021 Black Friday issue**—Cluster Autoscaler hit max node count during traffic spike. Pods stayed pending, bookings failed. Engineers who spotted the ASG limit saved $5M in lost revenue.
+
+### Complete Guide
+
+For detailed autoscaler debugging steps, see:  
+**[Senior K8s Debugging Guide: Cluster Autoscaler](../../docs/reference/senior-k8s-debugging.md#13-pods-pending---cluster-autoscaler-wont-scale)**
+
+### Badge Unlocked! 🎉
+
+Complete this challenge and you've earned:  
+**📈 Scaling Architect** — You can troubleshoot production scaling issues!
+
+**Track your progress**: [Lab Progress Tracker](../../docs/learning/LAB-PROGRESS.md#expert-badges)
 
 ## 🏆 Challenge Mode
 

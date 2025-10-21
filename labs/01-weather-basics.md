@@ -36,6 +36,40 @@ Before you dive in, make sure your workstation is ready:
 
 This verifies `kubectl`, the Weather app manifests, and the optional manifest overlay are present.
 
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) for all labs, port allocation matrix, and optimization tips.
+
+**This lab needs**:
+- **CPU**: 300m requests, 1.45 CPU limits
+- **Memory**: 384Mi requests, 1.5Gi limits
+- **Pods**: 4 total (1 Redis, 1 backend, 2 frontend)
+- **Disk**: ~200MB for container images
+- **Ports**: Frontend (8080), Backend (5000)
+
+**Minimum cluster**: 2 CPU cores, 4GB RAM, 10GB disk  
+**Estimated time**: 20 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | CPU Request | CPU Limit | Memory Request | Memory Limit | Replicas |
+|-----------|-------------|-----------|----------------|--------------|----------|
+| Redis | 50m | 200m | 64Mi | 256Mi | 1 |
+| Backend | 100m | 500m | 128Mi | 512Mi | 1 |
+| Frontend | 50m | 250m | 64Mi | 256Mi | 2 |
+
+**Port Allocation**:
+- Frontend Service: 80 (ClusterIP)
+- Frontend Port-Forward: 8080 → 80 (browser access)
+- Backend Service: 5000 (ClusterIP)
+- Backend Port-Forward: 5000 → 5000 (API testing)
+- Redis: 6379 (internal only)
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main` (repository root)
+
+</details>
+
 ## 🧭 Architecture Snapshot
 
 ```mermaid
@@ -100,7 +134,18 @@ Check your answers after completing the lab.
 
 - Add a simple readiness probe to the frontend deployment that checks `/` (root path) and verify the pod stays in Ready state during a simulated slow backend response (use `kubectl exec` to simulate delay if needed).
 
-## �🚀 Steps
+## 🚀 Steps
+
+> **📂 Working Directory**: All commands below assume you're in the **repository root** (`/path/to/stack-to-k8s-main`). If you just cloned the repo, you're already there!
+>
+> ```bash
+> # Verify you're in the right place
+> pwd
+> # Should show: /path/to/stack-to-k8s-main
+> 
+> # If not, navigate there
+> cd /path/to/stack-to-k8s-main
+> ```
 
 ### 1. Verify Cluster (2 min)
 
@@ -114,10 +159,14 @@ kubectl get nodes
 # Should see: 1+ nodes in Ready state
 ```
 
+**✅ Success Check**: Node status shows `Ready`, control plane is reachable
+
+---
+
 ### 2. Create Namespace (1 min)
 
 ```bash
-# Create isolated environment
+# Create isolated environment for this lab
 kubectl create namespace weather-lab
 
 # Safer option (recommended): prefer using -n on kubectl commands rather than switching your current kubectl context
@@ -129,9 +178,13 @@ kubectl config set-context --current --namespace=weather-lab
 # To restore:
 kubectl config set-context --current --namespace="$PREV_NS"
 
-# Verify
+# Verify namespace was created
 kubectl get namespace weather-lab
 ```
+
+**✅ Success Check**: Namespace `weather-lab` exists and is `Active`
+
+---
 
 ### 3. Deploy Backend (5 min)
 
@@ -976,6 +1029,190 @@ curl http://localhost:5000/api/health
 ✅ **Events are king**: `kubectl get events` shows most issues immediately  
 
 **Real-world stat**: Label/selector mismatches cause 30% of Kubernetes incidents. You just debugged the most common production issue!
+
+---
+
+## 🎖️ Expert Mode: Advanced CrashLoopBackOff Debugging
+
+> 💡 **Optional Challenge** — This section is for those who want to master senior-level debugging skills. **Completing this is NOT required** to progress to Lab 2, but it will unlock the **🔬 Forensic Investigator** badge!
+
+**⏱️ Time**: +20 minutes  
+**🎯 Difficulty**: ⭐⭐⭐⭐ (Advanced)  
+**📚 Prerequisites**: Complete Break & Fix section above
+
+### The Scenario
+
+It's 2:47 AM. You're on-call. A pod is in `CrashLoopBackOff`, but:
+- ❌ `kubectl logs` shows **nothing**
+- ❌ `kubectl describe` shows **no obvious errors**
+- ❌ Exit code is `1` (generic failure)
+
+**This is the scenario that stumps 70% of intermediate Kubernetes engineers in interviews.**
+
+### Challenge: Debug Beyond kubectl
+
+Your mission: Use advanced debugging techniques to find out why the pod crashes.
+
+#### Step 1: Deploy the Mystery Pod
+
+```bash
+# Deploy a pod that crashes with no logs
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mystery-crash
+  namespace: weather-lab
+spec:
+  containers:
+  - name: app
+    image: busybox:1.28
+    command: ["/bin/sh"]
+    args: ["-c", "/app/run.sh"]
+    volumeMounts:
+    - name: app-code
+      mountPath: /app
+  volumes:
+  - name: app-code
+    configMap:
+      name: mystery-app
+      defaultMode: 0644  # ← Key clue!
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mystery-app
+  namespace: weather-lab
+data:
+  run.sh: |
+    #!/bin/sh
+    echo "Starting app..."
+    sleep 5
+    echo "App started successfully!"
+EOF
+```
+
+#### Step 2: Observe the Problem
+
+```bash
+# Pod will crash immediately
+kubectl get pod mystery-crash -n weather-lab -w
+
+# Try standard debugging (won't help!)
+kubectl logs mystery-crash -n weather-lab
+# Output: (empty)
+
+kubectl describe pod mystery-crash -n weather-lab
+# Last State: Terminated, Reason: Error, Exit Code: 1
+```
+
+### Advanced Debugging Techniques
+
+#### Technique 1: Ephemeral Debug Container (K8s 1.23+)
+
+```bash
+# Attach a debug container to inspect the crashed pod
+kubectl debug mystery-crash -n weather-lab -it \
+  --image=busybox:1.28 \
+  --target=app \
+  --copy-to=mystery-crash-debug
+
+# Inside the debug container:
+ls -la /app
+# Notice: run.sh has NO execute permission!
+
+# Check permissions
+stat /app/run.sh
+# Output: Access: (0644/-rw-r--r--)  ← Not executable!
+```
+
+**Root Cause**: ConfigMap `defaultMode: 0644` means files are NOT executable. Should be `0755`.
+
+#### Technique 2: Check Container Logs Directly (Node Access)
+
+```bash
+# Find which node the pod is on
+kubectl get pod mystery-crash -n weather-lab -o wide
+
+# If you have node access (e.g., kind cluster):
+docker exec -it <node-name> sh
+
+# Find container logs (bypasses kubectl caching)
+crictl ps -a | grep mystery-crash
+crictl logs <container-id>
+# Shows: /bin/sh: /app/run.sh: Permission denied
+```
+
+#### Technique 3: Inspect Image & Entrypoint
+
+```bash
+# What command actually runs?
+kubectl get pod mystery-crash -n weather-lab -o json | jq '.spec.containers[0].command'
+
+# Inspect the image locally
+docker run --rm --entrypoint sh busybox:1.28 -c 'ls -la /app 2>&1'
+```
+
+### The Fix
+
+```bash
+# Delete broken pod
+kubectl delete pod mystery-crash -n weather-lab
+
+# Recreate with correct permissions
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mystery-app
+  namespace: weather-lab
+data:
+  run.sh: |
+    #!/bin/sh
+    echo "Starting app..."
+    sleep 5
+    echo "App started successfully!"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mystery-crash-fixed
+  namespace: weather-lab
+spec:
+  containers:
+  - name: app
+    image: busybox:1.28
+    command: ["/bin/sh"]
+    args: ["-c", "/app/run.sh"]
+    volumeMounts:
+    - name: app-code
+      mountPath: /app
+  volumes:
+  - name: app-code
+    configMap:
+      name: mystery-app
+      defaultMode: 0755  # ✅ FIXED: Executable permissions
+EOF
+
+# Verify it works
+kubectl logs mystery-crash-fixed -n weather-lab -f
+```
+
+### 🏆 Badge Unlocked: 🔬 Forensic Investigator
+
+**Congratulations!** You've mastered debugging pods with no logs. This skill is invaluable for:
+- Production incidents where logs are lost
+- Crashes that happen before logging frameworks initialize
+- Permission and file system issues
+
+**Next Level**: Learn more advanced debugging in [Senior Kubernetes Debugging Guide](../docs/reference/senior-k8s-debugging.md#11-pod-stuck-in-crashloopbackoff---no-logs-no-errors).
+
+### Interview Prep
+
+**Common interview question**: "A pod crashes with no logs. Walk me through your debugging process."
+
+**Your answer now**:
+> "First, I check the exit code in `kubectl describe`. Exit code 1 is generic, so I'd use `kubectl debug` with an ephemeral container to inspect the filesystem and check file permissions. I've seen cases where ConfigMaps mount files without execute permissions. If that doesn't reveal it, I'd SSH to the node and use `crictl logs` to bypass kubectl's log caching. For compiled binaries, I'd also check shared library dependencies with `ldd`. The key is having multiple debugging techniques beyond just `kubectl logs`."
 
 ---
 

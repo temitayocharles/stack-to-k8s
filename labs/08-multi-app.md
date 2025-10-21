@@ -33,6 +33,80 @@ Deploy all 6 applications together and learn how to manage complex multi-app env
 
 Validates `kubectl`, `helm`, and the manifests for all six applications plus shared add-ons.
 
+## 💻 Resource Requirements
+
+> **⚠️ IMPORTANT**: Lab 8 deploys **ALL 6 applications simultaneously**. This requires **significant resources** and may cause port conflicts!
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 8`
+
+**This lab needs**:
+- **CPU**: 1.8 CPU requests, 6.4 CPU limits
+- **Memory**: 2.1Gi requests, 7.6Gi limits
+- **Pods**: 12 total (all 6 apps + databases + monitoring)
+- **Disk**: ~1500MB for container images + 5Gi PVCs
+- **Ports**: 3000, 3001, 4200, 5000, 8000, 8080 (x3), 5432 (x2), 6379, 9090, 3100, 30000-30600
+
+**Minimum cluster**: 7 CPU cores, 8GB RAM, 6GB disk  
+**Recommended**: 12+ CPU cores, 16GB RAM for comfortable operation
+
+**Estimated time**: 90 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Application | Pods | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-------------|------|-------------|-----------|----------------|--------------|
+| Weather App | 2 | 200m | 1000m | 256Mi | 1Gi |
+| E-commerce App | 3 | 350m | 1700m | 512Mi | 2Gi |
+| Educational Platform | 3 | 600m | 2500m | 640Mi | 2.5Gi |
+| Task Manager | 2 | 300m | 1500m | 384Mi | 1.5Gi |
+| Medical System | 2 | 400m | 1200m | 640Mi | 2Gi |
+| Social Media | 2 | 300m | 1000m | 384Mi | 1.5Gi |
+| **Totals** | **12** | **1.8** | **6.4** | **2.1Gi** | **7.6Gi** |
+
+**Port Allocation & Conflicts**:
+| Port | Application | Potential Conflict |
+|------|-------------|-------------------|
+| 3000 | Weather Frontend | ⚠️ Also used by Social Media |
+| 3001 | E-commerce Frontend | ✅ Unique |
+| 4200 | Educational Frontend | ✅ Unique |
+| 5000 | Medical Frontend | ⚠️ Also used by Task Backend |
+| 8000 | Task Backend | ✅ Unique |
+| 8080 | Weather/Ecom/Social Backends | ⚠️ **MAJOR CONFLICT** |
+| 5432 | PostgreSQL (Ecom + Educational) | ⚠️ Conflict |
+| 6379 | Redis | ✅ Unique |
+| 9090 | Prometheus | ✅ Unique |
+| 3100 | Grafana | ✅ Unique |
+
+**⚠️ PORT CONFLICT WARNINGS**:
+1. **Port 8080**: Used by 3 backends - requires namespace isolation or different ports
+2. **Port 5432**: Multiple PostgreSQL instances - use different databases or namespaces
+3. **Port 3000**: Weather + Social frontends - may conflict on host networking
+4. **Solution**: This lab uses **namespaces** to isolate applications
+
+**Namespace Strategy**:
+- `weather-lab` - Weather App
+- `ecommerce-lab` - E-commerce App
+- `educational-lab` - Educational Platform
+- `task-lab` - Task Manager
+- `medical-lab` - Medical System
+- `social-lab` - Social Media Platform
+- `monitoring` - Prometheus + Grafana
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- **This is the most resource-intensive lab** in the course
+- Educational Platform (Spring Boot) uses the most memory (2.5Gi limit)
+- Namespaces prevent port conflicts on internal cluster networking
+- NodePorts must be unique across all apps (30000-30600 range)
+- Recommended: Run only Labs 1-6 individually, then Lab 8 to see them together
+- If resources are limited, consider running only 3-4 apps instead of all 6
+
+**💡 Resource-Saving Tip**: You can run Labs 1-7 sequentially (cleanup between), then Lab 8 to see multi-app orchestration without sustaining high resource usage.
+
+</details>
+
 ## 🧭 Architecture Snapshot
 
 ```mermaid
@@ -993,6 +1067,91 @@ Recommendations:
 ## 🧠 Test Your Knowledge
 
 Ready to verify your mastery? Take the **[Lab 8 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-8--multi-app-orchestration)** and see how you score!
+
+---
+
+## 🎖️ Expert Mode: Service Mesh Performance Profiling
+
+> 💡 **Optional Challenge** — Master Istio optimization! **This is NOT required** to progress, but completing it unlocks the **🕸️ Mesh Performance Engineer** badge!
+
+**⏱️ Time**: +30 minutes  
+**🎯 Difficulty**: ⭐⭐⭐⭐⭐ (Expert)  
+**📋 Prerequisites**: Complete Lab 8 Istio setup above
+
+### The Scenario
+
+After enabling Istio, your sidecars are consuming **MORE CPU than your applications**:
+
+```bash
+kubectl top pods -n platform
+# NAME                     CPU(cores)   MEMORY(bytes)
+# weather-backend-abc      50m          128Mi
+# weather-backend-istio    250m         256Mi  ← PROBLEM!
+```
+
+**Your service mesh is costing 5x the application resources!**
+
+### Challenge: Optimize Envoy Performance
+
+**Your Mission**:
+1. Profile Envoy CPU usage
+2. Tune sidecar resource limits
+3. Configure connection pooling
+4. Optimize circuit breakers
+5. Reduce tracing overhead
+
+**Key Skills**:
+```bash
+# Check Envoy admin interface
+kubectl port-forward <pod> 15000:15000
+curl localhost:15000/stats/prometheus | grep cpu
+
+# Check active connections
+curl localhost:15000/stats | grep downstream_cx_active
+
+# Dump Envoy config
+curl localhost:15000/config_dump > envoy-config.json
+```
+
+**Optimization Targets**:
+- Reduce sidecar CPU by 60%+
+- Configure connection pools (100 max connections)
+- Set circuit breakers (5 consecutive errors)
+- Lower tracing sampling to 1%
+
+### Expected Outcome
+
+- ✅ Sidecar CPU < 100m (down from 250m)
+- ✅ Connection pooling configured
+- ✅ Circuit breakers active
+- ✅ Tracing sampling optimized
+
+### Deep Dive: What You're Learning
+
+**Production Skills**:
+- Envoy profiling and tuning
+- Service mesh optimization
+- Connection pool configuration
+- Circuit breaker patterns
+
+**Interview Topics**:
+- "Istio sidecars are consuming too much CPU—how do you optimize them?"
+- "Explain connection pooling vs circuit breakers"
+- "How do you profile Envoy performance?"
+
+**Real-World Impact**: **Lyft** (who created Envoy) ran into this exact issue. Default Istio config allocated 2000m CPU per sidecar. At 1000 pods, that's 2000 cores wasted! After tuning, they reduced it to 100m per sidecar, saving $500k/year in cloud costs.
+
+### Complete Guide
+
+For detailed Envoy optimization techniques, see:  
+**[Senior K8s Debugging Guide: Istio Performance](../../docs/reference/senior-k8s-debugging.md#22-istio-sidecar-cpu-overhead)**
+
+### Badge Unlocked! 🎉
+
+Complete this challenge and you've earned:  
+**🕸️ Mesh Performance Engineer** — You can optimize production service meshes!
+
+**Track your progress**: [Lab Progress Tracker](../../docs/learning/LAB-PROGRESS.md#expert-badges)
 
 ---
 

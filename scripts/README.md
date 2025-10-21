@@ -7,6 +7,7 @@ Practical automation that keeps the labs reproducible and production-ready. All 
 
 | Script | Purpose | Typical timing |
 | --- | --- | --- |
+| `calculate-lab-resources.sh` | Calculate aggregate resource requirements for any combination of labs (CPU, memory, disk, pods). Shows cluster sizing recommendations and port conflicts. | Before planning lab sequence |
 | `check-lab-prereqs.sh` | Verify CLI prerequisites (kubectl, helm, etc.) plus cluster health. Pass lab number to check specific requirements. | Before starting any lab |
 | `cleanup-containers.sh` | Stop and prune leftover Docker containers, images, and volumes. | After local lab runs |
 | `cleanup-workspace.sh` | Remove build artifacts and temp files created by lab steps. | Before committing or zipping the repo |
@@ -18,6 +19,33 @@ Practical automation that keeps the labs reproducible and production-ready. All 
 All scripts are POSIX-friendly Bash (or Python 3) and assume execution from the repository root unless noted otherwise.
 
 ## Usage patterns
+
+### Plan your lab sequence
+
+```bash
+# List all available labs
+./scripts/calculate-lab-resources.sh --list
+
+# Calculate resources for specific labs
+./scripts/calculate-lab-resources.sh 1 2 3
+
+# Verbose mode with per-lab breakdown
+./scripts/calculate-lab-resources.sh -v 1 2 3
+
+# Calculate all labs (Lab 8 scenario)
+./scripts/calculate-lab-resources.sh --all
+
+# Show help
+./scripts/calculate-lab-resources.sh --help
+```
+
+**Output includes**:
+- Aggregate CPU, memory, disk requirements
+- Pod count totals
+- Minimum vs recommended cluster sizing
+- Compatibility with common dev machines
+- Cloud cost estimates (to emphasize FREE local option)
+- Port conflict warnings for multi-lab setups
 
 ### Before starting a lab
 

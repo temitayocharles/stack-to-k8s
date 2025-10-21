@@ -19,11 +19,13 @@ Then explore **[KUBERNETES-LABS.md](KUBERNETES-LABS.md)** to see the full learni
 ## Quick references 🛠️
 
 - **[kubectl cheatsheet](reference/kubectl-cheatsheet.md)** — Copy/paste-ready commands plus namespace best practices.
+- **[Resource requirements guide](reference/resource-requirements.md)** — CPU, memory, disk, and port allocation for all labs. Includes conflict prevention and optimization tips.
 - **[Secrets management guide](reference/secrets-management.md)** — Patterns for Vault, ExternalSecrets, and env-safe pipelines.
 - **[API keys guide](reference/api-keys-guide.md)** — Where each integration key lives and how to rotate it.
 - **[Configuration patterns](reference/configuration-patterns.md)** — Multi-environment tips for ConfigMaps, Helm, and GitOps.
 - **[Decision trees](reference/decision-trees.md)** — Flow charts for choosing the right K8s resources and patterns.
 - **[Certification guide](reference/certification-guide.md)** — CKA/CKAD prep tips and practice scenarios.
+- **[Senior K8s debugging & performance tuning](reference/senior-k8s-debugging.md)** — Advanced debugging, control plane tuning, and hybrid architecture patterns for senior engineers. Interview answer templates included.
 - **[Production war stories](reference/production-war-stories.md)** — Real-world incidents and lessons learned.
 - **Platform setup** — [Rancher Desktop (Windows & macOS)](setup/rancher-desktop.md) · [Linux (kind / k3d)](setup/linux-kind-k3d.md).
 

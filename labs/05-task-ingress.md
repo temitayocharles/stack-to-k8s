@@ -695,10 +695,57 @@ Ready to verify your mastery? Take the **[Lab 5 Self-Assessment Quiz](../docs/le
 ## ✅ Prerequisites Check
 
 ```bash
-./scripts/check-lab-prereqs.sh 4
+./scripts/check-lab-prereqs.sh 5
 ```
 
 Confirms access to the Task Manager manifests and required CLI tooling.
+
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 5`
+
+**This lab needs**:
+- **CPU**: 1 CPU request, 5 CPU limits
+- **Memory**: 1.3Gi requests, 5Gi limits
+- **Pods**: 5 total (2 frontend, 2 backend, 1 NGINX Ingress Controller)
+- **Disk**: ~1000MB for container images
+- **Ports**: 80, 443, 3000, 8000, 30080, 30443
+
+**Minimum cluster**: 5 CPU cores, 6GB RAM, 2GB disk  
+**Estimated time**: 40 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Svelte Frontend | 2 | 100m | 500m | 128Mi | 512Mi |
+| Go Backend API | 2 | 200m | 1000m | 256Mi | 1Gi |
+| NGINX Ingress Controller | 1 | 200m | 2000m | 384Mi | 2Gi |
+| **Totals** | **5** | **1** | **5** | **1.3Gi** | **5Gi** |
+
+**Port Allocation**:
+- **80**: HTTP traffic (Ingress)
+- **443**: HTTPS traffic (Ingress, with TLS)
+- **3000**: Svelte frontend internal
+- **8000**: Go backend API internal
+- **30080**: NodePort for HTTP access
+- **30443**: NodePort for HTTPS access
+
+**Ingress Rules**:
+- `/` → Frontend service (Svelte UI)
+- `/api` → Backend service (Go API)
+- Host-based routing with `tasks.local` (configurable)
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- NGINX Ingress Controller is the largest resource consumer (2 CPU limit)
+- Ingress handles TLS termination, path-based routing, and load balancing
+- Backend uses efficient Go runtime (lower memory footprint than Node.js/Java)
+- This lab focuses on Ingress concepts: routing rules, TLS, path rewriting
+
+</details>
 
 ## ✅ Success criteria
 
@@ -727,8 +774,10 @@ graph LR
 
 ### 1. Install Ingress Controller (10 min)
 
+> 💡 **Local Cluster Friendly**: This installation works on Rancher Desktop, Docker Desktop, kind, and k3d. The `/provider/cloud` manifest includes LoadBalancer support that works locally!
+
 ```bash
-# Install nginx ingress controller
+# Install nginx ingress controller (works for both local and cloud clusters)
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
 
 # Wait for controller to be ready

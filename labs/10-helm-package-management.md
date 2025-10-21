@@ -28,10 +28,57 @@ Master Helm - the "package manager for Kubernetes". Learn to use existing charts
 ## ✅ Prerequisites Check
 
 ```bash
-./scripts/check-lab-prereqs.sh 9
+./scripts/check-lab-prereqs.sh 10
 ```
 
 Validates `helm`, `kubectl`, and the optional `gitops-configs` workspace.
+
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 10`
+
+**This lab needs**:
+- **CPU**: 1.05 CPU requests, 3.45 CPU limits
+- **Memory**: 1.2Gi requests, 3.5Gi limits
+- **Pods**: 7 total (2 weather app, 3 PostgreSQL from Helm chart, 2 NGINX demo)
+- **Disk**: ~800MB for container images + 2Gi PVC
+- **Ports**: 3000, 8080, 5432, 80, 30300
+
+**Minimum cluster**: 4 CPU cores, 4GB RAM, 3GB disk  
+**Estimated time**: 55 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Weather App (Helm) | 2 | 200m | 1000m | 256Mi | 1Gi |
+| PostgreSQL (Helm Chart) | 1 | 250m | 1000m | 256Mi | 1Gi |
+| PostgreSQL HA Replicas | 2 | 100m | 250m | 192Mi | 512Mi |
+| NGINX Demo (Helm) | 2 | 100m | 500m | 128Mi | 512Mi |
+| **Totals** | **7** | **1.05** | **3.45** | **1.2Gi** | **3.5Gi** |
+
+**Port Allocation**:
+- **3000**: Weather frontend
+- **8080**: Weather backend
+- **5432**: PostgreSQL primary (Helm-managed)
+- **80**: NGINX demo service
+- **30300**: NodePort for weather app access
+
+**Helm Charts Used**:
+- **bitnami/postgresql**: Production-ready PostgreSQL with HA
+- **bitnami/nginx**: NGINX web server
+- **Custom weather-chart**: Practice creating your own Helm charts
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- Helm manages lifecycle of all resources (install, upgrade, rollback)
+- PostgreSQL chart includes HA configuration (primary + replicas)
+- Custom charts use Go templating for dynamic configuration
+- This lab focuses on Helm concepts: charts, values, releases, repositories
+
+</details>
 
 ## ✅ Success criteria
 

@@ -12,6 +12,47 @@ A focused, hands-on deep-dive into labels, selectors, and systematic troubleshoo
 - Identify and fix label/selector mismatches so Deployments reach Ready state.
 - Ensure Services expose endpoints for matching pods after fixes.
 
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 4`
+
+**This lab needs**:
+- **CPU**: 650m requests, 2.75 CPU limits
+- **Memory**: 730Mi requests, 2.6Gi limits
+- **Pods**: 5 total (3 web application pods, 2 troubleshooting pods)
+- **Disk**: ~600MB for container images
+- **Ports**: 8080, 8081, 8082, 30080
+
+**Minimum cluster**: 3 CPU cores, 3GB RAM, 1GB disk  
+**Estimated time**: 60-75 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Web App (Correct Labels) | 1 | 100m | 500m | 128Mi | 512Mi |
+| Web App (Broken Labels) | 1 | 100m | 500m | 128Mi | 512Mi |
+| Web App (No Labels) | 1 | 100m | 500m | 128Mi | 512Mi |
+| Service Test Pods | 2 | 100m | 250m | 128Mi | 256Mi |
+| **Totals** | **5** | **650m** | **2.75** | **730Mi** | **2.6Gi** |
+
+**Port Allocation**:
+- **8080**: Main web application (correct configuration)
+- **8081**: Broken label web app (for troubleshooting)
+- **8082**: No-label web app (for troubleshooting)
+- **30080**: NodePort for external access
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- This is a **learning lab** focused on concepts, not production workloads
+- Multiple deployments intentionally created with label mismatches for troubleshooting practice
+- Resource requests are minimal since pods may not all run simultaneously
+- Focus is on understanding labels/selectors, not performance or scale
+
+</details>
+
 ## 🎯 What You'll Learn
 
 Master the **core Kubernetes concepts** that cause real production issues. This lab focuses on the fundamentals that trip up even experienced developers.

@@ -606,6 +606,54 @@ Deploy medical care system with production-grade security. Learn Kubernetes secu
 
 Validates availability of the medical system manifests and `kubectl` access.
 
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 6`
+
+**This lab needs**:
+- **CPU**: 900m requests, 3.4 CPU limits
+- **Memory**: 1.2Gi requests, 4.5Gi limits
+- **Pods**: 5 total (2 frontend, 2 backend, 1 PostgreSQL)
+- **Disk**: ~700MB for container images + 2Gi PVC
+- **Ports**: 5000, 8080, 5432, 30050, 30080
+
+**Minimum cluster**: 4 CPU cores, 5GB RAM, 3GB disk  
+**Estimated time**: 45 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Blazor Frontend | 2 | 100m | 500m | 256Mi | 1Gi |
+| .NET Backend API | 2 | 300m | 1000m | 384Mi | 1.5Gi |
+| PostgreSQL | 1 | 100m | 400m | 256Mi | 1Gi |
+| **Totals** | **5** | **900m** | **3.4** | **1.2Gi** | **4.5Gi** |
+
+**Port Allocation**:
+- **5000**: Blazor frontend (Kestrel)
+- **8080**: .NET backend API
+- **5432**: PostgreSQL database
+- **30050**: NodePort for frontend access
+- **30080**: NodePort for backend API
+
+**Security Features** (Focus of this lab):
+- **RBAC**: ServiceAccount with limited permissions
+- **Network Policies**: Restrict pod-to-pod communication
+- **Pod Security Standards**: Enforce non-root, drop capabilities
+- **Secrets Management**: Kubernetes Secrets for credentials
+- **TLS**: Certificate management for HTTPS
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- .NET applications require more memory than Node.js (384Mi minimum)
+- PostgreSQL configured with encrypted connections
+- This lab emphasizes security patterns: RBAC, NetworkPolicy, PSS
+- Focus is on securing a healthcare application (HIPAA-like compliance)
+
+</details>
+
 ## 🧭 Architecture Snapshot
 
 ```mermaid

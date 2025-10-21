@@ -16,15 +16,15 @@ Complete inventory of all documentation and resources in this repository.
 ## 📚 Main Documentation
 
 ### Root Level
-- **[README.md](README.md)** - Repository home page, quick start, lab table
-- **REPOSITORY-STRUCTURE.md** - This file (complete inventory)
+- **[README.md](../README.md)** - Repository home page, quick start, lab table
 
 ### Documentation Hub (`docs/`)
-- **[docs/README.md](docs/README.md)** - Documentation central hub
-- **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** - Complete onboarding guide (START HERE for beginners)
-- **[docs/KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)** - Full lab roadmap with dependencies
-- **[docs/MARKDOWN-INDEX.md](docs/MARKDOWN-INDEX.md)** - Auto-generated file inventory
-- **[docs/STYLE-GUIDE.md](docs/STYLE-GUIDE.md)** - Contribution guidelines
+- **[docs/README.md](README.md)** - Documentation central hub
+- **[docs/GETTING-STARTED.md](GETTING-STARTED.md)** - Complete onboarding guide (START HERE for beginners)
+- **[docs/KUBERNETES-LABS.md](KUBERNETES-LABS.md)** - Full lab roadmap with dependencies
+- **[docs/MARKDOWN-INDEX.md](MARKDOWN-INDEX.md)** - Auto-generated file inventory
+- **[docs/STYLE-GUIDE.md](STYLE-GUIDE.md)** - Contribution guidelines
+- **REPOSITORY-STRUCTURE.md** - This file (complete inventory)
 
 ---
 
@@ -38,13 +38,15 @@ Complete inventory of all documentation and resources in this repository.
 
 ## 📖 Reference Guides (`docs/reference/`)
 
-- **[kubectl-cheatsheet.md](docs/reference/kubectl-cheatsheet.md)** - Essential kubectl commands
-- **[secrets-management.md](docs/reference/secrets-management.md)** - Vault, ExternalSecrets patterns
-- **[api-keys-guide.md](docs/reference/api-keys-guide.md)** - API key management
-- **[configuration-patterns.md](docs/reference/configuration-patterns.md)** - ConfigMap/Helm best practices
-- **[decision-trees.md](docs/reference/decision-trees.md)** - Resource selection flowcharts
-- **[certification-guide.md](docs/reference/certification-guide.md)** - CKA/CKAD exam prep
-- **[production-war-stories.md](docs/reference/production-war-stories.md)** - Real-world incidents
+- **[kubectl-cheatsheet.md](reference/kubectl-cheatsheet.md)** - Essential kubectl commands
+- **[resource-requirements.md](reference/resource-requirements.md)** - CPU, memory, disk, and port allocation for all labs
+- **[secrets-management.md](reference/secrets-management.md)** - Vault, ExternalSecrets patterns
+- **[api-keys-guide.md](reference/api-keys-guide.md)** - API key management
+- **[configuration-patterns.md](reference/configuration-patterns.md)** - ConfigMap/Helm best practices
+- **[decision-trees.md](reference/decision-trees.md)** - Resource selection flowcharts
+- **[certification-guide.md](reference/certification-guide.md)** - CKA/CKAD exam prep
+- **[senior-k8s-debugging.md](reference/senior-k8s-debugging.md)** - Advanced debugging & performance tuning for senior engineers
+- **[production-war-stories.md](reference/production-war-stories.md)** - Real-world incidents
 
 ---
 
@@ -190,7 +192,6 @@ Each app has: README, ARCHITECTURE, k8s manifests, Dockerfile(s), source code
 ```
 stack-to-k8s-main/
 ├── README.md                          # → START: Main entry point
-├── REPOSITORY-STRUCTURE.md            # → This file
 │
 ├── docs/                              # All documentation
 │   ├── README.md                      # Documentation hub
@@ -198,17 +199,20 @@ stack-to-k8s-main/
 │   ├── KUBERNETES-LABS.md             # Full lab roadmap
 │   ├── MARKDOWN-INDEX.md              # File inventory
 │   ├── STYLE-GUIDE.md                 # Contribution guide
+│   ├── REPOSITORY-STRUCTURE.md        # → This file (complete inventory)
 │   ├── learning/                      # Learning resources
 │   │   ├── COMMON-MISTAKES.md
 │   │   ├── LAB-PROGRESS.md
 │   │   └── SELF-ASSESSMENT.md
 │   ├── reference/                     # Reference guides
 │   │   ├── kubectl-cheatsheet.md
+│   │   ├── resource-requirements.md   # NEW: Resource planning
 │   │   ├── secrets-management.md
 │   │   ├── api-keys-guide.md
 │   │   ├── configuration-patterns.md
 │   │   ├── decision-trees.md
 │   │   ├── certification-guide.md
+│   │   ├── senior-k8s-debugging.md
 │   │   └── production-war-stories.md
 │   ├── setup/                         # Setup guides
 │   │   ├── rancher-desktop.md
@@ -260,10 +264,10 @@ stack-to-k8s-main/
 
 ## 📊 Documentation Statistics
 
-- **Total markdown files**: 77
+- **Total markdown files**: 79
 - **Main documentation**: 5 files
 - **Learning resources**: 3 files
-- **Reference guides**: 7 files
+- **Reference guides**: 9 files (including resource-requirements.md)
 - **Setup guides**: 2 files
 - **Labs**: 23 core labs + 3 challenges
 - **Application docs**: 6 apps × 2-3 docs each
@@ -346,4 +350,4 @@ This file is manually maintained. Update when:
 
 ---
 
-**Navigation**: [Back to README](README.md) | [Documentation Hub](docs/README.md) | [Getting Started](docs/GETTING-STARTED.md)
+**Navigation**: [Back to README](../README.md) | [Documentation Hub](README.md) | [Getting Started](GETTING-STARTED.md) | [Resource Requirements](reference/resource-requirements.md)

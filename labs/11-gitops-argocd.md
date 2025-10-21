@@ -28,10 +28,60 @@ Master GitOps - the modern way to deploy and manage Kubernetes applications. Lea
 ## ✅ Prerequisites Check
 
 ```bash
-./scripts/check-lab-prereqs.sh 10
+./scripts/check-lab-prereqs.sh 11
 ```
 
 Validates `kubectl`, `helm` (optional), and a local `gitops-configs` workspace.
+
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 11`
+
+**This lab needs**:
+- **CPU**: 1 CPU request, 3.9 CPU limits
+- **Memory**: 1.2Gi requests, 4Gi limits
+- **Pods**: 8 total (5 ArgoCD components, 2 weather app, 1 Redis)
+- **Disk**: ~700MB for container images
+- **Ports**: 8080 (ArgoCD server), 8083 (Repo server), 3000, 30800
+
+**Minimum cluster**: 4 CPU cores, 5GB RAM, 1GB disk  
+**Estimated time**: 65 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| ArgoCD Server | 1 | 250m | 1000m | 256Mi | 1Gi |
+| ArgoCD Repo Server | 1 | 200m | 800m | 256Mi | 1Gi |
+| ArgoCD Application Controller | 1 | 250m | 1000m | 256Mi | 1Gi |
+| ArgoCD Dex (SSO) | 1 | 50m | 200m | 128Mi | 256Mi |
+| ArgoCD Redis | 1 | 50m | 200m | 64Mi | 256Mi |
+| Weather App (GitOps-managed) | 2 | 200m | 1000m | 256Mi | 1Gi |
+| **Totals** | **8** | **1** | **3.9** | **1.2Gi** | **4Gi** |
+
+**Port Allocation**:
+- **8080**: ArgoCD web UI and API server
+- **8083**: ArgoCD repo server (internal)
+- **3000**: Weather app frontend (deployed via GitOps)
+- **30800**: NodePort for ArgoCD UI access
+
+**ArgoCD Components**:
+- **Server**: API server and web UI
+- **Repo Server**: Fetches Git repositories and renders manifests
+- **Application Controller**: Monitors apps and syncs to desired state
+- **Dex**: Single Sign-On (SSO) integration (optional)
+- **Redis**: Caching for improved performance
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- ArgoCD continuously polls Git repos for changes (configurable interval)
+- Application Controller compares live state vs Git state
+- Repo Server clones repos and caches them in memory
+- This lab demonstrates GitOps principles: declarative config, Git as single source of truth
+
+</details>
 
 ## ✅ Success criteria
 

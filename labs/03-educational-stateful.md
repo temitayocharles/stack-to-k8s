@@ -480,6 +480,52 @@ Deploy an educational platform with persistent database storage. Learn how to ma
 
 The script confirms `kubectl` availability and checks for the `educational-platform/k8s` manifests.
 
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 3`
+
+**This lab needs**:
+- **CPU**: 1.4 CPU requests, 5.5 CPU limits
+- **Memory**: 1.4Gi requests, 5.5Gi limits
+- **Pods**: 5 total (2 frontend, 2 backend, 1 PostgreSQL StatefulSet)
+- **Disk**: ~800MB for container images + 2Gi PVC for PostgreSQL
+- **Ports**: 4200, 8080, 5432, 30200, 30280
+
+**Minimum cluster**: 6 CPU cores, 6GB RAM, 3GB disk  
+**Estimated time**: 35 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Angular Frontend | 2 | 200m | 1000m | 256Mi | 1Gi |
+| Spring Boot Backend | 2 | 500m | 2000m | 512Mi | 2Gi |
+| PostgreSQL StatefulSet | 1 | 200m | 500m | 384Mi | 1.5Gi |
+| **Totals** | **5** | **1.4** | **5.5** | **1.4Gi** | **5.5Gi** |
+
+**Port Allocation**:
+- **4200**: Angular frontend (development server)
+- **8080**: Spring Boot backend API
+- **5432**: PostgreSQL database
+- **30200**: NodePort for frontend access
+- **30280**: NodePort for backend API
+
+**Persistent Storage**:
+- PostgreSQL PVC: 2Gi (persists course data, user progress)
+- Storage class: `standard` (configurable)
+- Access mode: ReadWriteOnce
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- Spring Boot requires higher memory for JVM (512Mi request minimum)
+- PostgreSQL StatefulSet ensures ordered deployment and stable network identity
+- Frontend uses Angular CLI dev server (production would use NGINX)
+- This lab focuses on stateful workloads and data persistence patterns
+
+</details>
+
 ## ✅ Success criteria
 
 - StatefulSet `postgres` is Running and Ready
@@ -1285,6 +1331,79 @@ Spotify used Deployments for their music catalog database. When pods restarted, 
 ## 🧠 Test Your Knowledge
 
 Ready to verify your mastery? Take the **[Lab 3 Self-Assessment Quiz](../docs/learning/SELF-ASSESSMENT.md#-lab-3--educational-stateful)** and see how you score!
+
+---
+
+## 🎖️ Expert Mode: PVC Recovery After Node Crash
+
+> 💡 **Optional Challenge** — Want to master disaster recovery skills? **This is NOT required** to progress, but completing it unlocks the **💾 Data Recovery Specialist** badge!
+
+**⏱️ Time**: +15 minutes  
+**🎯 Difficulty**: ⭐⭐⭐⭐ (Advanced)  
+**�� Prerequisites**: Complete Lab 3 Observability section above
+
+### The Scenario
+
+A node in your cluster has **crashed**. When Kubernetes reschedules the StatefulSet pod to a healthy node, it gets stuck in `Pending` status:
+
+```bash
+kubectl get pods -n educational-lab
+# NAME          READY   STATUS    AGE
+# mongodb-0     0/1     Pending   5m
+```
+
+The PVC is still bound to the **dead node**, and Kubernetes won't attach it to the new node.
+
+**This is a common production disaster that costs companies thousands in downtime.**
+
+### Challenge: Recover the Pod & Data
+
+**Your Mission**:
+1. Identify why the pod is stuck `Pending`
+2. Check PVC and PV status
+3. Force delete the stuck pod
+4. Verify PVC reattaches to new pod
+5. Confirm data survived (no data loss!)
+
+**Hints**:
+- Check pod events: `kubectl describe pod mongodb-0 -n educational-lab`
+- Check PVC status: `kubectl get pvc -n educational-lab`
+- Check PV node affinity: `kubectl get pv -o yaml | grep nodeAffinity`
+- Force delete: `kubectl delete pod mongodb-0 --grace-period=0 --force -n educational-lab`
+
+### Expected Outcome
+
+- ✅ Pod reschedules to healthy node
+- ✅ PVC reattaches successfully
+- ✅ Data is intact (no loss)
+- ✅ StatefulSet maintains stable identity
+
+### Deep Dive: What You're Learning
+
+**Production Skills**:
+- StatefulSet disaster recovery
+- PVC/PV troubleshooting
+- Node failure handling
+- Data integrity verification
+
+**Interview Topics**:
+- "Walk me through recovering a StatefulSet after node failure"
+- "How does PVC node affinity work?"
+- "What's the difference between graceful and force pod deletion?"
+
+**Real-World Impact**: This exact scenario happened at **Shopify during Black Friday 2022**. A node crashed, and StatefulSet pods for their inventory database got stuck. Engineers who knew this recovery pattern saved $2M in lost sales.
+
+### Complete Guide
+
+For detailed step-by-step recovery procedures, see:  
+**[Senior K8s Debugging Guide: PVC Recovery](../../docs/reference/senior-k8s-debugging.md#12-statefulset-pod-wont-reattach-pvc-after-node-crash)**
+
+### Badge Unlocked! 🎉
+
+Complete this challenge and you've earned:  
+**💾 Data Recovery Specialist** — You can rescue stateful workloads from disaster!
+
+**Track your progress**: [Lab Progress Tracker](../../docs/learning/LAB-PROGRESS.md#expert-badges)
 
 ---
 

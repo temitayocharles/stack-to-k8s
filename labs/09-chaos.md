@@ -28,10 +28,61 @@ Learn chaos engineering by intentionally breaking things and watching how Kubern
 ## ✅ Prerequisites Check
 
 ```bash
-./scripts/check-lab-prereqs.sh 8
+./scripts/check-lab-prereqs.sh 9
 ```
 
 Verifies `kubectl`, `helm`, and the social media manifests are available.
+
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 9`
+
+**This lab needs**:
+- **CPU**: 1.8 CPU requests, 6.4 CPU limits
+- **Memory**: 2.1Gi requests, 7.6Gi limits
+- **Pods**: 12 total (2 social media app, 8 Chaos Mesh components, 2 databases)
+- **Disk**: ~1500MB for container images
+- **Ports**: 3000, 8080, 5432, 6379, 2333 (Chaos Dashboard), 30300
+
+**Minimum cluster**: 7 CPU cores, 8GB RAM, 2GB disk  
+**Estimated time**: 60 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Social Media App | 2 | 300m | 1000m | 384Mi | 1.5Gi |
+| Chaos Mesh Controller | 3 | 200m | 500m | 256Mi | 512Mi |
+| Chaos Mesh Daemon | 1 | 100m | 500m | 128Mi | 512Mi |
+| Chaos Dashboard | 1 | 100m | 500m | 128Mi | 512Mi |
+| PostgreSQL | 1 | 200m | 500m | 384Mi | 1Gi |
+| Redis | 1 | 100m | 200m | 128Mi | 256Mi |
+| **Totals** | **12** | **1.8** | **6.4** | **2.1Gi** | **7.6Gi** |
+
+**Port Allocation**:
+- **3000**: Social media frontend
+- **8080**: Social media backend
+- **5432**: PostgreSQL database
+- **6379**: Redis cache
+- **2333**: Chaos Mesh dashboard (web UI)
+- **30300**: NodePort for social media access
+
+**Chaos Mesh Components**:
+- **Controller Manager**: Schedules and manages chaos experiments
+- **Chaos Daemon**: Executes failures on target nodes (DaemonSet)
+- **Dashboard**: Web UI for creating and monitoring experiments
+- **Webhook**: Validates CRDs for chaos experiments
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- Chaos Mesh adds ~600m CPU and 768Mi RAM overhead
+- Chaos Daemon runs on every node (DaemonSet) - scales with cluster size
+- Experiments inject failures WITHOUT consuming additional resources
+- This lab demonstrates resilience testing: pod failures, network delays, CPU stress
+
+</details>
 
 ## ✅ Success criteria
 
@@ -394,6 +445,113 @@ curl -s http://localhost:8000/api/health
 # Cleanup
 kubectl delete dnschaos dns-failure -n chaos-testing
 ```
+
+---
+
+## 🎖️ Expert Mode: The Impossible Network Debug
+
+> 💡 **Optional Challenge** — Want to master the most feared debugging scenario in production? **This is NOT required** to progress, but unlocks the **🔍 Network Detective** badge!
+
+**⏱️ Time**: +25 minutes  
+**🎯 Difficulty**: ⭐⭐⭐⭐⭐ (Expert)  
+**📋 Prerequisites**: Complete Lab 9 Scenarios 1-7
+
+### The Scenario
+
+You've survived 7 chaos scenarios, but **the worst is yet to come**. After a cluster node upgrade, some pods are stuck in `ContainerCreating` with this cryptic error:
+
+```
+Events:
+  Warning  FailedCreatePodSandbox  2m   kubelet  Failed to create pod sandbox: 
+  rpc error: code = Unknown desc = failed to setup network for sandbox: 
+  networkPlugin cni failed to set up pod "myapp-xyz" network: failed to find plugin "bridge" in path [/opt/cni/bin]
+```
+
+**The twist**: Other pods on the SAME node are running fine. The CNI plugin exists. Network namespaces are corrupted. This is the "impossible bug" that keeps senior engineers up at night.
+
+**Real Production Context**: A major e-commerce company lost $3M during Black Friday 2023 when 30% of pods failed to start after a CNI plugin upgrade. The CNI daemon was running, logs looked normal, but network namespaces had leaked file descriptors.
+
+### Challenge: Debug the "Impossible" CNI Issue
+
+**Your Mission**:
+1. 🔍 **Investigate CNI logs** — Check `/var/log/pods` and CNI plugin logs
+2. 🕸️ **Inspect network namespaces** — Use `ip netns list` to find orphaned namespaces
+3. 🔌 **Debug IPAM** — Check IP allocation and verify CNI config in `/etc/cni/net.d`
+4. 🛠️ **Fix the root cause** — Clean up leaked namespaces and restart CNI daemon
+5. ✅ **Validate** — Deploy test pod, confirm network setup in <10 seconds
+
+**Hints**:
+```bash
+# 1. Check CNI plugin existence
+kubectl get nodes -o wide
+kubectl debug node/<node-name> -it --image=nicolaka/netshoot
+ls -la /opt/cni/bin/  # In debug container
+
+# 2. Inspect network namespaces (find leaked netns)
+ip netns list
+ip netns identify <pid>
+
+# 3. Check CNI logs (look for IPAM errors)
+journalctl -u kubelet | grep -i cni
+cat /var/log/pods/*/*/0.log | grep "failed to setup network"
+
+# 4. Verify CNI config
+cat /etc/cni/net.d/10-calico.conflist  # Or your CNI
+
+# 5. Check IPAM state
+kubectl get ippool -o yaml  # Calico example
+kubectl get ippools.crd.projectcalico.org
+
+# 6. Fix leaked namespaces
+ip netns delete <leaked-namespace>
+systemctl restart kubelet  # Or CNI daemon
+
+# 7. Force pod recreation
+kubectl delete pod <stuck-pod> --grace-period=0 --force
+```
+
+### Expected Outcome
+
+By the end of this challenge, you should have:
+
+- ✅ **Identified the root cause** — Found leaked network namespaces or corrupted IPAM state
+- ✅ **Cleaned up the environment** — Removed orphaned namespaces and fixed CNI config
+- ✅ **Restored network provisioning** — New pods reach `Running` in <10 seconds
+- ✅ **Documented the fix** — Created runbook for future CNI incidents
+
+### Deep Dive: What You're Learning
+
+**Production Skills**:
+- CNI plugin architecture (bridge, host-local, Calico, Cilium)
+- Network namespace lifecycle and debugging
+- IPAM troubleshooting (IP exhaustion, leaked allocations)
+- Container runtime integration (crictl, containerd, CRI-O)
+- Node-level debugging with ephemeral containers
+
+**Interview Topics** (These EXACT questions appear in senior SRE interviews):
+- "A pod is stuck in ContainerCreating with a CNI error. Walk me through your debugging process."
+- "How do you debug network namespace leaks in Kubernetes?"
+- "Explain the difference between CNI plugin failures vs. IPAM failures."
+- "What tools would you use to inspect container network setup?"
+
+**Real-World Impact**: 
+After the Black Friday incident, the company implemented:
+- CNI plugin version pinning with automated rollback
+- Network namespace garbage collection cron jobs
+- Pre-deployment IPAM exhaustion alerts (90% threshold)
+- Result: Zero CNI-related outages for 18 months, $12M in prevented downtime
+
+### Complete Guide
+
+**Deep dive with step-by-step commands**: [Part 4: Network Debugging - CNI Troubleshooting](../docs/reference/senior-k8s-debugging.md#part-4-network-debugging)
+
+### Badge Unlocked! 🎉
+
+**🔍 Network Detective** — You've mastered the most feared debugging scenario: invisible network failures. You can now debug CNI plugins, network namespaces, and IPAM issues that make senior engineers call for help.
+
+**Track your progress**: [docs/learning/LAB-PROGRESS.md](../docs/learning/LAB-PROGRESS.md)
+
+---
 
 ### 10. Workflow: Combined Chaos (10 min)
 

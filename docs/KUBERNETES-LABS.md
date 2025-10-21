@@ -70,7 +70,43 @@ These are **incident simulations**—real production scenarios where you're the 
 
 ---
 
-## �️ Lab Dependency Graph
+## 🎖️ Expert Badge System (Optional Advanced Track)
+
+Want to go beyond the standard labs? **Expert Modes** are inline advanced challenges embedded in 7 labs. They're 100% optional but unlock senior-level debugging and performance tuning skills.
+
+### 🎯 Two Learning Paths
+
+| Path | Labs | Time | Outcome |
+|------|------|------|---------|
+| **Standard Path** | Labs 1-12 (standard sections) | ~10-12 hours | CKA/CKAD ready, production-capable |
+| **Expert Path** | Labs 1-12 + 7 Expert Modes | ~12-15 hours | Senior SRE/Platform Engineer ready |
+
+**When to use Expert Modes**: Complete standard labs first to build foundation, then revisit Expert Modes when you want to level up to senior roles.
+
+### 🏅 Expert Badge Locations
+
+| Badge | Lab | Challenge | Difficulty | Interview Topics |
+|-------|-----|-----------|------------|------------------|
+| 🔬 **Forensic Investigator** | [Lab 1](../labs/01-weather-basics.md#expert-mode-forensic-debugging) | Debug CrashLoopBackOff with no logs | ⭐⭐⭐⭐ | kubectl debug, crictl, ephemeral containers |
+| 💾 **Data Recovery** | [Lab 3](../labs/03-educational-stateful.md#expert-mode-data-recovery) | Recover PVC after node crash | ⭐⭐⭐⭐ | PVC rebinding, force delete, node affinity |
+| ⚙️ **Control Plane Architect** | [Lab 3.5](../labs/03.5-kubernetes-under-the-hood.md#expert-mode-control-plane-tuning) | Tune etcd performance | ⭐⭐⭐⭐⭐ | etcd compaction, defragmentation |
+| 📈 **Scaling Architect** | [Lab 7](../labs/07-social-scaling.md#expert-mode-cluster-autoscaler-debugging) | Debug Cluster Autoscaler | ⭐⭐⭐⭐ | Autoscaler logs, node groups, PDBs |
+| 🕸️ **Mesh Performance** | [Lab 8](../labs/08-multi-app.md#expert-mode-service-mesh-performance-profiling) | Optimize Istio sidecar CPU | ⭐⭐⭐⭐⭐ | Envoy profiling, connection pooling |
+| 🔍 **Network Detective** | [Lab 9](../labs/09-chaos.md#expert-mode-the-impossible-network-debug) | Debug "impossible" CNI failures | ⭐⭐⭐⭐⭐ | CNI logs, network namespaces, IPAM |
+| 🌉 **Hybrid Cloud Architect** | [Lab 12](../labs/12-external-secrets.md#expert-mode-hybrid-cloud-architecture) | External DB via VPN with HA | ⭐⭐⭐⭐ | VPN sidecars, service discovery |
+
+**Achievement Tiers**:
+- 0-2 badges: 🥉 Advanced Practitioner
+- 3-5 badges: 🥈 Senior Engineer
+- 6-7 badges: 🥇 Kubernetes Expert (top 5%)
+
+**Track your progress**: [LAB-PROGRESS.md](learning/LAB-PROGRESS.md#expert-badge-system-optional-advanced-challenges)
+
+**Complete interview guide**: [Senior K8s Debugging Reference](reference/senior-k8s-debugging.md) — All 7 challenges with production stories and interview templates
+
+---
+
+## 🛠️ Lab Dependency Graph
 
 Visual guide to skill prerequisites. Follow the arrows to understand which concepts build on each other:
 

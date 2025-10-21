@@ -32,42 +32,44 @@ Each lab includes: story-driven steps, validation checks, troubleshooting, and c
 
 ## 🧱 Application portfolio & Lab progression
 
-| Lab | App | Stack | Difficulty | Time |
-|-----|-----|------|------------|------|
-| **Setup** | 👀 **Visual Tools** | k9s, stern, kubectl-tree | ⭐ | **15m** |
-| [Lab 0](labs/00-visual-kubernetes.md) | | Install essential K8s visualization tools | | |
-| [Lab 0.5](labs/00.5-docker-compose-to-kubernetes.md) | 🐳 **Docker → K8s Migration** | Compose to manifests | ⭐ | **40m** |
-| | | | | |
-| **Foundations** | | | | |
-| [Lab 1](labs/01-weather-basics.md) | 🌦️ Weather App | Vue + Python + Redis | ⭐ | **20m** |
-| [Lab 2](labs/02-ecommerce-basics.md) | 🛒 E-commerce | React + Node + MongoDB | ⭐⭐ | **30m** |
-| [Lab 3](labs/03-educational-stateful.md) | 🎓 Educational | Angular + Java + Postgres | ⭐⭐⭐ | **40m** |
-| [Lab 3.5](labs/03.5-kubernetes-under-the-hood.md) | 🔧 **K8s Internals** | etcd, controllers, API | ⭐⭐⭐⭐ | **50m** |
-| [Lab 4](labs/04-kubernetes-fundamentals.md) | 🏷️ **Fundamentals** | Labels, troubleshooting | ⭐⭐ | **75m** |
-| | | | | |
-| **Production Ops** | | | | |
-| [Lab 5](labs/05-task-ingress.md) | ✅ Task Manager | Svelte + Go + Postgres | ⭐⭐⭐ | **45m** |
-| [Lab 6](labs/06-medical-security.md) | 🏥 Medical Care | Blazor + .NET + Postgres | ⭐⭐⭐⭐ | **60m** |
-| [Lab 7](labs/07-social-scaling.md) | 📱 Social Media | React Native + Ruby + Postgres | ⭐⭐⭐⭐⭐ | **90m** |
-| | | | | |
-| **Platform Engineering** | | | | |
-| [Lab 8](labs/08-multi-app.md) | 🧩 **Multi-App** | All 6 apps orchestration | ⭐⭐⭐⭐⭐ | **120m** |
-| [Lab 8.5](labs/08.5-multi-tenancy.md) | 🏢 **Multi-Tenancy** | Namespaces, isolation | ⭐⭐⭐⭐ | **60m** |
-| [Lab 9](labs/09-chaos.md) | ⚡ **Chaos** | Resilience testing | ⭐⭐⭐⭐ | **90m** |
-| [Lab 9.5](labs/09.5-complex-microservices.md) | 🔀 **Microservices** | Service mesh patterns | ⭐⭐⭐⭐⭐ | **75m** |
-| | | | | |
-| **Automation Masters** | | | | |
-| [Lab 10](labs/10-helm-package-management.md) | 🪄 **Helm** | Charts, templating | ⭐⭐⭐⭐ | **75m** |
-| [Lab 11](labs/11-gitops-argocd.md) | 🤖 **GitOps** | ArgoCD, automation | ⭐⭐⭐⭐⭐ | **90m** |
-| [Lab 11.5](labs/11.5-disaster-recovery.md) | 🚨 **Disaster Recovery** | Backup, restore | ⭐⭐⭐⭐ | **60m** |
-| [Lab 12](labs/12-external-secrets.md) | 🔐 **Secrets** | External Secrets Operator | ⭐⭐⭐⭐ | **60m** |
-| [Lab 12.5](labs/12.5-multi-cloud-secrets.md) | ☁️ **Multi-Cloud** | Cross-cloud secrets | ⭐⭐⭐⭐⭐ | **75m** |
-| [Lab 13](labs/13-ai-ml-gpu.md) | 🤖 **AI/ML** | GPU workloads | ⭐⭐⭐⭐⭐ | **90m** |
+| Lab | App | Stack | Difficulty | Time | Expert Badge (Optional) |
+|-----|-----|------|------------|------|-------------------------|
+| **Setup** | 👀 **Visual Tools** | k9s, stern, kubectl-tree | ⭐ | **15m** | |
+| [Lab 0](labs/00-visual-kubernetes.md) | | Install essential K8s visualization tools | | | |
+| [Lab 0.5](labs/00.5-docker-compose-to-kubernetes.md) | 🐳 **Docker → K8s Migration** | Compose to manifests | ⭐ | **40m** | |
+| | | | | | |
+| **Foundations** | | | | | |
+| [Lab 1](labs/01-weather-basics.md) | 🌦️ Weather App | Vue + Python + Redis | ⭐ | **20m** | 🔬 Forensic Investigator (+20m) |
+| [Lab 2](labs/02-ecommerce-basics.md) | 🛒 E-commerce | React + Node + MongoDB | ⭐⭐ | **30m** | |
+| [Lab 3](labs/03-educational-stateful.md) | 🎓 Educational | Angular + Java + Postgres | ⭐⭐⭐ | **40m** | 💾 Data Recovery (+15m) |
+| [Lab 3.5](labs/03.5-kubernetes-under-the-hood.md) | 🔧 **K8s Internals** | etcd, controllers, API | ⭐⭐⭐⭐ | **50m** | ⚙️ Control Plane Architect (+25m) |
+| [Lab 4](labs/04-kubernetes-fundamentals.md) | 🏷️ **Fundamentals** | Labels, troubleshooting | ⭐⭐ | **75m** | |
+| | | | | | |
+| **Production Ops** | | | | | |
+| [Lab 5](labs/05-task-ingress.md) | ✅ Task Manager | Svelte + Go + Postgres | ⭐⭐⭐ | **45m** | |
+| [Lab 6](labs/06-medical-security.md) | 🏥 Medical Care | Blazor + .NET + Postgres | ⭐⭐⭐⭐ | **60m** | |
+| [Lab 7](labs/07-social-scaling.md) | 📱 Social Media | React Native + Ruby + Postgres | ⭐⭐⭐⭐⭐ | **90m** | 📈 Scaling Architect (+20m) |
+| | | | | | |
+| **Platform Engineering** | | | | | |
+| [Lab 8](labs/08-multi-app.md) | 🧩 **Multi-App** | All 6 apps orchestration | ⭐⭐⭐⭐⭐ | **120m** | 🕸️ Mesh Performance (+30m) |
+| [Lab 8.5](labs/08.5-multi-tenancy.md) | 🏢 **Multi-Tenancy** | Namespaces, isolation | ⭐⭐⭐⭐ | **60m** | |
+| [Lab 9](labs/09-chaos.md) | ⚡ **Chaos** | Resilience testing | ⭐⭐⭐⭐ | **90m** | 🔍 Network Detective (+25m) |
+| [Lab 9.5](labs/09.5-complex-microservices.md) | 🔀 **Microservices** | Service mesh patterns | ⭐⭐⭐⭐⭐ | **75m** | |
+| | | | | | |
+| **Automation Masters** | | | | | |
+| [Lab 10](labs/10-helm-package-management.md) | 🪄 **Helm** | Charts, templating | ⭐⭐⭐⭐ | **75m** | |
+| [Lab 11](labs/11-gitops-argocd.md) | 🤖 **GitOps** | ArgoCD, automation | ⭐⭐⭐⭐⭐ | **90m** | |
+| [Lab 11.5](labs/11.5-disaster-recovery.md) | 🚨 **Disaster Recovery** | Backup, restore | ⭐⭐⭐⭐ | **60m** | |
+| [Lab 12](labs/12-external-secrets.md) | 🔐 **Secrets** | External Secrets Operator | ⭐⭐⭐⭐ | **60m** | 🌉 Hybrid Cloud Architect (+30m) |
+| [Lab 12.5](labs/12.5-multi-cloud-secrets.md) | ☁️ **Multi-Cloud** | Cross-cloud secrets | ⭐⭐⭐⭐⭐ | **75m** | |
+| [Lab 13](labs/13-ai-ml-gpu.md) | 🤖 **AI/ML** | GPU workloads | ⭐⭐⭐⭐⭐ | **90m** | |
 | | | | | |
 | **🔥 Challenges** | | | | |
-| [Challenge A](labs/challenge-a-midnight-incident.md) | 🚨 **Midnight Incident** | Troubleshooting drill | ⭐⭐⭐ | **45m** |
-| [Challenge B](labs/challenge-b-black-friday.md) | 🛍️ **Black Friday** | Scaling under pressure | ⭐⭐⭐⭐ | **60m** |
-| [Challenge C](labs/challenge-c-platform-migration.md) | 🏗️ **Platform Migration** | Zero-downtime migration | ⭐⭐⭐⭐⭐ | **90m** |
+| [Challenge A](labs/challenge-a-midnight-incident.md) | 🚨 **Midnight Incident** | Troubleshooting drill | ⭐⭐⭐ | **45m** | |
+| [Challenge B](labs/challenge-b-black-friday.md) | 🛍️ **Black Friday** | Scaling under pressure | ⭐⭐⭐⭐ | **60m** | |
+| [Challenge C](labs/challenge-c-platform-migration.md) | 🏗️ **Platform Migration** | Zero-downtime migration | ⭐⭐⭐⭐⭐ | **90m** | |
+
+> 💡 **Expert Badges are 100% optional!** They're inline advanced challenges for senior-level debugging, performance tuning, and production troubleshooting. Perfect for leveling up to senior SRE/Platform Engineer roles. Track your progress in [LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md#expert-badge-system-optional-advanced-challenges).
 
 ## 🎒 Learning toolkit
 - ✅ [Self-Assessment](docs/learning/SELF-ASSESSMENT.md)
@@ -96,10 +98,11 @@ Example:
 
 ## 🗺️ Repository map
 
-**Complete file inventory**: [REPOSITORY-STRUCTURE.md](REPOSITORY-STRUCTURE.md) — Detailed map of all 77 files
+**Complete file inventory**: [REPOSITORY-STRUCTURE.md](docs/REPOSITORY-STRUCTURE.md) — Detailed map of all 78 files  
+**Resource planning**: [Resource Requirements Guide](docs/reference/resource-requirements.md) — CPU, memory, disk, and port allocation for all labs
 
 ```
-├── docs/            # setup, references, labs index
+├── docs/            # setup, references, labs index, resource planning
 ├── labs/            # 23 hands-on labs + 3 challenges + manifests/
 ├── scripts/         # validators and utilities
 ├── ecommerce-app/   # React + Node + MongoDB

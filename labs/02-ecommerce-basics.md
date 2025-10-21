@@ -754,6 +754,51 @@ Deploy a complete e-commerce application with backend API, frontend, and Postgre
 
 Ensure `kubectl` can reach your cluster and that the `ecommerce-app/k8s` manifests are available locally.
 
+## 💻 Resource Requirements
+
+> **💡 Planning ahead?** See the complete [Resource Requirements Guide](../docs/reference/resource-requirements.md) or use the calculator: `./scripts/calculate-lab-resources.sh 2`
+
+**This lab needs**:
+- **CPU**: 650m requests, 3.2 CPU limits
+- **Memory**: 832Mi requests, 3.25Gi limits
+- **Pods**: 7 total (2 frontend, 2 backend, 1 PostgreSQL, 1 Redis, 1 cart service)
+- **Disk**: ~500MB for container images
+- **Ports**: 5432, 6379, 3000, 5000, 8080, 30080, 30081
+
+**Minimum cluster**: 4 CPU cores, 4GB RAM, 1GB disk  
+**Estimated time**: 30 minutes
+
+<details>
+<summary>👉 Click to see detailed breakdown</summary>
+
+| Component | Replicas | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|-----------|----------|-------------|-----------|----------------|--------------|
+| Frontend | 2 | 100m | 500m | 128Mi | 512Mi |
+| Backend API | 2 | 200m | 1000m | 256Mi | 1Gi |
+| PostgreSQL | 1 | 100m | 500m | 128Mi | 512Mi |
+| Redis | 1 | 50m | 200m | 64Mi | 256Mi |
+| Cart Service | 1 | 100m | 500m | 128Mi | 512Mi |
+| **Totals** | **7** | **650m** | **3.2** | **832Mi** | **3.25Gi** |
+
+**Port Allocation**:
+- **5432**: PostgreSQL database
+- **6379**: Redis cache
+- **3000**: Frontend (Vue.js storefront)
+- **5000**: Backend API (Node.js)
+- **8080**: Cart service
+- **30080**: NodePort for frontend access
+- **30081**: NodePort for backend API
+
+**Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
+
+**Resource Notes**:
+- PostgreSQL PVC: 1Gi (separate from pod resources)
+- Redis uses ephemeral storage (no PVC)
+- Frontend served via NGINX with minimal overhead
+- Backend connects to both PostgreSQL and Redis
+
+</details>
+
 ## 🧭 Architecture Snapshot
 
 ```mermaid
