@@ -47,23 +47,41 @@ Complete inventory of all documentation and resources in this repository.
 
 ## 🎓 Learning Resources (`../20-labs/`)
 
+- **[KUBERNETES-LABS.md](../20-labs/KUBERNETES-LABS.md)** - Complete lab roadmap with all 14 labs + 3 challenges
 - **[COMMON-MISTAKES.md](../20-labs/COMMON-MISTAKES.md)** - Beginner pitfalls and how to avoid them
 - **[LAB-PROGRESS.md](../20-labs/LAB-PROGRESS.md)** - Progress tracker checklist
 - **[SELF-ASSESSMENT.md](../20-labs/SELF-ASSESSMENT.md)** - Knowledge checks after each stage
+- **[CHALLENGE-SOLUTIONS-SHOWCASE.md](../20-labs/CHALLENGE-SOLUTIONS-SHOWCASE.md)** - Community solutions to challenges
 
 ---
 
-## 📖 Reference Guides (`../docs/reference/`)
+## 🎯 Progress & Navigation
 
+- **[PROGRESS-DASHBOARD.md](../PROGRESS-DASHBOARD.md)** - Learning progression map, skill heatmaps, self-assessment
+- **[SEARCH-DISCOVERY-GUIDE.md](../SEARCH-DISCOVERY-GUIDE.md)** - How to find docs: search techniques, discovery tips
+
+---
+
+## 📖 Reference Guides (`../30-reference/`)
+
+### Quick References (`../30-reference/cheatsheets/`)
 - **[kubectl-cheatsheet.md](../30-reference/cheatsheets/kubectl-cheatsheet.md)** - Essential kubectl commands
+- **[api-keys-guide.md](../30-reference/cheatsheets/api-keys-guide.md)** - API key management
+- **[decision-trees.md](../30-reference/cheatsheets/decision-trees.md)** - Resource selection flowcharts
+
+### Deep Dives & Conceptual Guides (`../30-reference/deep-dives/`)
 - **[resource-requirements.md](../30-reference/deep-dives/resource-requirements.md)** - CPU, memory, disk, and port allocation for all labs
 - **[secrets-management.md](../30-reference/deep-dives/secrets-management.md)** - Vault, ExternalSecrets patterns
-- **[api-keys-guide.md](../30-reference/cheatsheets/api-keys-guide.md)** - API key management
 - **[configuration-patterns.md](../30-reference/deep-dives/configuration-patterns.md)** - ConfigMap/Helm best practices
-- **[decision-trees.md](../30-reference/cheatsheets/decision-trees.md)** - Resource selection flowcharts
 - **[certification-guide.md](../30-reference/deep-dives/certification-guide.md)** - CKA/CKAD exam prep
 - **[senior-k8s-debugging.md](../30-reference/deep-dives/senior-k8s-debugging.md)** - Advanced debugging & performance tuning for senior engineers
 - **[production-war-stories.md](../30-reference/deep-dives/production-war-stories.md)** - Real-world incidents
+
+### Production Operations Guides (`../30-reference/deep-dives/`)
+- **[database-operations.md](../30-reference/deep-dives/database-operations.md)** - Backup, restore, point-in-time recovery, migrations
+- **[node-operations.md](../30-reference/deep-dives/node-operations.md)** - Drain, cordon, upgrades, maintenance windows
+- **[storage-operations.md](../30-reference/deep-dives/storage-operations.md)** - Volume expansion, snapshots, migrations, capacity planning
+- **[network-operations.md](../30-reference/deep-dives/network-operations.md)** - DNS debugging, service discovery, troubleshooting
 
 ---
 

@@ -108,7 +108,9 @@ These are **incident simulations**—real production scenarios where you're the 
 
 **Pro tip**: Don't skip these. They cement your skills 10x better than normal labs.
 
-> Tip: After you complete each lab’s main steps, look for its Challenge track section near the end of the page. It’s the fastest way to reinforce learning.
+> Tip: After you complete each lab's main steps, look for its Challenge track section near the end of the page. It's the fastest way to reinforce learning.
+>
+> **Completed a challenge?** Share your solution! → [Challenge Solutions Showcase](./CHALLENGE-SOLUTIONS-SHOWCASE.md)
 
 ---
 

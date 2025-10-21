@@ -272,9 +272,10 @@ Now you're ready to begin your Kubernetes journey:
    - Master port-forwarding and logs
 
 3. **Track Your Progress**
-   - Use **[LAB-PROGRESS.md](../../labs/LAB-PROGRESS.md)** to track completion
+   - Use **[Lab Progress Tracker](../../labs/LAB-PROGRESS.md)** to mark labs complete
+   - View the **[Learning Progress Dashboard](../PROGRESS-DASHBOARD.md)** for skill heatmaps
    - Check off concepts as you master them
-   - See your skill progression visually
+   - See your learning path visualized
 
 ### Optional: Coming from Docker Compose?
 
