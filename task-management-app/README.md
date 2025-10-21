@@ -17,7 +17,12 @@ Sample app (Svelte + Go + Postgres) used to learn Ingress and routing.
 - In Kubernetes: follow [Lab 5](../labs/05-task-ingress.md)
 - Locally: use `docker-compose.yml`
 
-## 🔗 Related
+## � Credentials & secrets
+
+- Any sensitive config is provided via Kubernetes Secrets during the lab.
+- Guide: [Secrets management](../docs/reference/secrets-management.md)
+
+## �🔗 Related
 
 - Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
 - Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)

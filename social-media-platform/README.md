@@ -17,7 +17,12 @@ Sample app (React Native + Ruby + Postgres) for autoscaling and performance labs
 - In Kubernetes: follow [Lab 7](../labs/07-social-scaling.md)
 - Locally: use `docker-compose.yml`
 
-## 🔗 Related
+## � Credentials & secrets
+
+- Secrets and tokens are provided via Kubernetes Secrets in the lab.
+- Guide: [Secrets management](../docs/reference/secrets-management.md)
+
+## �🔗 Related
 
 - Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
 - Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)

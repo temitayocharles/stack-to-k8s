@@ -17,7 +17,12 @@ Sample app (Blazor + .NET + Postgres) used to learn RBAC, NetworkPolicies, and s
 - In Kubernetes: follow [Lab 6](../labs/06-medical-security.md)
 - Locally: use `docker-compose.yml`
 
-## 🔗 Related
+## � Credentials & secrets
+
+- Secrets (DB credentials, tokens) are configured via Kubernetes Secrets in the lab.
+- Guide: [Secrets management](../docs/reference/secrets-management.md)
+
+## �🔗 Related
 
 - Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
 - Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)

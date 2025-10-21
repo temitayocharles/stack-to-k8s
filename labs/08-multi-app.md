@@ -5,6 +5,8 @@ Deploy and observe multiple apps together with a service mesh and centralized mo
 **Difficulty**: ⭐⭐⭐⭐ Expert  
 **Focus**: Service mesh, Centralized logging, Monitoring, Complex orchestration
 
+> 🏅 Level up: [Expert mode: service mesh performance profiling](#-expert-mode-service-mesh-performance-profiling) after completing the deployment.
+
 ---
 
 ## 🎯 Objective

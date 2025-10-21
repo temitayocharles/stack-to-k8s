@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Enhanced lab prerequisites checker with comprehensive validation
+# Enhanced lab prerequisites checker with comprehensive validation and interactive remediation
 set -euo pipefail
 
 # =============================================================================
@@ -23,6 +23,9 @@ readonly EXIT_SUCCESS=0
 readonly EXIT_INVALID_ARGS=1
 readonly EXIT_MISSING_DEPS=2
 readonly EXIT_MISSING_FILES=3
+
+# Interactivity (default true). Use --non-interactive to disable prompts.
+INTERACTIVE=true
 
 # Lab configuration (supports up to Lab 13 + decimal labs)
 declare -A LAB_TITLES=(
@@ -108,10 +111,11 @@ ${BOLD}DESCRIPTION:${NC}
     needed before you begin a lab. Supports decimal lab numbers (e.g., 3.5, 8.5).
 
 ${BOLD}OPTIONS:${NC}
-    -h, --help      Show this help message and exit
-    -l, --list      List all available labs
-    -v, --verbose   Enable verbose output
-    --all          Check prerequisites for all labs
+    -h, --help           Show this help message and exit
+    -l, --list           List all available labs
+    -v, --verbose        Enable verbose output
+    --all               Check prerequisites for all labs
+    --non-interactive   Disable interactive prompts (fail fast)
 
 ${BOLD}ARGUMENTS:${NC}
     lab-number      Lab number to check (e.g., 1, 3.5, 8, 11.5, 13)
@@ -198,6 +202,10 @@ parse_arguments() {
                 set -x  # Enable debug mode
                 shift
                 ;;
+            --non-interactive)
+                INTERACTIVE=false
+                shift
+                ;;
             --all)
                 log_info "Checking all available labs..."
                 for lab_num in $(printf '%s\n' "${!LAB_TITLES[@]}" | sort -V); do
@@ -223,6 +231,115 @@ parse_arguments() {
     log_error "No lab number provided after parsing options"
     show_usage
     return ${EXIT_INVALID_ARGS}
+}
+detect_os() {
+    local os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    case "$os" in
+        darwin) echo "macos" ;;
+        linux) echo "linux" ;;
+        *) echo "unknown" ;;
+    esac
+}
+
+brew_available() { command -v brew >/dev/null 2>&1; }
+
+apt_available() { command -v apt-get >/dev/null 2>&1; }
+
+dnf_available() { command -v dnf >/dev/null 2>&1; }
+
+prompt_yes_no() {
+    local prompt="$1"; local default="${2:-y}"; local ans
+    if [[ "$INTERACTIVE" != true ]]; then return 1; fi
+    while true; do
+        read -r -p "${prompt} [y/n] (default ${default}): " ans || return 1
+        ans=${ans:-$default}
+        case "$ans" in
+            y|Y) return 0 ;;
+            n|N) return 1 ;;
+            *) echo "Please answer y or n." ;;
+        esac
+    done
+}
+
+attempt_install() {
+    local cmd="$1"
+    local os; os=$(detect_os)
+    if [[ "$os" == "macos" ]] && brew_available; then
+        case "$cmd" in
+            kubectl) echo "brew install kubernetes-cli" ;;
+            helm) echo "brew install helm" ;;
+            docker) echo "brew install --cask docker" ;;
+            stern) echo "brew install stern" ;;
+            k9s) echo "brew install k9s" ;;
+            jq) echo "brew install jq" ;;
+            git) echo "brew install git" ;;
+            curl) echo "brew install curl" ;;
+            *) return 1 ;;
+        esac
+        return 0
+    elif [[ "$os" == "linux" ]]; then
+        if apt_available; then
+            case "$cmd" in
+                kubectl) echo "sudo apt-get update && sudo apt-get install -y kubectl" ;;
+                helm) echo "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash" ;;
+                docker) echo "curl -fsSL https://get.docker.com | sh" ;;
+                jq) echo "sudo apt-get update && sudo apt-get install -y jq" ;;
+                git) echo "sudo apt-get update && sudo apt-get install -y git" ;;
+                curl) echo "sudo apt-get update && sudo apt-get install -y curl" ;;
+                *) return 1 ;;
+            esac
+            return 0
+        elif dnf_available; then
+            case "$cmd" in
+                kubectl) echo "sudo dnf install -y kubernetes-client" ;;
+                helm) echo "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash" ;;
+                docker) echo "sudo dnf -y install docker && sudo systemctl enable --now docker" ;;
+                jq) echo "sudo dnf -y install jq" ;;
+                git) echo "sudo dnf -y install git" ;;
+                curl) echo "sudo dnf -y install curl" ;;
+                *) return 1 ;;
+            esac
+            return 0
+        fi
+    fi
+    return 1
+}
+
+remediate_command_missing() {
+    local cmd="$1"; local desc="$2"
+    if [[ "$INTERACTIVE" != true ]]; then return ${EXIT_MISSING_DEPS}; fi
+    log_warn "${desc} not found (${cmd})."
+    if prompt_yes_no "Attempt to install ${desc} now?" y; then
+        local install_cmd
+        if install_cmd=$(attempt_install "$cmd"); then
+            log_info "Running: ${install_cmd}"
+            set +e
+            bash -lc "${install_cmd}"
+            local rc=$?
+            set -e
+            if [[ $rc -eq 0 ]]; then
+                log_success "Installed ${desc}"
+                return ${EXIT_SUCCESS}
+            else
+                log_error "Failed to install ${desc} (exit ${rc})"
+            fi
+        else
+            log_warn "No automated installer available for ${desc} on this OS."
+        fi
+    fi
+    log_info "See setup guides: docs/setup/rancher-desktop.md · docs/setup/linux-kind-k3d.md"
+    return ${EXIT_MISSING_DEPS}
+}
+
+run_cleanup_menu() {
+    [[ "$INTERACTIVE" == true ]] || return 0
+    if prompt_yes_no "Run workspace cleanup to free resources?" n; then
+        if [[ -x "${ROOT_DIR}/scripts/cleanup-workspace.sh" ]]; then
+            bash "${ROOT_DIR}/scripts/cleanup-workspace.sh" || true
+        else
+            log_warn "cleanup-workspace.sh not found"
+        fi
+    fi
 }
 
 # =============================================================================
@@ -283,6 +400,12 @@ check_command() {
         return ${EXIT_SUCCESS}
     else
         if [[ "${required}" == "true" ]]; then
+            # Interactive remediation
+            remediate_command_missing "${cmd}" "${description}" || true
+            if command -v "${cmd}" >/dev/null 2>&1; then
+                log_success "Found ${description} after remediation: ${cmd}"
+                return ${EXIT_SUCCESS}
+            fi
             log_error "Missing required command: ${cmd} (${description})"
             return ${EXIT_MISSING_DEPS}
         else
@@ -349,6 +472,19 @@ check_kubernetes_cluster() {
     else
         log_error "Cannot connect to Kubernetes cluster"
         log_error "Ensure your cluster is running and kubectl is configured correctly"
+        if [[ "$INTERACTIVE" == true ]]; then
+            local os; os=$(detect_os)
+            if [[ "$os" == "macos" ]] && prompt_yes_no "Open Rancher Desktop to start Kubernetes now?" y; then
+                set +e; open -a "Rancher Desktop" 2>/dev/null || open -a Docker 2>/dev/null || true; set -e
+                log_info "Waiting 15s for cluster to initialize..."
+                sleep 15
+                if timeout 20s kubectl cluster-info >/dev/null 2>&1; then
+                    log_success "Cluster is now accessible"
+                    return ${EXIT_SUCCESS}
+                fi
+            fi
+            log_info "You can also run: kubectl config get-contexts && kubectl config use-context <name>"
+        fi
         return ${EXIT_MISSING_DEPS}
     fi
     
@@ -470,7 +606,20 @@ check_lab() {
 check_docker_compose() {
     log_subheader "Docker Environment"
     
-    check_command "docker" "Docker Engine" || return $?
+    check_command "docker" "Docker Engine" || {
+        if [[ "$INTERACTIVE" == true ]] && prompt_yes_no "Attempt to install/start Docker Desktop?" y; then
+            local os; os=$(detect_os)
+            if [[ "$os" == "macos" ]]; then
+                if brew_available; then
+                    set +e; bash -lc "brew install --cask docker"; set -e
+                fi
+                set +e; open -a Docker 2>/dev/null || true; set -e
+                log_info "Waiting 10s for Docker to start..."; sleep 10
+            fi
+        fi
+        # Re-check docker availability
+        command -v docker >/dev/null 2>&1 || return ${EXIT_MISSING_DEPS}
+    }
     check_command "docker-compose" "Docker Compose" "false"
     
     # Check if Docker daemon is running
@@ -478,7 +627,16 @@ check_docker_compose() {
         log_success "Docker daemon is running"
     else
         log_error "Docker daemon is not running or not accessible"
+        if [[ "$INTERACTIVE" == true ]] && prompt_yes_no "Start Docker Desktop now?" y; then
+            set +e; open -a Docker 2>/dev/null || true; set -e
+            log_info "Waiting 10s for Docker to start..."; sleep 10
+            if docker info >/dev/null 2>&1; then
+                log_success "Docker daemon is running"
+                return ${EXIT_SUCCESS}
+            fi
+        fi
         log_error "Please start Docker and ensure your user has proper permissions"
+        run_cleanup_menu
         return ${EXIT_MISSING_DEPS}
     fi
 }
@@ -528,7 +686,15 @@ main() {
         fi
     else
         echo -e "\n${RED}${BOLD}❌ Prerequisites check failed${NC}"
-        echo -e "${RED}Please install missing dependencies before starting the lab${NC}"
+        if [[ "$INTERACTIVE" == true ]]; then
+            echo -e "${YELLOW}You can rerun this checker after remediation, or continue at your own risk.${NC}"
+            if prompt_yes_no "Open troubleshooting guide now?" y; then
+                echo -e "See: ${BOLD}docs/troubleshooting/troubleshooting.md${NC}"
+            fi
+            run_cleanup_menu
+        else
+            echo -e "${RED}Please install missing dependencies before starting the lab, or run without --non-interactive for guided remediation.${NC}"
+        fi
     fi
     
     return ${exit_code}

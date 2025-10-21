@@ -7,6 +7,8 @@ Build a small, resilient weather service (frontend + backend) and verify basic s
 **Difficulty**: ⭐ Beginner  
 **Focus**: Pods, Deployments, Services
 
+> 🏅 Looking for a challenge? Jump to [Expert mode: advanced CrashLoopBackOff debugging](#-expert-mode-advanced-crashloopbackoff-debugging) after the main steps.
+
 ## ✅ Success criteria
 - `kubectl get pods -n weather-lab` shows frontend & backend Running
 - `kubectl get svc -n weather-lab` exposes the frontend (LoadBalancer or port-forwardable)
@@ -1032,7 +1034,7 @@ curl http://localhost:5000/api/health
 
 ---
 
-## 🎖️ Expert Mode: Advanced CrashLoopBackOff Debugging
+## 🎖️ Expert mode: advanced CrashLoopBackOff debugging
 
 > 💡 **Optional Challenge** — This section is for those who want to master senior-level debugging skills. **Completing this is NOT required** to progress to Lab 2, but it will unlock the **🔬 Forensic Investigator** badge!
 

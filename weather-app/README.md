@@ -17,7 +17,12 @@ A two-tier sample (frontend + Python backend + Redis cache) used to learn Kubern
 - In Kubernetes: follow [Lab 1](../labs/01-weather-basics.md)
 - Locally (optional): see `docker-compose.yml` in this folder
 
-## 🔗 Related
+## � Credentials & secrets
+
+- Weather API key: set via Kubernetes Secret during the lab.
+- Guide: [Secrets management](../docs/reference/secrets-management.md)
+
+## �🔗 Related
 
 - Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
 - Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)

@@ -17,7 +17,12 @@ Multi-tier sample app (React frontend, Node.js backend, MongoDB) for learning mu
 - In Kubernetes: follow [Lab 2](../labs/02-ecommerce-basics.md)
 - Locally: use `docker-compose.yml`
 
-## 🔗 Related
+## � Credentials & secrets
+
+- External API/database secrets are configured in the lab via Kubernetes Secrets.
+- Guide: [Secrets management](../docs/reference/secrets-management.md)
+
+## �🔗 Related
 
 - Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
 - Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)

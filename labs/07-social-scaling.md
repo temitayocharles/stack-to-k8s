@@ -48,6 +48,8 @@ Ready to verify your mastery? Take the **[Lab 7 Self-Assessment Quiz](../docs/le
 **Time**: 60 minutes  
 **Difficulty**: ⭐⭐⭐⭐ Expert+
 
+
+> 🏅 Don’t miss the challenge: [Expert mode: cluster autoscaler debugging](#-expert-mode-cluster-autoscaler-debugging) at the end of the lab.
 This challenge tests everything you learned about scaling, HPA, resource management, and performance under extreme pressure. It simulates the most stressful day in e-commerce!
 
 **[→ Accept the Challenge](challenge-b-black-friday.md)**

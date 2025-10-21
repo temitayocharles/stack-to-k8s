@@ -5,6 +5,8 @@ Build a resilient educational platform using StatefulSets and persistent volumes
 **Difficulty**: ⭐⭐ Intermediate  
 **Focus**: StatefulSets, Persistent Volumes, Data persistence
 
+> 🏅 Ready for more? See [Expert mode: PVC recovery after node crash](#-expert-mode-pvc-recovery-after-node-crash) once you complete the core lab.
+
 ---
 
 ## 📊 Production vs Lab: What Changes in Real Life?
@@ -1334,7 +1336,7 @@ Ready to verify your mastery? Take the **[Lab 3 Self-Assessment Quiz](../docs/le
 
 ---
 
-## 🎖️ Expert Mode: PVC Recovery After Node Crash
+## 🎖️ Expert mode: PVC recovery after node crash
 
 > 💡 **Optional Challenge** — Want to master disaster recovery skills? **This is NOT required** to progress, but completing it unlocks the **💾 Data Recovery Specialist** badge!
 

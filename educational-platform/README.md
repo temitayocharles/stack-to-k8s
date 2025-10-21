@@ -17,7 +17,12 @@ Stateful sample app (Angular + Java + Postgres) to learn StatefulSets and PVCs.
 - In Kubernetes: follow [Lab 3](../labs/03-educational-stateful.md)
 - Locally: use `docker-compose.yml`
 
-## 🔗 Related
+## � Credentials & secrets
+
+- Database credentials are configured via Kubernetes Secrets in the lab.
+- Guide: [Secrets management](../docs/reference/secrets-management.md)
+
+## �🔗 Related
 
 - Troubleshooting: [docs/troubleshooting](../docs/troubleshooting/troubleshooting.md)
 - Cheat sheet: [kubectl commands](../docs/reference/kubectl-cheatsheet.md)
