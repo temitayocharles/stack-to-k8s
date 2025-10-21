@@ -1018,14 +1018,14 @@ kubectl get pdb --all-namespaces
 ### Complete Guide
 
 For detailed autoscaler debugging steps, see:  
-**[Senior K8s Debugging Guide: Cluster Autoscaler](../../docs/reference/senior-k8s-debugging.md#13-pods-pending---cluster-autoscaler-wont-scale)**
+**[Senior K8s Debugging Guide: Cluster Autoscaler](../docs/reference/senior-k8s-debugging.md#13-pods-pending---cluster-autoscaler-wont-scale)**
 
 ### Badge Unlocked! 🎉
 
 Complete this challenge and you've earned:  
 **📈 Scaling Architect** — You can troubleshoot production scaling issues!
 
-**Track your progress**: [Lab Progress Tracker](../../docs/learning/LAB-PROGRESS.md#expert-badges)
+**Track your progress**: [Lab Progress Tracker](../docs/learning/LAB-PROGRESS.md#expert-badges)
 
 ## 🏆 Challenge Mode
 

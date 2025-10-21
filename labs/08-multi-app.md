@@ -1144,14 +1144,14 @@ curl localhost:15000/config_dump > envoy-config.json
 ### Complete Guide
 
 For detailed Envoy optimization techniques, see:  
-**[Senior K8s Debugging Guide: Istio Performance](../../docs/reference/senior-k8s-debugging.md#22-istio-sidecar-cpu-overhead)**
+**[Senior K8s Debugging Guide: Istio Performance](../docs/reference/senior-k8s-debugging.md#22-istio-sidecar-cpu-overhead)**
 
 ### Badge Unlocked! 🎉
 
 Complete this challenge and you've earned:  
 **🕸️ Mesh Performance Engineer** — You can optimize production service meshes!
 
-**Track your progress**: [Lab Progress Tracker](../../docs/learning/LAB-PROGRESS.md#expert-badges)
+**Track your progress**: [Lab Progress Tracker](../docs/learning/LAB-PROGRESS.md#expert-badges)
 
 ---
 

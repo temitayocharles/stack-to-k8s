@@ -248,13 +248,13 @@ flowchart TD
 ## 📚 Learn More
 
 Each decision tree maps to specific labs:
-- **Tree #1 (Deployment types)**: [Lab 2](../labs/02-ecommerce-basics.md), [Lab 3](../labs/03-educational-stateful.md)
-- **Tree #2 (Service types)**: [Lab 1](../labs/01-weather-basics.md), [Lab 5](../labs/05-task-ingress.md)
-- **Tree #3 (Storage)**: [Lab 3](../labs/03-educational-stateful.md)
-- **Tree #4 (Scaling)**: [Lab 7](../labs/07-social-scaling.md)
-- **Tree #5 (External access)**: [Lab 5](../labs/05-task-ingress.md)
-- **Tree #6 (Config)**: [Lab 2](../labs/02-ecommerce-basics.md), [Lab 12](../labs/12-external-secrets.md)
-- **Tree #7 (Namespaces)**: [Lab 8](../labs/08-multi-app.md), [Lab 8.5](../labs/08.5-multi-tenancy.md) *(coming soon)*
+- **Tree #1 (Deployment types)**: [Lab 2](../../labs/02-ecommerce-basics.md), [Lab 3](../../labs/03-educational-stateful.md)
+- **Tree #2 (Service types)**: [Lab 1](../../labs/01-weather-basics.md), [Lab 5](../../labs/05-task-ingress.md)
+- **Tree #3 (Storage)**: [Lab 3](../../labs/03-educational-stateful.md)
+- **Tree #4 (Scaling)**: [Lab 7](../../labs/07-social-scaling.md)
+- **Tree #5 (External access)**: [Lab 5](../../labs/05-task-ingress.md)
+- **Tree #6 (Config)**: [Lab 2](../../labs/02-ecommerce-basics.md), [Lab 12](../../labs/12-external-secrets.md)
+- **Tree #7 (Namespaces)**: [Lab 8](../../labs/08-multi-app.md), [Lab 8.5](../../labs/08.5-multi-tenancy.md) *(coming soon)*
 
 ---
 

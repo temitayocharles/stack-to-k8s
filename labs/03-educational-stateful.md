@@ -1396,14 +1396,14 @@ The PVC is still bound to the **dead node**, and Kubernetes won't attach it to t
 ### Complete Guide
 
 For detailed step-by-step recovery procedures, see:  
-**[Senior K8s Debugging Guide: PVC Recovery](../../docs/reference/senior-k8s-debugging.md#12-statefulset-pod-wont-reattach-pvc-after-node-crash)**
+**[Senior K8s Debugging Guide: PVC Recovery](../docs/reference/senior-k8s-debugging.md#12-statefulset-pod-wont-reattach-pvc-after-node-crash)**
 
 ### Badge Unlocked! 🎉
 
 Complete this challenge and you've earned:  
 **💾 Data Recovery Specialist** — You can rescue stateful workloads from disaster!
 
-**Track your progress**: [Lab Progress Tracker](../../docs/learning/LAB-PROGRESS.md#expert-badges)
+**Track your progress**: [Lab Progress Tracker](../docs/learning/LAB-PROGRESS.md#expert-badges)
 
 ---
 

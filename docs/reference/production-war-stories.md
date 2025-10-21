@@ -82,7 +82,7 @@ Problem:
 
 ### Key Takeaways
 - ✅ **PodDisruptionBudget is not optional** for stateful apps
-- ✅ **Test failure modes**: Simulate network partitions (see [Lab 9: Chaos](../labs/09-chaos.md))
+- ✅ **Test failure modes**: Simulate network partitions (see [Lab 9: Chaos](../../labs/09-chaos.md))
 - ✅ **StatefulSets ≠ Data safety**: App must handle split-brain
 - ⚠️ **Kubernetes doesn't solve distributed systems problems** (it just orchestrates containers)
 
@@ -943,18 +943,18 @@ spec:
 ## 📚 Learn From These Mistakes
 
 **Apply Lessons to Your Cluster**:
-- [ ] Add PodDisruptionBudget to all stateful apps ([Lab 3](../labs/03-educational-stateful.md))
-- [ ] Set resource limits on ALL pods ([Lab 7](../labs/07-social-scaling.md))
-- [ ] Add NetworkPolicy to block 169.254.169.254 ([Lab 6](../labs/06-medical-security.md))
-- [ ] Monitor etcd disk usage ([Lab 3.5](../labs/03.5-kubernetes-under-the-hood.md))
-- [ ] Enable Pod Security Standards (restricted) ([Lab 6](../labs/06-medical-security.md))
-- [ ] Test backups monthly ([Lab 11.5](../labs/11.5-disaster-recovery.md)) *(coming soon)*
-- [ ] Load test at 2-3x expected peak ([Lab 7](../labs/07-social-scaling.md))
+- [ ] Add PodDisruptionBudget to all stateful apps ([Lab 3](../../labs/03-educational-stateful.md))
+- [ ] Set resource limits on ALL pods ([Lab 7](../../labs/07-social-scaling.md))
+- [ ] Add NetworkPolicy to block 169.254.169.254 ([Lab 6](../../labs/06-medical-security.md))
+- [ ] Monitor etcd disk usage ([Lab 3.5](../../labs/03.5-kubernetes-under-the-hood.md))
+- [ ] Enable Pod Security Standards (restricted) ([Lab 6](../../labs/06-medical-security.md))
+- [ ] Test backups monthly ([Lab 11.5](../../labs/11.5-disaster-recovery.md)) *(coming soon)*
+- [ ] Load test at 2-3x expected peak ([Lab 7](../../labs/07-social-scaling.md))
 
 **Next Steps**:
-- 🧪 **[Lab 9: Chaos Engineering](../labs/09-chaos.md)** - Break your cluster intentionally
-- 🔒 **[Lab 6: Medical Security](../labs/06-medical-security.md)** - Harden like Capital One should have
-- 📈 **[Lab 7: Social Scaling](../labs/07-social-scaling.md)** - Scale like Shopify did
+- 🧪 **[Lab 9: Chaos Engineering](../../labs/09-chaos.md)** - Break your cluster intentionally
+- 🔒 **[Lab 6: Medical Security](../../labs/06-medical-security.md)** - Harden like Capital One should have
+- 📈 **[Lab 7: Social Scaling](../../labs/07-social-scaling.md)** - Scale like Shopify did
 
 ---
 
