@@ -150,7 +150,7 @@ Expected result: the node reports `Ready`, the deployment rolls out, and the ech
 | Missing WSL distro | `wsl --list --online` then `wsl --install -d Ubuntu`. | Not applicable. |
 | Need fresh start | `rdctl reset --kubernetes` followed by reinstall of CLIs if paths changed. | Same command in Terminal (requires `rdctl` symlink). |
 
-More runtime tips live in `docs/troubleshooting/troubleshooting.md`.
+More runtime tips live in `docs/../../40-troubleshooting/troubleshooting-index.md`.
 
 ---
 

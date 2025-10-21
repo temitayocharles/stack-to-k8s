@@ -1,4 +1,450 @@
-Full link check run: Tue Oct 21 06:19:15 UTC 2025
+Full link check run: Tue Oct 21 07:50:47 UTC 2025
 Repository: /Users/charlie/Downloads/stack-to-k8s-main
-Index source: /Users/charlie/Downloads/stack-to-k8s-main/docs/MARKDOWN-INDEX.md
+Index source: /Users/charlie/Downloads/stack-to-k8s-main/docs/00-introduction/MARKDOWN-INDEX.md
 
+=== FILE: README.md ===
+
+FILE: README.md
+  [✓] docs/00-introduction/GETTING-STARTED.md
+  [✓] labs/00-visual-kubernetes.md
+  [✓] labs/01-weather-basics.md
+  [✓] docs/20-labs/LAB-PROGRESS.md
+  [✓] docs/20-labs/KUBERNETES-LABS.md
+  [✓] labs/00.5-docker-compose-to-kubernetes.md
+  [✓] labs/02-ecommerce-basics.md
+  [✓] labs/03-educational-stateful.md
+  [✓] labs/03.5-kubernetes-under-the-hood.md
+  [✓] labs/04-kubernetes-fundamentals.md
+  [✓] labs/05-task-ingress.md
+  [✓] labs/06-medical-security.md
+  [✓] labs/07-social-scaling.md
+  [✓] labs/08-multi-app.md
+  [✓] labs/08.5-multi-tenancy.md
+  [✓] labs/09-chaos.md
+  [✓] labs/09.5-complex-microservices.md
+  [✓] labs/10-helm-package-management.md
+  [✓] labs/11-gitops-argocd.md
+  [✓] labs/11.5-disaster-recovery.md
+  [✓] labs/12-external-secrets.md
+  [✓] labs/12.5-multi-cloud-secrets.md
+  [✓] labs/13-ai-ml-gpu.md
+  [✓] labs/challenge-a-midnight-incident.md
+  [✓] labs/challenge-b-black-friday.md
+  [✓] labs/challenge-c-platform-migration.md
+  [✓] docs/20-labs/LAB-PROGRESS.md#expert-badge-system-optional-advanced-challenges
+  [✓] docs/20-labs/SELF-ASSESSMENT.md
+  [✓] docs/20-labs/COMMON-MISTAKES.md
+  [✓] docs/30-reference/cheatsheets/kubectl-cheatsheet.md
+  [✓] docs/40-troubleshooting/troubleshooting-index.md
+  [✓] docs/30-reference/deep-dives/secrets-management.md
+  [✓] docs/00-introduction/MARKDOWN-INDEX.md
+  [✓] docs/00-introduction/REPOSITORY-STRUCTURE.md
+  [✓] docs/30-reference/deep-dives/resource-requirements.md
+  [✓] https://hub.docker.com/u/temitayocharles
+
+  36 links checked.
+RESULT: OK
+
+=== FILE: docs/KUBERNETES-LABS.md ===
+MISSING_FILE: docs/KUBERNETES-LABS.md
+
+=== FILE: docs/MARKDOWN-INDEX.md ===
+MISSING_FILE: docs/MARKDOWN-INDEX.md
+
+=== FILE: docs/README.md ===
+MISSING_FILE: docs/README.md
+
+=== FILE: docs/STYLE-GUIDE.md ===
+MISSING_FILE: docs/STYLE-GUIDE.md
+
+=== FILE: docs/learning/COMMON-MISTAKES.md ===
+MISSING_FILE: docs/learning/COMMON-MISTAKES.md
+
+=== FILE: docs/learning/LAB-PROGRESS.md ===
+MISSING_FILE: docs/learning/LAB-PROGRESS.md
+
+=== FILE: docs/learning/SELF-ASSESSMENT.md ===
+MISSING_FILE: docs/learning/SELF-ASSESSMENT.md
+
+=== FILE: docs/reference/api-keys-guide.md ===
+MISSING_FILE: docs/reference/api-keys-guide.md
+
+=== FILE: docs/reference/configuration-patterns.md ===
+MISSING_FILE: docs/reference/configuration-patterns.md
+
+=== FILE: docs/reference/kubectl-cheatsheet.md ===
+MISSING_FILE: docs/reference/kubectl-cheatsheet.md
+
+=== FILE: docs/reference/secrets-management.md ===
+MISSING_FILE: docs/reference/secrets-management.md
+
+=== FILE: docs/setup/linux-kind-k3d.md ===
+MISSING_FILE: docs/setup/linux-kind-k3d.md
+
+=== FILE: docs/setup/rancher-desktop.md ===
+MISSING_FILE: docs/setup/rancher-desktop.md
+
+=== FILE: docs/troubleshooting/troubleshooting.md ===
+MISSING_FILE: docs/troubleshooting/troubleshooting.md
+
+=== FILE: ecommerce-app/ARCHITECTURE.md ===
+
+FILE: ecommerce-app/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+RESULT: OK
+
+=== FILE: ecommerce-app/README.md ===
+
+FILE: ecommerce-app/README.md
+  [✓] ../labs/02-ecommerce-basics.md
+  [✖] ../docs/KUBERNETES-LABS.md
+  [✓] ARCHITECTURE.md
+  [✓] k8s/
+  [✓] k8s/advanced-features/README.md
+  [✖] ../docs/reference/secrets-management.md
+  [✖] ../docs/troubleshooting/troubleshooting.md
+  [✖] ../docs/reference/kubectl-cheatsheet.md
+
+  8 links checked.
+
+  ERROR: 4 dead links found!
+  [✖] ../docs/KUBERNETES-LABS.md → Status: 400
+  [✖] ../docs/reference/secrets-management.md → Status: 400
+  [✖] ../docs/troubleshooting/troubleshooting.md → Status: 400
+  [✖] ../docs/reference/kubectl-cheatsheet.md → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: ecommerce-app/k8s/advanced-features/README.md ===
+
+FILE: ecommerce-app/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+RESULT: OK
+
+=== FILE: educational-platform/ARCHITECTURE.md ===
+
+FILE: educational-platform/ARCHITECTURE.md
+  No hyperlinks found!
+
+  0 links checked.
+RESULT: OK
+
+=== FILE: educational-platform/README.md ===
+
+FILE: educational-platform/README.md
+  [✓] ../labs/03-educational-stateful.md
+  [✖] ../docs/KUBERNETES-LABS.md
+  [✓] ARCHITECTURE.md
+  [✓] k8s/
+  [✓] k8s/advanced-features/README.md
+  [✖] ../docs/reference/secrets-management.md
+  [✖] ../docs/troubleshooting/troubleshooting.md
+  [✖] ../docs/reference/kubectl-cheatsheet.md
+
+  8 links checked.
+
+  ERROR: 4 dead links found!
+  [✖] ../docs/KUBERNETES-LABS.md → Status: 400
+  [✖] ../docs/reference/secrets-management.md → Status: 400
+  [✖] ../docs/troubleshooting/troubleshooting.md → Status: 400
+  [✖] ../docs/reference/kubectl-cheatsheet.md → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: educational-platform/k8s/advanced-features/README.md ===
+
+FILE: educational-platform/k8s/advanced-features/README.md
+  No hyperlinks found!
+
+  0 links checked.
+RESULT: OK
+
+=== FILE: global-configs/README.md ===
+
+FILE: global-configs/README.md
+  [✓] ../labs/08-multi-app.md
+
+  1 link checked.
+RESULT: OK
+
+=== FILE: labs/00-visual-kubernetes.md ===
+
+FILE: labs/00-visual-kubernetes.md
+  [✓] 01-weather-basics.md
+
+  1 link checked.
+RESULT: OK
+
+=== FILE: labs/00.5-docker-compose-to-kubernetes.md ===
+
+FILE: labs/00.5-docker-compose-to-kubernetes.md
+  [/] http://localhost:8080
+  [✓] 01-weather-basics.md
+  [✓] 07-social-scaling.md
+  [✓] 09-chaos.md
+  [✓] 10-helm-package-management.md
+
+  5 links checked.
+RESULT: OK
+
+=== FILE: labs/01-weather-basics.md ===
+
+FILE: labs/01-weather-basics.md
+  [✓] #-expert-mode-advanced-crashloopbackoff-debugging
+  [✓] #-quick-check
+  [✓] #-break--fix-debugging-challenge-optional-but-recommended
+  [✓] #-troubleshooting-flow
+  [✓] #-observability-check-is-it-really-working
+  [✓] #-test-your-knowledge
+  [✓] #-next-lab
+  [✖] ../docs/reference/resource-requirements.md
+  [✖] ../docs/reference/senior-k8s-debugging.md#11-pod-stuck-in-crashloopbackoff---no-logs-no-errors
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#%EF%B8%8F-lab-1--weather-app-basics
+  [✓] 02-ecommerce-basics.md
+
+  11 links checked.
+
+  ERROR: 3 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/reference/senior-k8s-debugging.md#11-pod-stuck-in-crashloopbackoff---no-logs-no-errors → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#%EF%B8%8F-lab-1--weather-app-basics → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/02-ecommerce-basics.md ===
+
+FILE: labs/02-ecommerce-basics.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-2--e-commerce-multi-tier
+  [✓] 03-educational-stateful.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] 08-multi-app.md
+
+  4 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-2--e-commerce-multi-tier → Status: 400
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/03-educational-stateful.md ===
+
+FILE: labs/03-educational-stateful.md
+  [✓] #-expert-mode-pvc-recovery-after-node-crash
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] 11.5-disaster-recovery.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-3--educational-stateful
+  [✖] ../docs/reference/senior-k8s-debugging.md#12-statefulset-pod-wont-reattach-pvc-after-node-crash
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges
+  [✓] challenge-a-midnight-incident.md
+  [✓] 04-kubernetes-fundamentals.md
+
+  8 links checked.
+
+  ERROR: 4 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-3--educational-stateful → Status: 400
+  [✖] ../docs/reference/senior-k8s-debugging.md#12-statefulset-pod-wont-reattach-pvc-after-node-crash → Status: 400
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/03.5-kubernetes-under-the-hood.md ===
+
+FILE: labs/03.5-kubernetes-under-the-hood.md
+  [✖] ../docs/reference/senior-k8s-debugging.md#21-etcd-performance-bottlenecks
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges
+  [✓] https://kubernetes.io/docs/concepts/architecture/
+  [✓] https://github.com/kubernetes-sigs/controller-runtime
+  [✓] https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
+  [✓] https://etcd.io/docs/
+
+  6 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/reference/senior-k8s-debugging.md#21-etcd-performance-bottlenecks → Status: 400
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/04-kubernetes-fundamentals.md ===
+
+FILE: labs/04-kubernetes-fundamentals.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] 05-task-ingress.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-4--fundamentals-deep-dive
+
+  3 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-4--fundamentals-deep-dive → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/05-task-ingress.md ===
+
+FILE: labs/05-task-ingress.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-5--task-manager-ingress
+  [✓] 06-medical-security.md
+  [✖] ../docs/reference/resource-requirements.md
+
+  3 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-5--task-manager-ingress → Status: 400
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/06-medical-security.md ===
+
+FILE: labs/06-medical-security.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] 12-external-secrets.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-6--medical-security
+  [✓] 07-social-scaling.md
+
+  4 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-6--medical-security → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/07-social-scaling.md ===
+
+FILE: labs/07-social-scaling.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-7--social-scaling
+  [✓] challenge-b-black-friday.md
+  [✓] #-expert-mode-cluster-autoscaler-debugging
+  [✓] 08-multi-app.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✖] ../docs/reference/senior-k8s-debugging.md#13-pods-pending---cluster-autoscaler-wont-scale
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges
+
+  7 links checked.
+
+  ERROR: 4 dead links found!
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-7--social-scaling → Status: 400
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/reference/senior-k8s-debugging.md#13-pods-pending---cluster-autoscaler-wont-scale → Status: 400
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/08-multi-app.md ===
+
+FILE: labs/08-multi-app.md
+  [✓] #-expert-mode-service-mesh-performance-profiling
+  [✖] ../docs/reference/resource-requirements.md
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-8--multi-app-orchestration
+  [✖] ../docs/reference/senior-k8s-debugging.md#22-istio-sidecar-cpu-overhead
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges
+  [✓] 09-chaos.md
+
+  6 links checked.
+
+  ERROR: 4 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-8--multi-app-orchestration → Status: 400
+  [✖] ../docs/reference/senior-k8s-debugging.md#22-istio-sidecar-cpu-overhead → Status: 400
+  [✖] ../docs/learning/LAB-PROGRESS.md#expert-badges → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/08.5-multi-tenancy.md ===
+
+FILE: labs/08.5-multi-tenancy.md
+  [✓] 09.5-complex-microservices.md
+  [✓] 11-gitops-argocd.md
+  [✓] 06-medical-security.md
+
+  3 links checked.
+RESULT: OK
+
+=== FILE: labs/09-chaos.md ===
+
+FILE: labs/09-chaos.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] #-phase-1-setup--pod-failure-scenarios
+  [✓] #-phase-2-network-chaos
+  [✓] #-phase-3-resource-stress--advanced-scenarios
+  [✖] ../docs/reference/senior-k8s-debugging.md#part-4-network-debugging
+  [✖] ../docs/learning/LAB-PROGRESS.md
+  [✓] #-validation
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-9--chaos-engineering
+
+  8 links checked.
+
+  ERROR: 4 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/reference/senior-k8s-debugging.md#part-4-network-debugging → Status: 400
+  [✖] ../docs/learning/LAB-PROGRESS.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-9--chaos-engineering → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/09.5-complex-microservices.md ===
+
+FILE: labs/09.5-complex-microservices.md
+  [✓] 13-ai-ml-gpu.md
+  [✓] 11-gitops-argocd.md
+  [✓] 08.5-multi-tenancy.md
+
+  3 links checked.
+RESULT: OK
+
+=== FILE: labs/10-helm-package-management.md ===
+
+FILE: labs/10-helm-package-management.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] #-phase-1-consuming-helm-charts
+  [✓] #-phase-2-creating-your-own-helm-chart
+  [✓] #-validation
+  [✓] https://helm.sh/docs/
+  [✓] https://helm.sh/docs/chart_best_practices/
+  [✓] https://artifacthub.io/
+  [✓] https://github.com/jkroepke/helm-secrets
+  [✓] https://github.com/helm/chart-testing
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-10--helm-package-management
+
+  10 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-10--helm-package-management → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/11-gitops-argocd.md ===
+
+FILE: labs/11-gitops-argocd.md
+  [✖] ../docs/reference/resource-requirements.md
+  [✓] #-phase-1-argocd-setup--basic-gitops
+  [✓] #-phase-2-multi-environment-gitops
+  [✓] #-phase-3-helm--gitops-integration
+  [✓] #-validation
+  [✓] https://argo-cd.readthedocs.io/
+  [✓] https://opengitops.dev/
+  [✓] https://argoproj.github.io/argo-rollouts/
+  [✓] https://sealed-secrets.netlify.app/
+  [✓] https://toolkit.fluxcd.io/
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-11--gitops-with-argocd
+
+  11 links checked.
+
+  ERROR: 2 dead links found!
+  [✖] ../docs/reference/resource-requirements.md → Status: 400
+  [✖] ../docs/learning/SELF-ASSESSMENT.md#-lab-11--gitops-with-argocd → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/11.5-disaster-recovery.md ===
+
+FILE: labs/11.5-disaster-recovery.md
+  [✓] 12-external-secrets.md
+  [✓] 12.5-multi-cloud-secrets.md
+  [✖] ../docs/reference/production-war-stories.md
+
+  3 links checked.
+
+  ERROR: 1 dead link found!
+  [✖] ../docs/reference/production-war-stories.md → Status: 400
+RESULT: FAIL (exit 1)
+
+=== FILE: labs/12-external-secrets.md ===
+
+FILE: labs/12-external-secrets.md
+RESULT: FAIL (exit 130)

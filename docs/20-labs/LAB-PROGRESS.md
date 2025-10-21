@@ -208,7 +208,7 @@ Every Expert Mode challenge includes **interview answer templates** based on rea
 6. "A pod is stuck in ContainerCreating with a CNI error. What's your process?"
 7. "Design a hybrid architecture for accessing on-premises databases from Kubernetes."
 
-**Complete interview guide**: [Senior Kubernetes Debugging Reference](../reference/senior-k8s-debugging.md)
+**Complete interview guide**: [Senior Kubernetes Debugging Reference](../../30-reference/senior-k8s-debugging.md)
 
 ---
 
@@ -216,7 +216,7 @@ Every Expert Mode challenge includes **interview answer templates** based on rea
 
 Want more context? Every Expert Mode links to the comprehensive reference doc:
 
-**[Senior Kubernetes Debugging & Performance Tuning Guide](../reference/senior-k8s-debugging.md)**
+**[Senior Kubernetes Debugging & Performance Tuning Guide](../../30-reference/senior-k8s-debugging.md)**
 - 1200+ lines of production debugging wisdom
 - Real incident post-mortems (Shopify, Reddit, Airbnb, Lyft)
 - Interview answer templates for each scenario

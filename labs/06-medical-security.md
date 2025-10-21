@@ -1020,7 +1020,9 @@ kubectl get pod -n medical-lab -l app=postgres -o jsonpath='{.items[0].spec.secu
 
 ---
 
-## 🧠 Quick CheckThe script ensures secrets, RBAC objects, network policies, and deployments match expectations.
+## 🧠 Quick Check
+
+The script ensures secrets, RBAC objects, network policies, and deployments match expectations.
 
 ## 🧠 Quick Check
 

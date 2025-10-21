@@ -127,7 +127,7 @@ This guide provides step-by-step instructions for obtaining API keys from popula
 
 #### Setup Steps:
 1. **Sign Up**
-   - Visit: https://platform.openai.com/docs/ (login required)
+   - Visit: https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
    - Verify phone number
    - Add billing method (required for usage)
 

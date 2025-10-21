@@ -1,7 +1,9 @@
 # Lab 2: E-commerce Multi-Service Deployment
-Deploy a production-like storefront and verify inter-service comms and persistence.
+Spin up a realistic multi-service storefront and get everything talking: backend ↔ database ↔ cache ↔ frontend. You’ll deploy, validate, and troubleshoot like a platform engineer.
 
 Build a multi-service storefront (backend, frontend, DB) and validate service discovery and config-driven deployment.
+
+Note: Want a hands-on debugging challenge? Jump to the Challenge Track below: 🔨 Break & fix challenge
 
 **Time**: 30 minutes  
 **Difficulty**: ⭐⭐ Intermediate  
@@ -10,6 +12,8 @@ Build a multi-service storefront (backend, frontend, DB) and validate service di
 ## 🏭 Production vs lab: what changes in real life?
 
 Before diving into debugging, let's see how **Lab 2's simplified multi-tier deployment** compares to **real-world production e-commerce systems**. This lab focuses on core concepts (service discovery, StatefulSets, persistence), but production adds critical layers for data integrity, security, and performance.
+
+Note: Lab 2 deploys MongoDB for the database, while the PostgreSQL StatefulSet example below is illustrative to teach StatefulSet fundamentals and production hardening patterns.
 
 ---
 
@@ -420,9 +424,6 @@ Ready to debug some broken e-commerce infrastructure? Let's go! 🛠️
 
 **🟡 Debug Level 2** - Intermediate: Service discovery, multi-service communication
 
-
-**🟡 Debug Level 2** - Intermediate: Service discovery, multi-service communication
-
 **Time Limit**: 20 minutes | **Difficulty**: Progressive (Easy → Medium → Hard)
 
 You've been handed a "working" e-commerce deployment. Except... it's not working. Three bugs lurk in the manifests. Find and fix them!
@@ -725,17 +726,10 @@ Ready to verify your mastery? Take the **[Lab 2 Self-Assessment Quiz](../docs/le
 
 ## 🚀 Next lab
 
-**[Lab 3: Educational Platform Stateful Apps](03-educational-stateful.md)**ce discovery, ConfigMaps
-
-## ✅ Success criteria
-- PostgreSQL pod is Running and PVC bound
-- Backend and frontend pods are Running
-- Frontend returns HTTP 200 via port-forward
-
----
+**[Lab 3: Educational Platform Stateful Apps](03-educational-stateful.md)**
 
 ## 🎯 Objective
-Deploy a complete e-commerce application with backend API, frontend, and PostgreSQL database. Learn how services communicate in Kubernetes.
+Deploy a complete e-commerce application with backend API, frontend, and MongoDB database. Learn how services communicate in Kubernetes.
 
 ## 📋 What You'll Learn
 - Multi-container deployments
@@ -761,9 +755,9 @@ Ensure `kubectl` can reach your cluster and that the `ecommerce-app/k8s` manifes
 **This lab needs**:
 - **CPU**: 650m requests, 3.2 CPU limits
 - **Memory**: 832Mi requests, 3.25Gi limits
-- **Pods**: 7 total (2 frontend, 2 backend, 1 PostgreSQL, 1 Redis, 1 cart service)
+- **Pods**: 7 total (2 frontend, 2 backend, 1 database, 1 Redis, 1 cart service)
 - **Disk**: ~500MB for container images
-- **Ports**: 5432, 6379, 3000, 5000, 8080, 30080, 30081
+- **Ports**: 27017 (MongoDB), 6379 (Redis), 3000 (local port-forward to frontend), 5000 (backend)
 
 **Minimum cluster**: 4 CPU cores, 4GB RAM, 1GB disk  
 **Estimated time**: 30 minutes
@@ -775,27 +769,24 @@ Ensure `kubectl` can reach your cluster and that the `ecommerce-app/k8s` manifes
 |-----------|----------|-------------|-----------|----------------|--------------|
 | Frontend | 2 | 100m | 500m | 128Mi | 512Mi |
 | Backend API | 2 | 200m | 1000m | 256Mi | 1Gi |
-| PostgreSQL | 1 | 100m | 500m | 128Mi | 512Mi |
+| MongoDB | 1 | 100m | 500m | 128Mi | 512Mi |
 | Redis | 1 | 50m | 200m | 64Mi | 256Mi |
 | Cart Service | 1 | 100m | 500m | 128Mi | 512Mi |
 | **Totals** | **7** | **650m** | **3.2** | **832Mi** | **3.25Gi** |
 
 **Port Allocation**:
-- **5432**: PostgreSQL database
+- **27017**: MongoDB database
 - **6379**: Redis cache
-- **3000**: Frontend (Vue.js storefront)
+- **3000**: Frontend (Vue.js storefront via local port-forward)
 - **5000**: Backend API (Node.js)
-- **8080**: Cart service
-- **30080**: NodePort for frontend access
-- **30081**: NodePort for backend API
 
 **Working Directory**: All commands assume you're in `/path/to/stack-to-k8s-main`
 
 **Resource Notes**:
-- PostgreSQL PVC: 1Gi (separate from pod resources)
+- MongoDB PVC: 5Gi (see `ecommerce-app/k8s/database-deployment.yaml`)
 - Redis uses ephemeral storage (no PVC)
 - Frontend served via NGINX with minimal overhead
-- Backend connects to both PostgreSQL and Redis
+- Backend connects to both MongoDB and Redis
 
 </details>
 
@@ -958,9 +949,9 @@ kubectl scale deployment/ecommerce-backend --replicas=3 -n ecommerce-lab
 # Watch pods scale
 kubectl get pods -n ecommerce-lab -l app=ecommerce-backend -w
 
-# Test load distribution
+# Test load distribution (via service)
 for i in {1..10}; do
-  kubectl exec -n ecommerce-lab $BACKEND_POD -- curl -s http://ecommerce-backend:8000/api/health | grep -o "pod.*"
+  kubectl exec -n ecommerce-lab $BACKEND_POD -- curl -s http://ecommerce-backend:5000/api/health > /dev/null
 done
 ```
 
@@ -977,18 +968,18 @@ kubectl get pods -n ecommerce-lab
 
 # 2. All services created
 kubectl get svc -n ecommerce-lab
-# Expected: postgres, ecommerce-backend, ecommerce-frontend
+# Expected: mongodb, ecommerce-backend, ecommerce-frontend
 
 # 3. ConfigMap exists
 kubectl get configmap -n ecommerce-lab
 # Expected: ecommerce-config
 
 # 4. Service discovery works
-kubectl exec -n ecommerce-lab $BACKEND_POD -- nslookup postgres
+kubectl exec -n ecommerce-lab $BACKEND_POD -- nslookup mongodb
 # Expected: DNS resolution successful
 
 # 5. Backend connects to database
-curl http://localhost:8000/api/products
+curl http://localhost:5000/api/products
 # Expected: JSON list of products
 
 # 6. Frontend accessible
@@ -1016,7 +1007,7 @@ curl http://localhost:3000
   Through Kubernetes DNS. Test it from the backend pod:
 
   ```bash
-  kubectl exec -n ecommerce-lab deploy/ecommerce-backend -- nslookup postgres
+  kubectl exec -n ecommerce-lab deploy/ecommerce-backend -- nslookup mongodb
   ```
   </details>
 
@@ -1069,17 +1060,17 @@ kubectl logs -n ecommerce-lab deploy/ecommerce-frontend --tail=20
 
 # 2️⃣ Backend (Express API)
 kubectl logs -n ecommerce-lab deploy/ecommerce-backend --tail=20
-# Expected: "Connected to Postgres at postgres:5432"
-# Expected: "Server listening on port 3001"
+# Expected: "Connected to MongoDB at mongodb:27017"
+# Expected: "Server listening on port 5000"
 
-# 3️⃣ Database (Postgres)
-kubectl logs -n ecommerce-lab statefulset/postgres --tail=20
-# Expected: "database system is ready to accept connections"
+# 3️⃣ Database (MongoDB)
+kubectl logs -n ecommerce-lab deploy/mongodb --tail=20
+# Expected: "Waiting for connections" or similar
 
 # 🚨 Critical error patterns:
 # - Frontend: "Failed to fetch /api/products" → Backend unreachable (check service name)
-# - Backend: "password authentication failed" → Wrong DB credentials in ConfigMap
-# - Postgres: "role 'wrong_user' does not exist" → Backend using wrong POSTGRES_USER
+# - Backend: "authentication failed" → Wrong DB credentials in ConfigMap/Secret
+# - MongoDB: "Authentication failed" → Backend using wrong user/password or authSource
 ```
 
 ### ✅ Pillar 3: Events (Deployment Timeline)
@@ -1102,19 +1093,19 @@ kubectl apply -f k8s/
 ```bash
 # Test each layer independently:
 
-# 1. Database connectivity (from backend pod)
-kubectl exec -n ecommerce-lab deploy/ecommerce-backend -- \
-  psql -h postgres -U ecomuser -d ecomdb -c "SELECT 1;"
-# Expected: "1\n---\n 1"
-
-# 2. Backend API (from curl pod)
+# 1. Backend API (from curl pod)
 kubectl run curl-test --image=curlimages/curl -i --rm --restart=Never -n ecommerce-lab -- \
-  curl -s http://ecommerce-backend:3001/api/products
+  curl -s http://ecommerce-backend:5000/api/health
+# Expected: {"status":"healthy","database":"connected","redis":"connected"}
+
+# 2. Products endpoint (cluster-internal)
+kubectl run curl-test --image=curlimages/curl -i --rm --restart=Never -n ecommerce-lab -- \
+  curl -s http://ecommerce-backend:5000/api/products
 # Expected: [{"id":1,"name":"Product A",...}]
 
 # 3. Frontend → Backend integration (via frontend pod)
 kubectl exec -n ecommerce-lab deploy/ecommerce-frontend -- \
-  wget -qO- http://ecommerce-backend:3001/api/products
+  wget -qO- http://ecommerce-backend:5000/api/products
 # Expected: JSON array of products
 ```
 
@@ -1306,20 +1297,4 @@ hey -n 10000 -c 50 http://$BACKEND_IP:3001/api/products
 
 **[Lab 3: Educational Platform - Stateful Apps](03-educational-stateful.md)**
 
-## 🧠 Quick Check
-
-1. What Kubernetes resource would you use to persist database storage across pod restarts?
-2. How can a Deployment consume configuration from a ConfigMap as environment variables?
-3. What command shows service endpoints to verify a Service is routing to pods?
-
-## 🏆 Challenge Mode
-
-- Convert the PostgreSQL Deployment to a StatefulSet (minimal changes) and verify a PVC is created for the database pod.
-
-
-Learn about:
-- StatefulSets
-- Persistent Volumes (PV) and Claims (PVC)
-- Headless Services
-- Init Containers
-- Database backups
+ 

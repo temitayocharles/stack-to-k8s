@@ -1,0 +1,11 @@
+{
+  "timeout": "15s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "retryDelay": "5s",
+  "ignorePatterns": [
+    { "pattern": "^http://localhost" },
+    { "pattern": "^https?://127\\.0\\.0\\.1" },
+    { "pattern": "^http://0\\.0\\.0\\.0" }
+  ]
+}

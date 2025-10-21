@@ -793,7 +793,7 @@ resources:
 
 ## 🔄 What's Next?
 
-- **[Lab 7: Monitoring with Prometheus](07-monitoring.md)** → Add GPU metrics to dashboards
+- **[Lab 7: Social Scaling (Monitoring section)](07-social-scaling.md#observability)** → Add GPU metrics to dashboards
 - **[Lab 9.5: Complex Microservices](09.5-complex-microservices.md)** → Deploy ML models with service mesh
 - **[Lab 11: GitOps with ArgoCD](11-gitops-argocd.md)** → Automate ML pipeline deployments
 

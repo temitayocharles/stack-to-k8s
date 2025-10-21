@@ -6,7 +6,7 @@ Six real-world apps. Twenty hands-on labs. One rigorous journey to production-gr
 
 ## 🎯 New here? Start here
 
-**→ [📖 GETTING STARTED GUIDE](docs/GETTING-STARTED.md) ← START HERE**
+**→ [📖 GETTING STARTED GUIDE](docs/00-introduction/GETTING-STARTED.md) ← START HERE**
 
 Complete onboarding in ~30 minutes:
 - ✅ Tool installation (Rancher Desktop or kind/k3d)
@@ -20,13 +20,13 @@ Complete onboarding in ~30 minutes:
 
 1. **Install Visualization Tools** → [Lab 0: Visual Kubernetes](labs/00-visual-kubernetes.md) (k9s, stern, kubectl-tree)
 2. **Deploy Your First App** → [Lab 1: Weather Basics](labs/01-weather-basics.md)
-3. **Track Your Journey** → [LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md)
+3. **Track Your Journey** → [LAB-PROGRESS.md](docs/20-labs/LAB-PROGRESS.md)
 
-**Don't have Kubernetes yet?** → [GETTING STARTED Guide](docs/GETTING-STARTED.md) sets you up in 10 minutes
+**Don't have Kubernetes yet?** → [GETTING STARTED Guide](docs/00-introduction/GETTING-STARTED.md) sets you up in 10 minutes
 
 ## 🧭 Lab roadmap
 See the full progression (difficulty, prerequisites, success criteria) in:
-- [KUBERNETES-LABS.md](docs/KUBERNETES-LABS.md)
+- [KUBERNETES-LABS.md](docs/20-labs/KUBERNETES-LABS.md)
 
 Each lab includes: story-driven steps, validation checks, troubleshooting, and challenge mode.
 
@@ -69,15 +69,15 @@ Each lab includes: story-driven steps, validation checks, troubleshooting, and c
 | [Challenge B](labs/challenge-b-black-friday.md) | 🛍️ **Black Friday** | Scaling under pressure | ⭐⭐⭐⭐ | **60m** | |
 | [Challenge C](labs/challenge-c-platform-migration.md) | 🏗️ **Platform Migration** | Zero-downtime migration | ⭐⭐⭐⭐⭐ | **90m** | |
 
-> 💡 **Expert Badges are 100% optional!** They're inline advanced challenges for senior-level debugging, performance tuning, and production troubleshooting. Perfect for leveling up to senior SRE/Platform Engineer roles. Track your progress in [LAB-PROGRESS.md](docs/learning/LAB-PROGRESS.md#expert-badge-system-optional-advanced-challenges).
+> 💡 **Expert Badges are 100% optional!** They're inline advanced challenges for senior-level debugging, performance tuning, and production troubleshooting. Perfect for leveling up to senior SRE/Platform Engineer roles. Track your progress in [LAB-PROGRESS.md](docs/20-labs/LAB-PROGRESS.md#expert-badge-system-optional-advanced-challenges).
 
 ## 🎒 Learning toolkit
-- ✅ [Self-Assessment](docs/learning/SELF-ASSESSMENT.md)
-- ⚠️ [Common Mistakes](docs/learning/COMMON-MISTAKES.md)
-- 📘 [kubectl Cheatsheet](docs/reference/kubectl-cheatsheet.md) — includes namespace best practices
-- 🛠️ [Troubleshooting Hub](docs/troubleshooting/troubleshooting.md)
-- 🔐 [Secrets Management](docs/reference/secrets-management.md)
-- 🗂️ [Markdown Inventory](docs/MARKDOWN-INDEX.md)
+- ✅ [Self-Assessment](docs/20-labs/SELF-ASSESSMENT.md)
+- ⚠️ [Common Mistakes](docs/20-labs/COMMON-MISTAKES.md)
+- 📘 [kubectl Cheatsheet](docs/30-reference/cheatsheets/kubectl-cheatsheet.md)
+- 🛠️ [Troubleshooting Hub](docs/40-troubleshooting/troubleshooting-index.md)
+- 🔐 [Secrets Management](docs/30-reference/deep-dives/secrets-management.md)
+- 🗂️ [Markdown Inventory](docs/00-introduction/MARKDOWN-INDEX.md)
 
 ## ✅ Automation & quality checks
 - `scripts/check-lab-prereqs.sh` — Verify tools and cluster readiness for each lab
@@ -98,23 +98,29 @@ Example:
 
 ## 🧭 How to use this repo (quick tour)
 
-1) Start at the docs hub → Read the [Getting Started guide](docs/GETTING-STARTED.md). It walks you through installing tools (Rancher Desktop/kind/k3d) and verifying your cluster.
-2) Let the script help → Run `./scripts/check-lab-prereqs.sh <lab>` to verify your setup. It’s interactive: it can prompt to install missing tools, start Docker/Kubernetes, and optionally clean up resources.
+1) Start at the docs hub → Read the [Getting Started guide](docs/00-introduction/GETTING-STARTED.md). It walks you through installing tools (Rancher Desktop/kind/k3d) and verifying your cluster.
+2) Let the script help → Run `./scripts/check-lab-prereqs.sh <lab>` to verify your setup. It's interactive: it can prompt to install missing tools, start Docker/Kubernetes, and optionally clean up resources.
 3) Begin with Lab 0 → Install visualization tools (k9s, stern, kubectl-tree) in [Lab 0](labs/00-visual-kubernetes.md). Seeing the cluster makes every lab easier.
 4) Ship your first app → Do [Lab 1: Weather Basics](labs/01-weather-basics.md). Every lab includes validation, troubleshooting, and an advanced track.
-5) Climb the challenge track → After each core lab’s main steps, follow the sequence: Quick check → Break & Fix → Troubleshooting → Observability → Expert mode → Test your knowledge → Next lab.
-6) Need credentials? → App READMEs link to the centralized [Secrets management guide](docs/reference/secrets-management.md) and each lab shows exactly where to set required keys via Kubernetes Secrets.
-7) Keep going → Follow the [Lab roadmap](docs/KUBERNETES-LABS.md) for the full progression and optional deep dives (3.5, 8.5, 9.5, 11.5, 12.5).
+5) Climb the challenge track → After each core lab's main steps, follow the sequence: Quick check → Break & Fix → Troubleshooting → Observability → Expert mode → Test your knowledge → Next lab.
+6) Need credentials? → App READMEs link to the centralized [Secrets management guide](docs/30-reference/deep-dives/secrets-management.md) and each lab shows exactly where to set required keys via Kubernetes Secrets.
+7) Keep going → Follow the [Lab roadmap](docs/20-labs/KUBERNETES-LABS.md) for the full progression and optional deep dives (3.5, 8.5, 9.5, 11.5, 12.5).
 
 Tip: Prefer small, focused code blocks and collapsible details in docs. Use k9s during labs for fast feedback.
 
 ## 🗺️ Repository map
 
-**Complete file inventory**: [REPOSITORY-STRUCTURE.md](docs/REPOSITORY-STRUCTURE.md) — Detailed map of all 78 files  
-**Resource planning**: [Resource Requirements Guide](docs/reference/resource-requirements.md) — CPU, memory, disk, and port allocation for all labs
+**Complete file inventory**: [REPOSITORY-STRUCTURE.md](docs/00-introduction/REPOSITORY-STRUCTURE.md) — Detailed map of all documentation files  
+**Resource planning**: [Resource Requirements Guide](docs/30-reference/deep-dives/resource-requirements.md) — CPU, memory, disk, and port allocation for all labs
 
 ```
-├── docs/            # setup, references, labs index, resource planning
+├── docs/            # organized into numbered folders
+│   ├── 00-introduction/  # Hub, setup guides, onboarding
+│   ├── 10-setup/         # Installation guides
+│   ├── 20-labs/          # Lab support materials (progress, assessment)
+│   ├── 30-reference/     # Guides & reference docs
+│   ├── 40-troubleshooting/ # Problem-solving playbook
+│   └── 99-appendix/      # Future expansion
 ├── labs/            # 23 hands-on labs + 3 challenges + manifests/
 ├── scripts/         # validators and utilities
 ├── ecommerce-app/   # React + Node + MongoDB

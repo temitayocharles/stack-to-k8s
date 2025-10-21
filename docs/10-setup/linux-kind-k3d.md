@@ -188,7 +188,7 @@ Expected: Pods become `Running`, NodePort accessible via mapped host ports.
 | Port conflicts | Adjust `extraPortMappings` in `kind-config.yaml`. |
 | k3d registry unreachable | Expose registry host port (`5500`) and add entries to `/etc/hosts` if necessary. |
 
-See also the main `docs/troubleshooting/troubleshooting.md` for runtime-specific fixes.
+See also the main `docs/../../40-troubleshooting/troubleshooting-index.md` for runtime-specific fixes.
 
 ---
 

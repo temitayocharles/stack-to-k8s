@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Enhanced repo-wide markdown link checker with comprehensive validation
-set -euo pipefail
+set -uo pipefail
 
 # =============================================================================
 # CONFIGURATION & GLOBALS
@@ -8,7 +8,7 @@ set -euo pipefail
 readonly SCRIPT_NAME="$(basename "${0}")"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-readonly INDEX="${ROOT}/docs/MARKDOWN-INDEX.md"
+readonly INDEX="${ROOT}/docs/00-introduction/MARKDOWN-INDEX.md"
 readonly OUT="${ROOT}/scripts/validate-links.full-report.txt"
 
 # Terminal colors
@@ -29,12 +29,7 @@ readonly EXIT_MISSING_FILES=3
 # CLEANUP & ERROR HANDLING
 # =============================================================================
 cleanup() {
-    local exit_code=$?
     rm -f /tmp/_md_list.txt 2>/dev/null || true
-    
-    if [[ ${exit_code} -ne 0 ]]; then
-        echo -e "\n${RED}❌ Link validation interrupted with exit code ${exit_code}${NC}" >&2
-    fi
 }
 
 trap cleanup EXIT INT TERM
@@ -207,7 +202,7 @@ main() {
         ((files_processed++))
         log_info "Processing (${files_processed}/${file_count}): ${path}"
         
-        echo "=== FILE: ${path} ===" | tee -a "${OUT}"
+    echo "=== FILE: ${path} ===" >> "${OUT}"
         
         local abs="${ROOT}/${path}"
         if [[ ! -f "${abs}" ]]; then
@@ -224,9 +219,10 @@ main() {
             config_args="-c .github/markdown-link-check.json"
         fi
         
-        # Change to root directory for relative path resolution
-        (cd "${ROOT}" && npx --yes markdown-link-check "${path}" ${config_args}) >> "${OUT}" 2>&1
-        local rc=$?
+    # Change to root directory for relative path resolution
+    # Capture exit code for each file without aborting the script
+    (cd "${ROOT}" && npx --yes markdown-link-check "${path}" ${config_args}) >> "${OUT}" 2>&1
+    local rc=$?
         
         if [[ ${rc} -eq 0 ]]; then
             echo "RESULT: OK" >> "${OUT}"
@@ -253,10 +249,10 @@ main() {
     
     if [[ ${files_failed} -gt 0 ]]; then
         log_warn "Some files had validation errors - check ${OUT##*/} for details"
-        return ${EXIT_MISSING_FILES}
+        exit ${EXIT_MISSING_FILES}
     fi
-    
-    return ${EXIT_SUCCESS}
+
+    exit ${EXIT_SUCCESS}
 }
 
 # =============================================================================

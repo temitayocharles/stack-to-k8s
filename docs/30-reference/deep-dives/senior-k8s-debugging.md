@@ -28,7 +28,7 @@
 
 ### 1.1 Pod Stuck in CrashLoopBackOff - No Logs, No Errors
 
-**Practice in**: [Lab 1 Expert Mode](../../../labs/01-weather-basics.md#expert-mode-advanced-crashloopbackoff-debugging)
+**Practice in**: [Lab 1 Expert Mode](../../../20-labs/01-weather-basics.md#expert-mode-advanced-crashloopbackoff-debugging)
 
 **Scenario**: `kubectl logs` shows nothing. `kubectl describe` shows no obvious errors. Pod keeps restarting.
 
@@ -133,7 +133,7 @@ Pod CrashLoopBackOff, no logs?
 
 ### 1.2 StatefulSet Pod Won't Reattach PVC After Node Crash
 
-**Practice in**: [Lab 3 Expert Mode](../../../labs/03-educational-stateful.md#expert-mode-pvc-recovery-after-node-crash)
+**Practice in**: [Lab 3 Expert Mode](../../../20-labs/03-educational-stateful.md#expert-mode-pvc-recovery-after-node-crash)
 
 **Scenario**: Node crashes. Kubernetes reschedules StatefulSet pod, but it stays `Pending` because PVC is still bound to dead node.
 
@@ -234,7 +234,7 @@ spec:
 
 ### 1.3 Pods Pending - Cluster Autoscaler Won't Scale
 
-**Practice in**: [Lab 7 Expert Mode](../../../labs/07-social-scaling.md#expert-mode-cluster-autoscaler-debugging)
+**Practice in**: [Lab 7 Expert Mode](../../../20-labs/07-social-scaling.md#expert-mode-cluster-autoscaler-debugging)
 
 **Scenario**: Pods stuck `Pending`. Cluster Autoscaler is installed but not adding nodes.
 
@@ -312,7 +312,7 @@ kubectl get events --field-selector involvedObject.name=mypod -n myns
 
 ### 1.4 NetworkPolicy Blocks Cross-Namespace Traffic
 
-**Practice in**: [Lab 6 Expert Mode](../../../labs/06-medical-security.md#expert-mode-least-privilege-networkpolicy-design)
+**Practice in**: [Lab 6 Expert Mode](../../../20-labs/06-medical-security.md#expert-mode-least-privilege-networkpolicy-design)
 
 **Scenario**: After applying NetworkPolicy, services in namespace A can't reach namespace B.
 
@@ -451,7 +451,7 @@ spec:
 
 ### 2.1 etcd Performance Bottlenecks
 
-**Practice in**: [Lab 3.5 Expert Mode](../../../labs/03.5-kubernetes-under-the-hood.md#expert-mode-control-plane-performance-tuning)
+**Practice in**: [Lab 3.5 Expert Mode](../../../20-labs/03.5-kubernetes-under-the-hood.md#expert-mode-control-plane-performance-tuning)
 
 **Scenario**: API server requests timing out. `kubectl get pods` taking 5+ seconds. etcd disk latency high.
 
@@ -580,7 +580,7 @@ rate(etcd_server_leader_changes_seen_total[5m])
 
 ### 2.2 Istio Sidecar CPU Overhead
 
-**Practice in**: [Lab 8 Expert Mode](../../../labs/08-multi-app.md#expert-mode-service-mesh-performance-profiling)
+**Practice in**: [Lab 8 Expert Mode](../../../20-labs/08-multi-app.md#expert-mode-service-mesh-performance-profiling)
 
 **Scenario**: After enabling Istio, sidecar proxies consume more CPU than application containers.
 
@@ -715,7 +715,7 @@ histogram_quantile(0.99, rate(istio_request_duration_milliseconds_bucket[5m]))
 
 ### 3.1 Enforce Trusted Image Registries
 
-**Practice in**: [Lab 6 Expert Mode](../../../labs/06-medical-security.md#expert-mode-admission-control-policies)
+**Practice in**: [Lab 6 Expert Mode](../../../20-labs/06-medical-security.md#expert-mode-admission-control-policies)
 
 **Scenario**: Must block images from Docker Hub. Only allow internal registry.
 
@@ -850,7 +850,7 @@ kubectl run test --image=123456789.dkr.ecr.us-east-1.amazonaws.com/nginx:latest 
 
 ### 4.1 Pods Stuck in ContainerCreating - CNI Issues
 
-**Practice in**: [Lab 9 Expert Mode](../../../labs/09-chaos.md#scenario-8-the-impossible-debug)
+**Practice in**: [Lab 9 Expert Mode](../../../20-labs/09-chaos.md#scenario-8-the-impossible-debug)
 
 **Scenario**: Pod stuck `ContainerCreating` for 5+ minutes. No obvious errors.
 
@@ -948,7 +948,7 @@ sudo ip link | grep veth
 
 ### 4.2 Random DNS Failures in Pods
 
-**Practice in**: [Lab 9 Expert Mode](../../../labs/09-chaos.md#scenario-8-the-impossible-debug)
+**Practice in**: [Lab 9 Expert Mode](../../../20-labs/09-chaos.md#scenario-8-the-impossible-debug)
 
 **Scenario**: DNS works 90% of the time. Occasional `nslookup: can't resolve` errors.
 
@@ -1094,7 +1094,7 @@ rate(coredns_dns_responses_total{rcode="SERVFAIL"}[5m])
 
 ### 5.1 External Database via VPN (HA Architecture)
 
-**Practice in**: [Lab 12 Expert Mode](../../../labs/12-external-secrets.md#expert-mode-hybrid-architecture-vpn-patterns)
+**Practice in**: [Lab 12 Expert Mode](../../../20-labs/12-external-secrets.md#expert-mode-hybrid-architecture-vpn-patterns)
 
 **Scenario**: Services in Kubernetes need HA connection to on-prem database via VPN.
 
@@ -1375,14 +1375,14 @@ This guide covers the most common senior-level Kubernetes interview questions. F
 
 - **[CKA Exam Guide](certification-guide.md)** - Certified Kubernetes Administrator prep
 - **[Production War Stories](production-war-stories.md)** - Real incident case studies
-- **[Decision Trees](decision-trees.md)** - Architecture pattern selection
+- **[Decision Trees](../cheatsheets/decision-trees.md)** - Architecture pattern selection
 
 ### Advanced Topics
 
-- **Multi-tenancy**: [Lab 8.5](../../../labs/08.5-multi-tenancy.md)
-- **Disaster Recovery**: [Lab 11.5](../../../labs/11.5-disaster-recovery.md) *(coming soon)*
-- **GPU Workloads**: [Lab 13](../../../labs/13-ai-ml-gpu.md)
-- **Complex Microservices**: [Lab 9.5](../../../labs/09.5-complex-microservices.md) *(coming soon)*
+- **Multi-tenancy**: [Lab 8.5](../../../20-labs/08.5-multi-tenancy.md)
+- **Disaster Recovery**: [Lab 11.5](../../../20-labs/11.5-disaster-recovery.md) *(coming soon)*
+- **GPU Workloads**: [Lab 13](../../../20-labs/13-ai-ml-gpu.md)
+- **Complex Microservices**: [Lab 9.5](../../../20-labs/09.5-complex-microservices.md) *(coming soon)*
 
 ---
 

@@ -23,7 +23,7 @@ Use this guide before shipping a new lab, README, or troubleshooting playbook. C
 ## Formatting ✨
 
 - Declare a language on all code blocks (```bash, ```yaml, ```json, etc.).
-- Use relative links within this repo (e.g., `../labs/01-weather-basics.md`).
+- Use relative links within this repo (e.g., `../20-labs/01-weather-basics.md`).
 - Wrap long lines softly at ~100 characters; avoid trailing whitespace.
 - One blank line before and after headings and fenced code blocks.
 - One space after list markers (`- `, `1. `).

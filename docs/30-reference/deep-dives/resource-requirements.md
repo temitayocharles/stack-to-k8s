@@ -1,3 +1,15 @@
+---
+title: "Resource Requirements Planning Guide"
+level: "beginner-to-intermediate"
+type: "reference-guide"
+prerequisites: ["Docker/Kubernetes basics"]
+topics: ["CPU allocation", "Memory planning", "Storage", "Port management"]
+estimated_time: "10-15 minutes"
+updated: "2025-10-21"
+nav_prev: "../cheatsheets/decision-trees.md"
+nav_next: "./configuration-patterns.md"
+---
+
 # Resource Requirements Guide 💻
 
 Quick reference for CPU, memory, and storage requirements across all labs. Use this to plan your local cluster setup and troubleshoot resource constraints.
@@ -191,4 +203,4 @@ kind delete cluster && kind create cluster
 
 **💡 Pro Tip**: Always run `./scripts/check-lab-prereqs.sh <lab-number>` before starting a lab to verify you have sufficient resources.
 
-Related: [kubectl Cheatsheet](kubectl-cheatsheet.md) · [Decision Trees](decision-trees.md) · [Troubleshooting Guide](../troubleshooting/troubleshooting.md)
+Related: [kubectl Cheatsheet](../cheatsheets/kubectl-cheatsheet.md) · [Decision Trees](../cheatsheets/decision-trees.md) · [Troubleshooting Guide](../../40-troubleshooting/troubleshooting-index.md)
