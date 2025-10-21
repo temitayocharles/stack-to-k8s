@@ -28,6 +28,25 @@ Use this guide before shipping a new lab, README, or troubleshooting playbook. C
 - One blank line before and after headings and fenced code blocks.
 - One space after list markers (`- `, `1. `).
 
+### Engaging intros
+
+- Start each lab with a short, attention‑grabbing intro (1–2 sentences) that explains why it matters and what users will build. Keep it punchy.
+- Example: “In 20 minutes, go from empty cluster to a working weather service—with real validation, not toy hello worlds.”
+
+### Challenge track sequencing
+
+- After the main Steps section, present advanced sections in this order:
+	1) Quick check 2) Break & Fix 3) Troubleshooting flow 4) Observability check 5) Expert mode 6) Test your knowledge 7) Next lab
+- Add a short callout near the top that links to the expert section and lists this sequence.
+
+### Long code and output
+
+- Prefer multiple small code blocks over one very long block.
+- Wrap verbose output or optional steps in collapsible sections:
+	<details><summary>Show output</summary>
+	…
+	</details>
+
 ## Visual rhythm 🖼️
 
 - Prefer bullet lists over tables for short callouts; use tables only when they clarify comparisons.

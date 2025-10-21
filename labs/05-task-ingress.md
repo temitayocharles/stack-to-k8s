@@ -1,4 +1,5 @@
 # Lab 5: Task Manager - Ingress & External Access
+Routing is how real users meet your app. Today you’ll expose a production‑style endpoint and verify it with real checks—not just port‑forwarding.
 Expose the Task Manager safely with an Ingress controller and TLS for external access.
 
 **Time**: 45 minutes  

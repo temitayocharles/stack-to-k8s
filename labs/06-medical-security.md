@@ -1,4 +1,5 @@
 # Lab 6: Medical System - Security & RBAC
+Security is silent—until it isn’t. Lock down access with RBAC and NetworkPolicies like teams do in regulated environments.
 Harden the medical system with RBAC, network policies, and secure secret handling.
 
 **Time**: 60 minutes  

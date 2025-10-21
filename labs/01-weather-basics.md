@@ -1,5 +1,6 @@
 # Lab 1: Deploy Weather App (Basics)
-Ship a two-tier app to your cluster and prove it works — fast.
+
+In 20 minutes, go from empty cluster to a working weather service—with real validation, not a toy hello world.
 
 Build a small, resilient weather service (frontend + backend) and verify basic service plumbing.
 
@@ -8,6 +9,9 @@ Build a small, resilient weather service (frontend + backend) and verify basic s
 **Focus**: Pods, Deployments, Services
 
 > 🏅 Looking for a challenge? Jump to [Expert mode: advanced CrashLoopBackOff debugging](#-expert-mode-advanced-crashloopbackoff-debugging) after the main steps.
+
+> 🎯 Challenge track (after main steps):
+> 1) [Quick check](#-quick-check) · 2) [Break & fix](#-break--fix-debugging-challenge-optional-but-recommended) · 3) [Troubleshooting flow](#-troubleshooting-flow) · 4) [Observability check](#-observability-check-is-it-really-working) · 5) [Expert mode](#-expert-mode-advanced-crashloopbackoff-debugging) · 6) [Test your knowledge](#-test-your-knowledge) · 7) [Next lab](#-next-lab)
 
 ## ✅ Success criteria
 - `kubectl get pods -n weather-lab` shows frontend & backend Running

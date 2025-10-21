@@ -96,6 +96,18 @@ Example:
 ./scripts/cleanup-workspace.sh
 ```
 
+## 🧭 How to use this repo (quick tour)
+
+1) Start at the docs hub → Read the [Getting Started guide](docs/GETTING-STARTED.md). It walks you through installing tools (Rancher Desktop/kind/k3d) and verifying your cluster.
+2) Let the script help → Run `./scripts/check-lab-prereqs.sh <lab>` to verify your setup. It’s interactive: it can prompt to install missing tools, start Docker/Kubernetes, and optionally clean up resources.
+3) Begin with Lab 0 → Install visualization tools (k9s, stern, kubectl-tree) in [Lab 0](labs/00-visual-kubernetes.md). Seeing the cluster makes every lab easier.
+4) Ship your first app → Do [Lab 1: Weather Basics](labs/01-weather-basics.md). Every lab includes validation, troubleshooting, and an advanced track.
+5) Climb the challenge track → After each core lab’s main steps, follow the sequence: Quick check → Break & Fix → Troubleshooting → Observability → Expert mode → Test your knowledge → Next lab.
+6) Need credentials? → App READMEs link to the centralized [Secrets management guide](docs/reference/secrets-management.md) and each lab shows exactly where to set required keys via Kubernetes Secrets.
+7) Keep going → Follow the [Lab roadmap](docs/KUBERNETES-LABS.md) for the full progression and optional deep dives (3.5, 8.5, 9.5, 11.5, 12.5).
+
+Tip: Prefer small, focused code blocks and collapsible details in docs. Use k9s during labs for fast feedback.
+
 ## 🗺️ Repository map
 
 **Complete file inventory**: [REPOSITORY-STRUCTURE.md](docs/REPOSITORY-STRUCTURE.md) — Detailed map of all 78 files  

@@ -1,4 +1,5 @@
 # Lab 3: Educational Platform - Stateful Applications
+Stateful apps are where real production incidents start. In this lab, you’ll make data survive node crashes—not just run pods.
 Build a resilient educational platform using StatefulSets and persistent volumes.
 
 **Time**: 40 minutes  
@@ -6,6 +7,9 @@ Build a resilient educational platform using StatefulSets and persistent volumes
 **Focus**: StatefulSets, Persistent Volumes, Data persistence
 
 > 🏅 Ready for more? See [Expert mode: PVC recovery after node crash](#-expert-mode-pvc-recovery-after-node-crash) once you complete the core lab.
+
+> 🎯 Challenge track (after main steps):
+> 1) Quick check · 2) Break & fix (if present) · 3) Troubleshooting flow · 4) Observability check · 5) Expert mode · 6) Test your knowledge · 7) Next lab
 
 ---
 
