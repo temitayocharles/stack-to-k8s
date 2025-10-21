@@ -22,6 +22,9 @@ This repository provides everything you need: from local setup and hands-on labs
 |----------|--------------|
 | **[Getting Started](./GETTING-STARTED.md)** | Environment setup, tools installation, first lab walkthrough |
 | **[Labs](../20-labs/KUBERNETES-LABS.md)** | 14 practical hands-on exercises with challenge tracks |
+| **[Progress Dashboard](../PROGRESS-DASHBOARD.md)** | Learning progression map, skill heatmaps, and self-assessment |
+| **[Search & Discovery](../SEARCH-DISCOVERY-GUIDE.md)** | Navigate the docs: browser search, GitHub search, discovery tips |
+| **[Challenge Solutions](../20-labs/CHALLENGE-SOLUTIONS-SHOWCASE.md)** | Community solutions to challenge labs (submit your own!) |
 | **[Reference](../30-reference/deep-dives/)** | In-depth guides on configuration, secrets, debugging, and production patterns |
 | **[Troubleshooting](../40-troubleshooting/troubleshooting-index.md)** | Common issues, diagnostics, and solutions |
 | **[Style Guide](./STYLE-GUIDE.md)** | How to contribute and maintain consistency |
@@ -46,6 +49,12 @@ This repository provides everything you need: from local setup and hands-on labs
 → [kubectl Cheatsheet](../30-reference/cheatsheets/kubectl-cheatsheet.md)  
 → [Decision Trees](../30-reference/cheatsheets/decision-trees.md)  
 → [Resource Requirements Guide](../30-reference/deep-dives/resource-requirements.md)
+
+💼 **Need production guidance?**  
+→ [Database Operations](../30-reference/deep-dives/database-operations.md) (Backup, PITR, Recovery)  
+→ [Node Operations](../30-reference/deep-dives/node-operations.md) (Drain, Cordon, Upgrades)  
+→ [Storage Operations](../30-reference/deep-dives/storage-operations.md) (Volume Expansion, Snapshots)  
+→ [Network Operations](../30-reference/deep-dives/network-operations.md) (DNS, Service Discovery, Debugging)
 
 ---
 

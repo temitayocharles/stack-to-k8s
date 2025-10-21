@@ -28,11 +28,41 @@ You're about to learn Kubernetes by **building real applications**—not toy exa
 
 ---
 
-> Quick tour
+## ⚡ Quick Start (2 Minutes)
+
+Before anything else, run our interactive prerequisites checker:
+
+```bash
+# Check if your system is ready (run this NOW)
+./scripts/check-lab-prereqs.sh 1
+
+# Expected output: ✅ All checks passed!
+# Not ready? Follow the guide suggestions below
+```
+
+**This script will**:
+- ✅ Verify all required tools are installed
+- ✅ Check your Kubernetes cluster is running
+- ✅ Test docker, kubectl, and Helm connectivity
+- 💡 Give you friendly suggestions if something is missing
+- 🚀 Show you next steps when everything is ready
+
+> **Pro Tip**: Run this before starting each lab! 
 >
-> 1) Run the interactive prerequisites checker before each lab: `./scripts/check-lab-prereqs.sh <lab-number>`
-> 2) Start with Lab 0 (visual tools), then Lab 1 (your first app)
-> 3) After finishing a lab’s main tasks, do its Challenge track to lock in learning
+> `./scripts/check-lab-prereqs.sh <lab-number>`
+>
+> It catches issues early and saves you debugging time later.
+
+---
+
+## 🗺️ Your Path
+
+1. ✅ **Right Now**: Run the prerequisites checker (above)
+2. 🛠️ **Next**: Install missing tools (see step below)
+3. 🚀 **Then**: Start Lab 0 (visual tools)
+4. 📚 **After Each Lab**: Run prerequisites checker for next lab
+
+---
 
 ## ✅ Prerequisites
 
@@ -197,7 +227,31 @@ kubectl delete pod test-nginx
 
 **If this worked**: 🎉 Congratulations! You're ready for the labs!
 
-**If not**: Check the [Troubleshooting Guide](../40-troubleshooting/troubleshooting-index.md) or [raise an issue](https://github.com/temitayocharles/stack-to-k8s/issues).
+**If not**: 
+1. 🔄 Run the prerequisites checker again: `./scripts/check-lab-prereqs.sh 1`
+2. 📖 Check the [Troubleshooting Guide](../40-troubleshooting/troubleshooting-index.md) for your specific error
+3. 🤝 [Raise an issue](https://github.com/temitayocharles/stack-to-k8s/issues) if you're stuck
+
+---
+
+## 📋 Before Starting Each Lab
+
+**ALWAYS run this before starting a lab**:
+
+```bash
+./scripts/check-lab-prereqs.sh <lab-number>
+```
+
+**Example**: Before Lab 5, run `./scripts/check-lab-prereqs.sh 5`
+
+This will:
+- ✅ Verify your cluster meets lab requirements
+- ✅ Check for any missing tools or dependencies
+- ✅ Warn you about resource constraints (if any)
+- 💡 Give specific setup instructions for that lab
+- 🚀 Confirm you're ready to proceed
+
+**Pro tip**: This takes 10 seconds and saves you 30 minutes of debugging!
 
 ---
 
