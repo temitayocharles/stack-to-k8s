@@ -40,16 +40,26 @@ Practice Kubernetes with 6 real applications across **14 core labs + 3 challenge
 ### 🤖 Stage 3: Platform Engineering (Labs 8-9)
 8. 🧩 **[Lab 8: Multi-App Orchestration](../labs/08-multi-app.md)** (120 min)  
    Deploy all 6 apps with shared configs, service mesh, centralized monitoring.
+   - 🏢 **[Lab 8.5: Multi-Tenancy](../labs/08.5-multi-tenancy.md)** (75 min)  
+     Namespace isolation, resource quotas, tenant separation patterns.
 9. ⚡ **[Lab 9: Chaos Engineering](../labs/09-chaos.md)** (90 min)  
    Break pods, test self-healing, resilience patterns.
+   - 🔧 **[Lab 9.5: Complex Microservices](../labs/09.5-complex-microservices.md)** (105 min)  
+     Service mesh, distributed tracing, observability at scale.
 
-### 🪄 Stage 4: Automation Masters (Labs 10-12)
+### 🪄 Stage 4: Automation Masters (Labs 10-13)
 10. 🪄 **[Lab 10: Helm Package Management](../labs/10-helm-package-management.md)** (75 min)  
     Build charts, templating, versioned releases.
 11. 🤖 **[Lab 11: GitOps with ArgoCD](../labs/11-gitops-argocd.md)** (90 min)  
     Git as source of truth, automated sync, rollback workflows.
+    - 🚨 **[Lab 11.5: Disaster Recovery](../labs/11.5-disaster-recovery.md)** (120 min)  
+      Backup strategies, cross-region restore, business continuity planning.
 12. 🔐 **[Lab 12: External Secrets Management](../labs/12-external-secrets.md)** (60 min)  
-    **NEW!** External Secrets Operator, cloud secret stores, production security.
+    External Secrets Operator, cloud secret stores, production security.
+    - ☁️ **[Lab 12.5: Multi-Cloud Secrets](../labs/12.5-multi-cloud-secrets.md)** (90 min)  
+      Cross-cloud secret federation, hybrid environments, compliance patterns.
+13. 🤖 **[Lab 13: AI/ML GPU Workloads](../labs/13-ai-ml-gpu.md)** (150 min)  
+    **ADVANCED!** GPU scheduling, ML pipelines, resource optimization for AI workloads.
 
 ---
 

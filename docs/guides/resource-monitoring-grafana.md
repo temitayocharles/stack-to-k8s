@@ -1,500 +1,342 @@
 # Resource Monitoring with Grafana 📊
 
-Track actual vs. documented resource usage across all labs using Prometheus + Grafana.
-
-**Time**: 45 minutes  
-**Prerequisites**: Helm installed, basic kubectl knowledge  
-**Cluster**: Works with any local cluster (kind, k3d, Rancher Desktop, Docker Desktop)
+Track actual vs documented resource usage across all labs. Set up Grafana dashboards to monitor CPU, memory, and storage consumption in real-time.
 
 ---
 
-## 🎯 What You'll Learn
+## 🎯 Overview
 
-- Deploy Prometheus + Grafana stack using kube-prometheus-stack Helm chart
-- Create custom dashboards to track CPU, memory, disk usage per lab
-- Set up alerts when resources exceed documented limits
-- Compare actual usage vs. [documented requirements](../reference/resource-requirements.md)
-- Identify resource optimization opportunities
-
----
-
-## 📊 Why Monitor Lab Resources?
-
-**The Problem**: Labs document resource requests/limits, but actual usage may differ:
-- **Over-provisioned**: Lab requests 2GB RAM but uses 500MB → Wasted resources
-- **Under-provisioned**: Lab requests 1GB RAM but uses 1.5GB → OOMKilled pods
-- **Drift**: Code changes after documentation → Requirements become outdated
-
-**The Solution**: Continuous monitoring shows **real usage** so you can:
-1. Right-size resource requests/limits
-2. Update documentation with accurate values
-3. Optimize cluster capacity planning
+This guide helps you set up comprehensive resource monitoring to:
+- **Validate** documented resource requirements against actual usage
+- **Optimize** resource allocation for cost efficiency  
+- **Debug** performance issues with visual insights
+- **Plan** cluster capacity for production workloads
 
 ---
 
-## 🚀 Quick Start
+## 📋 Prerequisites
 
-### Step 1: Install kube-prometheus-stack
+- Kubernetes cluster running (Rancher Desktop, kind, or k3d)
+- `kubectl` configured and working
+- `helm` installed (for Prometheus + Grafana setup)
+- Completed at least Lab 1-3 for baseline metrics
 
-The `kube-prometheus-stack` Helm chart includes:
-- **Prometheus**: Metrics collection and storage
-- **Grafana**: Visualization and dashboards
-- **Alertmanager**: Alert routing and notifications
-- **Node Exporter**: Hardware and OS metrics
-- **kube-state-metrics**: Kubernetes object metrics
+---
+
+## 🚀 Quick Setup (15 minutes)
+
+### 1. Install Monitoring Stack
 
 ```bash
-# Add Helm repository
+# Add Prometheus community charts
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
 # Create monitoring namespace
 kubectl create namespace monitoring
 
-# Install kube-prometheus-stack (customized for labs)
-helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+# Install kube-prometheus-stack (Prometheus + Grafana + Alertmanager)
+helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
-  --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
   --set grafana.adminPassword=admin123 \
-  --set prometheus.prometheusSpec.retention=7d \
-  --set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage=10Gi
-```
+  --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+  --set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false
 
-**Wait for all pods to be Ready** (takes 2-3 minutes):
-```bash
+# Wait for deployment
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=grafana -n monitoring --timeout=300s
 ```
 
----
-
-### Step 2: Access Grafana
-
-**Port-forward to Grafana**:
-```bash
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
-```
-
-**Open in browser**: http://localhost:3000  
-**Login**:
-- Username: `admin`
-- Password: `admin123`
-
----
-
-### Step 3: Import Lab Resource Dashboard
-
-We've created a custom dashboard JSON that tracks resources per lab namespace.
-
-**Dashboard File**: [`shared-k8s/monitoring/grafana-lab-resources-dashboard.json`](../../shared-k8s/monitoring/grafana-lab-resources-dashboard.json)
-
-**Import steps**:
-1. In Grafana, click **+ → Import** (left sidebar)
-2. Click **Upload JSON file**
-3. Select `shared-k8s/monitoring/grafana-lab-resources-dashboard.json`
-4. Select **Prometheus** as the data source
-5. Click **Import**
-
-**Dashboard includes**:
-- **CPU Usage**: Actual usage vs. requests vs. limits (per namespace)
-- **Memory Usage**: Actual usage vs. requests vs. limits (per namespace)
-- **Pod Count**: Running pods per lab
-- **Network I/O**: Bytes sent/received
-- **Disk Usage**: PVC utilization
-- **Container Restarts**: Detect crashloops
-
----
-
-## 📈 Dashboard Panels Explained
-
-### Panel 1: CPU Usage by Lab Namespace
-
-**PromQL Query**:
-```promql
-sum(rate(container_cpu_usage_seconds_total{namespace=~".*-lab|monitoring"}[5m])) by (namespace)
-```
-
-**Shows**: 
-- Blue line: Actual CPU usage (averaged over 5 minutes)
-- Yellow threshold: CPU requests (from manifests)
-- Red threshold: CPU limits (from manifests)
-
-**What to look for**:
-- ✅ Usage stays below requests → Right-sized
-- ⚠️ Usage near limits → May throttle, increase limits
-- 💰 Usage far below requests → Over-provisioned, reduce requests
-
----
-
-### Panel 2: Memory Usage by Lab Namespace
-
-**PromQL Query**:
-```promql
-sum(container_memory_working_set_bytes{namespace=~".*-lab|monitoring"}) by (namespace)
-```
-
-**Shows**:
-- Blue line: Actual memory usage (working set)
-- Yellow threshold: Memory requests
-- Red threshold: Memory limits
-
-**What to look for**:
-- ✅ Usage between 50-80% of requests → Well-sized
-- ⚠️ Usage near limits → Risk of OOMKill, increase limits
-- 💰 Usage < 30% of requests → Over-provisioned
-
----
-
-### Panel 3: Pod Count vs. Expected
-
-**PromQL Query**:
-```promql
-count(kube_pod_info{namespace=~".*-lab"}) by (namespace)
-```
-
-**Shows**: Number of running pods per lab namespace
-
-**Compare to documentation**:
-- Lab 1: 4 pods (Weather App)
-- Lab 2: 7 pods (E-commerce)
-- Lab 3: 5 pods (Educational Platform)
-- Lab 4: 5 pods (Fundamentals)
-- Lab 5: 5 pods (Task Manager + Ingress)
-- Lab 6: 5 pods (Medical System)
-- Lab 7: 8 pods (Social Media + Autoscaling)
-- Lab 8: 33 pods (All apps)
-- Lab 9: 12 pods (Chaos Engineering)
-- Lab 10: 7 pods (Helm)
-- Lab 11: 8 pods (ArgoCD)
-- Lab 12: 10 pods (External Secrets)
-
-**What to look for**:
-- More pods than expected → Deployments scaled up or replicas increased
-- Fewer pods than expected → Pods crashlooping or not scheduled
-
----
-
-### Panel 4: Network Traffic by Namespace
-
-**PromQL Query (Transmit)**:
-```promql
-sum(rate(container_network_transmit_bytes_total{namespace=~".*-lab"}[5m])) by (namespace)
-```
-
-**Shows**: Network bytes sent/received per second
-
-**Use case**: Identify chatty microservices or heavy inter-service communication
-
----
-
-### Panel 5: Persistent Volume Usage
-
-**PromQL Query**:
-```promql
-(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100
-```
-
-**Shows**: PVC disk usage percentage
-
-**What to look for**:
-- > 80% → Increase PVC size or add cleanup jobs
-- Rapid growth → Log/data retention issues
-
----
-
-## 🔔 Setting Up Alerts
-
-### Alert 1: Memory Near Limit
-
-Alert when any lab uses > 90% of memory limit (risk of OOMKill).
-
-**Create Alert Rule** (Grafana UI):
-1. Go to **Alerting → Alert rules → New alert rule**
-2. Name: `Lab Memory Near Limit`
-3. Query:
-   ```promql
-   (container_memory_working_set_bytes{namespace=~".*-lab"} / 
-    kube_pod_container_resource_limits{resource="memory", namespace=~".*-lab"}) > 0.9
-   ```
-4. Condition: When query returns > 0
-5. Threshold: 0.9 (90%)
-6. Evaluation: Every 1m for 5m
-7. Add annotation: `Lab {{ $labels.namespace }} is using {{ $value }}% of memory limit`
-
-**Notification Channel**: Configure email/Slack in **Alerting → Contact points**
-
----
-
-### Alert 2: CPU Throttling Detected
-
-Alert when CPU is throttled (hitting limits).
-
-**Query**:
-```promql
-rate(container_cpu_cfs_throttled_seconds_total{namespace=~".*-lab"}[5m]) > 0.1
-```
-
-**Meaning**: Container is being throttled > 10% of the time
-
-**Action**: Increase CPU limits in deployment manifests
-
----
-
-### Alert 3: Pod Restart Loop
-
-Alert when pod restarts > 5 times in 10 minutes.
-
-**Query**:
-```promql
-rate(kube_pod_container_status_restarts_total{namespace=~".*-lab"}[10m]) > 0.5
-```
-
-**Action**: Check pod logs, resource limits, liveness/readiness probes
-
----
-
-## 📋 Comparing Actual vs. Documented Resources
-
-### Generate Comparison Report
-
-Use this script to export actual usage and compare to documented values:
+### 2. Access Grafana Dashboard
 
 ```bash
-#!/bin/bash
-# Compare actual usage vs documented requirements
+# Port forward Grafana
+kubectl port-forward svc/prometheus-grafana -n monitoring 3000:80 &
 
-echo "Lab Resource Comparison Report"
-echo "=============================="
-echo ""
+# Access Grafana
+echo "Grafana: http://localhost:3000"
+echo "Username: admin"
+echo "Password: admin123"
 
-# Get documented requirements
-echo "📊 Documented Requirements:"
-./scripts/calculate-lab-resources.sh --list
-
-echo ""
-echo "📈 Actual Usage (Current):"
-
-for ns in weather-lab ecommerce-lab educational-lab task-lab medical-lab social-lab; do
-  if kubectl get ns $ns &>/dev/null; then
-    echo ""
-    echo "Namespace: $ns"
-    
-    # CPU usage
-    cpu=$(kubectl top pods -n $ns --no-headers | awk '{sum+=$2} END {print sum}')
-    echo "  CPU: ${cpu}m"
-    
-    # Memory usage
-    mem=$(kubectl top pods -n $ns --no-headers | awk '{sum+=$3} END {print sum}')
-    echo "  Memory: ${mem}Mi"
-    
-    # Pod count
-    pods=$(kubectl get pods -n $ns --no-headers | wc -l)
-    echo "  Pods: $pods"
-  fi
-done
-```
-
-**Save as**: `scripts/compare-actual-vs-documented.sh`
-
-**Run**:
-```bash
-chmod +x scripts/compare-actual-vs-documented.sh
-./scripts/compare-actual-vs-documented.sh
+# Open in browser
+open http://localhost:3000
 ```
 
 ---
 
-## 🔍 Analyzing Resource Patterns
+## 📊 Essential Dashboards
 
-### Pattern 1: Morning Spike
+### Import Lab Resource Dashboards
 
-**Observation**: CPU spikes every morning at 9 AM  
-**Cause**: HPA scales up when simulating user traffic  
-**Action**: Increase min replicas or pre-scale before expected load
+1. **Go to Grafana** → `+` → `Import`
+2. **Import these dashboard IDs**:
+   - **315** - Kubernetes cluster monitoring
+   - **8588** - Kubernetes pod monitoring  
+   - **6417** - Kubernetes resource requests vs usage
+   - **13332** - Kubernetes capacity planning
 
----
+### Custom Lab Tracking Dashboard
 
-### Pattern 2: Memory Leak
+Create a custom dashboard to track lab-specific metrics:
 
-**Observation**: Memory usage steadily increases over hours  
-**Cause**: Application bug (objects not garbage collected)  
-**Action**: Fix code, add memory limit, enable automatic restarts
-
----
-
-### Pattern 3: Idle Waste
-
-**Observation**: Pods use < 10% of requested resources  
-**Action**: Reduce resource requests to free up capacity
-
----
-
-## 🛠️ Advanced: Custom Metrics
-
-### Track Application-Specific Metrics
-
-**Example**: Track "completed tasks" metric from Task Manager app
-
-**1. Expose custom metrics** in application code (Go example):
-```go
-import (
-    "github.com/prometheus/client_golang/prometheus"
-    "github.com/prometheus/client_golang/prometheus/promhttp"
-)
-
-var tasksCompleted = prometheus.NewCounter(
-    prometheus.CounterOpts{
-        Name: "tasks_completed_total",
-        Help: "Total number of completed tasks",
-    },
-)
-
-func init() {
-    prometheus.MustRegister(tasksCompleted)
+```json
+{
+  "dashboard": {
+    "title": "Lab Resource Tracking",
+    "panels": [
+      {
+        "title": "CPU Usage by Lab",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total[5m])) by (namespace)",
+            "legendFormat": "{{ namespace }}"
+          }
+        ]
+      },
+      {
+        "title": "Memory Usage by Lab", 
+        "targets": [
+          {
+            "expr": "sum(container_memory_working_set_bytes) by (namespace) / 1024 / 1024 / 1024",
+            "legendFormat": "{{ namespace }} GB"
+          }
+        ]
+      }
+    ]
+  }
 }
-
-// In your HTTP server
-http.Handle("/metrics", promhttp.Handler())
-```
-
-**2. Create ServiceMonitor** to scrape metrics:
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: task-manager-metrics
-  namespace: task-lab
-spec:
-  selector:
-    matchLabels:
-      app: task-backend
-  endpoints:
-  - port: metrics
-    interval: 30s
-```
-
-**3. Query in Grafana**:
-```promql
-rate(tasks_completed_total[5m])
 ```
 
 ---
 
-## 🧹 Cleanup
+## 🔍 Lab-Specific Monitoring
 
-### Remove Monitoring Stack
+### Lab 1: Weather App Baseline
+```bash
+# Check weather app resource usage
+kubectl top pods -n weather-lab
+kubectl describe pod -n weather-lab | grep -A5 "Requests\|Limits"
+
+# Compare with documented requirements (from resource-requirements.md)
+echo "Documented: 0.5 cores, 512MB"
+echo "Actual usage shown in Grafana..."
+```
+
+### Lab 8: Multi-App Resource Analysis
+```bash
+# Monitor all 6 apps simultaneously  
+kubectl get pods -A | grep -E "(weather|ecom|edu|task|medical|social)"
+
+# Grafana query for total multi-app usage:
+# sum(rate(container_cpu_usage_seconds_total[5m])) by (namespace) 
+# where namespace in (weather-lab, ecom-lab, edu-lab, task-lab, medical-lab, social-lab)
+```
+
+### Lab 13: AI/ML GPU Monitoring
+```bash
+# Check GPU utilization (if available)
+kubectl get nodes -o jsonpath='{.items[*].status.allocatable.nvidia\.com/gpu}'
+
+# GPU-specific Grafana queries:
+# nvidia_gpu_duty_cycle
+# nvidia_gpu_memory_used_bytes
+```
+
+---
+
+## 📈 Key Metrics to Track
+
+### CPU Metrics
+- **`container_cpu_usage_seconds_total`** - Total CPU usage
+- **`kube_pod_container_resource_requests{resource="cpu"}`** - CPU requests
+- **`kube_pod_container_resource_limits{resource="cpu"}`** - CPU limits
+
+### Memory Metrics  
+- **`container_memory_working_set_bytes`** - Active memory usage
+- **`kube_pod_container_resource_requests{resource="memory"}`** - Memory requests
+- **`container_memory_usage_bytes`** - Total memory allocated
+
+### Storage Metrics
+- **`kubelet_volume_stats_used_bytes`** - PV disk usage
+- **`kube_persistentvolume_capacity_bytes`** - PV total capacity
+- **`container_fs_usage_bytes`** - Container filesystem usage
+
+### Network Metrics
+- **`container_network_receive_bytes_total`** - Ingress traffic
+- **`container_network_transmit_bytes_total`** - Egress traffic
+
+---
+
+## 🎯 Validation Queries
+
+### Compare Documented vs Actual Usage
+
+```promql
+# CPU: Documented vs Actual (Lab 2 E-commerce example)
+# Documented: 1 core = 1000m
+# Query actual usage:
+sum(rate(container_cpu_usage_seconds_total{namespace="ecom-lab"}[5m])) * 1000
+
+# Memory: Documented vs Actual
+# Documented: 1GB = 1073741824 bytes  
+# Query actual usage:
+sum(container_memory_working_set_bytes{namespace="ecom-lab"}) / 1073741824
+```
+
+### Resource Efficiency Analysis
+
+```promql
+# CPU utilization percentage
+(sum(rate(container_cpu_usage_seconds_total[5m])) by (pod) / 
+ sum(kube_pod_container_resource_requests{resource="cpu"}) by (pod)) * 100
+
+# Memory utilization percentage  
+(sum(container_memory_working_set_bytes) by (pod) /
+ sum(kube_pod_container_resource_requests{resource="memory"}) by (pod)) * 100
+```
+
+---
+
+## 🚨 Alerting Rules
+
+### Resource Threshold Alerts
+
+```yaml
+# Save as prometheus-rules.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-resource-alerts
+  namespace: monitoring
+spec:
+  groups:
+  - name: lab.rules
+    rules:
+    - alert: LabHighCPUUsage
+      expr: sum(rate(container_cpu_usage_seconds_total[5m])) by (namespace) > 2
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Lab {{ $labels.namespace }} using high CPU"
+        
+    - alert: LabHighMemoryUsage  
+      expr: sum(container_memory_working_set_bytes) by (namespace) / 1073741824 > 4
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Lab {{ $labels.namespace }} using high memory"
+```
+
+Apply the rules:
+```bash
+kubectl apply -f prometheus-rules.yaml
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Grafana shows "No data"**
+```bash
+# Check Prometheus is scraping
+kubectl get servicemonitors -n monitoring
+kubectl logs -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0
+
+# Verify metrics endpoint
+kubectl get --raw /metrics | head -10
+```
+
+**High resource usage alerts**
+```bash
+# Check for resource-hungry pods
+kubectl top pods -A --sort-by=cpu
+kubectl top pods -A --sort-by=memory
+
+# Identify resource leaks
+kubectl get events -A | grep -i "evicted\|oom"
+```
+
+**Missing GPU metrics**
+```bash
+# Install nvidia-device-plugin (for GPU nodes)
+kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/main/nvidia-device-plugin.yml
+
+# Verify GPU visibility
+kubectl describe nodes | grep nvidia.com/gpu
+```
+
+---
+
+## 🎯 Lab Validation Checklist
+
+Use this checklist after each lab to validate resource requirements:
+
+### ✅ Lab Resource Validation
+- [ ] **Grafana accessible** at http://localhost:3000
+- [ ] **Lab namespace visible** in monitoring 
+- [ ] **CPU usage ≤ documented requirements** (±20% acceptable)
+- [ ] **Memory usage ≤ documented requirements** (±20% acceptable)  
+- [ ] **No OOMKilled containers** in the last hour
+- [ ] **No resource-related evictions** during lab
+- [ ] **Response times acceptable** (<2s for web UIs)
+
+### 📊 Documentation Updates
+If actual usage significantly differs from documented requirements:
+1. **Update** `resource-requirements.md` with actual values
+2. **Add notes** about resource spikes or optimizations
+3. **Create issue** for resource requirement review
+
+---
+
+## 📚 Advanced Monitoring
+
+### Custom Metrics Collection
+
+Add application-specific metrics to your apps:
+
+```yaml
+# Example: Weather app custom metrics
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: weather-app-metrics
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+    - job_name: 'weather-app'
+      static_configs:
+      - targets: ['weather-app:8080']
+      metrics_path: /metrics
+```
+
+### Multi-Cluster Monitoring
+
+For production-like monitoring across multiple clusters:
 
 ```bash
-# Delete Helm release
-helm uninstall kube-prometheus-stack -n monitoring
-
-# Delete namespace (removes PVCs)
-kubectl delete namespace monitoring
+# Install Thanos for multi-cluster metrics
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install thanos bitnami/thanos \
+  --set query.enabled=true \
+  --set queryFrontend.enabled=true \
+  --set compactor.enabled=true
 ```
-
-**Note**: This removes all metrics history. Export dashboards first if needed.
-
----
-
-## 📚 Next Steps
-
-- **Optimize Resources**: Use insights to right-size requests/limits in manifests
-- **Update Documentation**: Refresh [resource-requirements.md](../reference/resource-requirements.md) with actual values
-- **Set up CI/CD**: Automate resource validation in pre-commit hooks
-- **Production Monitoring**: Add Alertmanager integrations (PagerDuty, Slack, email)
 
 ---
 
 ## 🔗 Related Resources
 
-- [Resource Requirements Guide](../reference/resource-requirements.md) - Documented resource values
-- [Resource Calculator Script](../../scripts/calculate-lab-resources.sh) - Calculate aggregate resources
-- [Prometheus Documentation](https://prometheus.io/docs/) - Official Prometheus docs
-- [Grafana Dashboards](https://grafana.com/grafana/dashboards/) - Community dashboard library
-- [kube-prometheus-stack Chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) - Helm chart details
+- **[Resource Requirements Guide](../reference/resource-requirements.md)** - Planning and requirements
+- **[kubectl Cheatsheet](../reference/kubectl-cheatsheet.md)** - Resource management commands  
+- **[Troubleshooting Guide](../troubleshooting/troubleshooting.md)** - Fixing resource issues
+- **[Prometheus Docs](https://prometheus.io/docs/)** - Advanced Prometheus configuration
+- **[Grafana Docs](https://grafana.com/docs/)** - Dashboard creation and customization
 
 ---
 
-## 🐛 Troubleshooting
-
-### Issue: Grafana pod stuck in Pending
-
-**Cause**: Insufficient resources or PVC not bound  
-**Solution**:
-```bash
-# Check pod events
-kubectl describe pod -n monitoring -l app.kubernetes.io/name=grafana
-
-# Check PVC
-kubectl get pvc -n monitoring
-
-# Reduce retention if disk space is limited
-helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring \
-  --set prometheus.prometheusSpec.retention=2d \
-  --reuse-values
-```
-
----
-
-### Issue: Prometheus scrape errors
-
-**Cause**: ServiceMonitors not created or endpoints not reachable  
-**Solution**:
-```bash
-# Check ServiceMonitors
-kubectl get servicemonitors -n monitoring
-
-# Check Prometheus targets
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
-
-# Open http://localhost:9090/targets
-# Look for RED targets → Check service/pod labels match ServiceMonitor selector
-```
-
----
-
-### Issue: Dashboard shows "No data"
-
-**Cause**: Prometheus not scraping namespaces or data source not configured  
-**Solution**:
-```bash
-# Verify Prometheus data source in Grafana
-# Settings → Data Sources → Prometheus → Test
-
-# Check if metrics exist
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
-# Query: up{namespace="weather-lab"}
-
-# If no data, check ServiceMonitor configuration
-```
-
----
-
-## 💡 Pro Tips
-
-1. **Dashboard Annotations**: Mark deployments/experiments on timeline
-   ```
-   Dashboard → Settings → Annotations → Add annotation query
-   ```
-
-2. **Variable Namespaces**: Create dropdown to filter by lab
-   ```
-   Dashboard → Settings → Variables → Add variable
-   Name: namespace
-   Query: label_values(kube_pod_info, namespace)
-   ```
-
-3. **Export Metrics**: Download time-series data for analysis
-   ```bash
-   # Query Prometheus HTTP API
-   curl 'http://localhost:9090/api/v1/query_range?query=container_memory_usage_bytes&start=2024-01-01T00:00:00Z&end=2024-01-02T00:00:00Z&step=5m'
-   ```
-
-4. **Snapshot for Comparison**: Take dashboard snapshots before/after optimizations
-   ```
-   Dashboard → Share → Snapshot → Create Snapshot
-   ```
-
----
-
-**🎉 You now have full observability into lab resource usage!** Use these insights to optimize cluster capacity and keep documentation accurate.
+**💡 Pro Tip**: Set up monitoring before Lab 8 (Multi-App) to track resource consumption patterns across all applications simultaneously.
