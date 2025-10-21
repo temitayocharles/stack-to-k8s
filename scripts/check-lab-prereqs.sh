@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # Enhanced lab prerequisites checker with comprehensive validation and interactive remediation
+# Supports Windows (Git Bash, WSL, PowerShell), macOS, and Linux environments
 set -euo pipefail
+
+# Ensure we have a compatible bash version (4.0+)
+if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+    echo "Error: This script requires Bash 4.0 or later. Current version: ${BASH_VERSION:-unknown}" >&2
+    echo "On macOS, consider installing via: brew install bash" >&2
+    exit 1
+fi
 
 # =============================================================================
 # CONFIGURATION & GLOBALS
@@ -9,14 +17,25 @@ readonly SCRIPT_NAME="$(basename "${0}")"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Terminal colors
-readonly GREEN="\033[0;32m"
-readonly RED="\033[0;31m"
-readonly YELLOW="\033[1;33m"
-readonly BLUE="\033[0;34m"
-readonly CYAN="\033[0;36m"
-readonly BOLD="\033[1m"
-readonly NC="\033[0m"
+# Terminal colors (with Windows compatibility)
+if [[ "${TERM:-}" != "dumb" ]] && [[ -t 1 ]]; then
+    readonly GREEN="\033[0;32m"
+    readonly RED="\033[0;31m"
+    readonly YELLOW="\033[1;33m"
+    readonly BLUE="\033[0;34m"
+    readonly CYAN="\033[0;36m"
+    readonly BOLD="\033[1m"
+    readonly NC="\033[0m"
+else
+    # Disable colors for non-interactive terminals or Windows CMD
+    readonly GREEN=""
+    readonly RED=""
+    readonly YELLOW=""
+    readonly BLUE=""
+    readonly CYAN=""
+    readonly BOLD=""
+    readonly NC=""
+fi
 
 # Exit codes
 readonly EXIT_SUCCESS=0
@@ -234,11 +253,48 @@ parse_arguments() {
 }
 detect_os() {
     local os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    
+    # Check for Windows environments
+    if [[ -n "${WINDIR:-}" ]] || [[ "${os}" =~ mingw|msys|cygwin ]]; then
+        echo "windows"
+        return
+    fi
+    
+    # Check for WSL (Windows Subsystem for Linux)
+    if [[ -n "${WSL_DISTRO_NAME:-}" ]] || [[ "$(uname -r)" =~ microsoft ]]; then
+        echo "wsl"
+        return
+    fi
+    
     case "$os" in
         darwin) echo "macos" ;;
         linux) echo "linux" ;;
         *) echo "unknown" ;;
     esac
+}
+
+# Windows package manager detection
+choco_available() { command -v choco >/dev/null 2>&1; }
+scoop_available() { command -v scoop >/dev/null 2>&1; }
+winget_available() { command -v winget >/dev/null 2>&1; }
+
+# Cross-platform timeout function
+run_with_timeout() {
+    local timeout_duration="$1"
+    shift
+    local cmd=("$@")
+    
+    if command -v timeout >/dev/null 2>&1; then
+        # Linux/WSL timeout command
+        timeout "${timeout_duration}s" "${cmd[@]}"
+    elif command -v gtimeout >/dev/null 2>&1; then
+        # macOS with coreutils
+        gtimeout "${timeout_duration}s" "${cmd[@]}"
+    else
+        # Fallback: just run the command without timeout
+        log_warn "timeout command not available, running without timeout limit"
+        "${cmd[@]}"
+    fi
 }
 
 brew_available() { command -v brew >/dev/null 2>&1; }
@@ -254,16 +310,42 @@ prompt_yes_no() {
         read -r -p "${prompt} [y/n] (default ${default}): " ans || return 1
         ans=${ans:-$default}
         case "$ans" in
-            y|Y) return 0 ;;
-            n|N) return 1 ;;
+            y|Y|yes|YES) return 0 ;;
+            n|N|no|NO) return 1 ;;
             *) echo "Please answer y or n." ;;
         esac
+    done
+}
+
+prompt_with_options() {
+    local prompt="$1"
+    shift
+    local options=("$@")
+    local default=1
+    
+    if [[ "$INTERACTIVE" != true ]]; then return 1; fi
+    
+    echo -e "${CYAN}${prompt}${NC}"
+    for i in "${!options[@]}"; do
+        echo "  $((i+1)). ${options[$i]}"
+    done
+    
+    while true; do
+        read -r -p "Select option [1-${#options[@]}] (default ${default}): " choice || return 1
+        choice=${choice:-$default}
+        
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le ${#options[@]} ]]; then
+            return $((choice-1))
+        else
+            echo "Please enter a number between 1 and ${#options[@]}."
+        fi
     done
 }
 
 attempt_install() {
     local cmd="$1"
     local os; os=$(detect_os)
+    
     if [[ "$os" == "macos" ]] && brew_available; then
         case "$cmd" in
             kubectl) echo "brew install kubernetes-cli" ;;
@@ -277,6 +359,43 @@ attempt_install() {
             *) return 1 ;;
         esac
         return 0
+    elif [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+        # Try Windows package managers in order of preference
+        if winget_available; then
+            case "$cmd" in
+                kubectl) echo "winget install -e --id Kubernetes.kubectl" ;;
+                helm) echo "winget install -e --id Helm.Helm" ;;
+                docker) echo "winget install -e --id Docker.DockerDesktop" ;;
+                git) echo "winget install -e --id Git.Git" ;;
+                jq) echo "winget install -e --id stedolan.jq" ;;
+                curl) echo "winget install -e --id cURL.cURL" ;;
+                rancher-desktop) echo "winget install -e --id suse.RancherDesktop" ;;
+                *) return 1 ;;
+            esac
+            return 0
+        elif choco_available; then
+            case "$cmd" in
+                kubectl) echo "choco install kubernetes-cli -y" ;;
+                helm) echo "choco install kubernetes-helm -y" ;;
+                docker) echo "choco install docker-desktop -y" ;;
+                git) echo "choco install git -y" ;;
+                jq) echo "choco install jq -y" ;;
+                curl) echo "choco install curl -y" ;;
+                rancher-desktop) echo "choco install rancher-desktop -y" ;;
+                *) return 1 ;;
+            esac
+            return 0
+        elif scoop_available; then
+            case "$cmd" in
+                kubectl) echo "scoop install kubectl" ;;
+                helm) echo "scoop install helm" ;;
+                git) echo "scoop install git" ;;
+                jq) echo "scoop install jq" ;;
+                curl) echo "scoop install curl" ;;
+                *) return 1 ;;
+            esac
+            return 0
+        fi
     elif [[ "$os" == "linux" ]]; then
         if apt_available; then
             case "$cmd" in
@@ -308,26 +427,94 @@ attempt_install() {
 remediate_command_missing() {
     local cmd="$1"; local desc="$2"
     if [[ "$INTERACTIVE" != true ]]; then return ${EXIT_MISSING_DEPS}; fi
+    
+    local os; os=$(detect_os)
     log_warn "${desc} not found (${cmd})."
+    
+    # Provide OS-specific guidance
+    if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+        log_info "Windows detected. Checking for package managers..."
+        if ! winget_available && ! choco_available && ! scoop_available; then
+            log_warn "No Windows package manager found. Consider installing:"
+            log_info "• winget (recommended): https://aka.ms/getwinget"
+            log_info "• chocolatey: https://chocolatey.org/install"
+            log_info "• scoop: https://scoop.sh/"
+        fi
+    fi
+    
     if prompt_yes_no "Attempt to install ${desc} now?" y; then
         local install_cmd
         if install_cmd=$(attempt_install "$cmd"); then
             log_info "Running: ${install_cmd}"
             set +e
-            bash -lc "${install_cmd}"
-            local rc=$?
+            
+            # Handle Windows-specific execution
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                if [[ "$install_cmd" =~ winget ]] && command -v powershell.exe >/dev/null 2>&1; then
+                    powershell.exe -Command "${install_cmd}"
+                    local rc=$?
+                elif [[ "$install_cmd" =~ choco ]] && command -v cmd.exe >/dev/null 2>&1; then
+                    cmd.exe /c "${install_cmd}"
+                    local rc=$?
+                else
+                    bash -lc "${install_cmd}"
+                    local rc=$?
+                fi
+            else
+                bash -lc "${install_cmd}"
+                local rc=$?
+            fi
+            
             set -e
             if [[ $rc -eq 0 ]]; then
                 log_success "Installed ${desc}"
+                # Refresh PATH for Windows
+                if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                    log_info "You may need to restart your terminal or source your profile for PATH changes to take effect."
+                fi
                 return ${EXIT_SUCCESS}
             else
-                log_error "Failed to install ${desc} (exit ${rc})"
+                log_error "Failed to install ${desc} (exit code: ${rc})"
+                if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                    log_info "Try running your terminal as Administrator or check Windows permissions."
+                fi
             fi
         else
             log_warn "No automated installer available for ${desc} on this OS."
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                log_info "Manual installation options for Windows:"
+                case "$cmd" in
+                    kubectl)
+                        log_info "• Download from: https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/"
+                        ;;
+                    helm)
+                        log_info "• Download from: https://helm.sh/docs/intro/install/"
+                        ;;
+                    docker)
+                        log_info "• Rancher Desktop: https://rancherdesktop.io/ (recommended)"
+                        log_info "• Docker Desktop: https://www.docker.com/products/docker-desktop/"
+                        ;;
+                    git)
+                        log_info "• Download from: https://git-scm.com/download/win"
+                        ;;
+                esac
+            fi
         fi
     fi
-    log_info "See setup guides: docs/setup/rancher-desktop.md · docs/setup/linux-kind-k3d.md"
+    
+    # OS-specific setup guide references
+    case "$os" in
+        windows|wsl)
+            log_info "See setup guides: docs/setup/windows-setup.md · docs/setup/rancher-desktop.md"
+            ;;
+        macos)
+            log_info "See setup guides: docs/setup/rancher-desktop.md · docs/setup/macos-setup.md"
+            ;;
+        *)
+            log_info "See setup guides: docs/setup/rancher-desktop.md · docs/setup/linux-kind-k3d.md"
+            ;;
+    esac
+    
     return ${EXIT_MISSING_DEPS}
 }
 
@@ -340,6 +527,169 @@ run_cleanup_menu() {
             log_warn "cleanup-workspace.sh not found"
         fi
     fi
+}
+
+# =============================================================================
+# WINDOWS-SPECIFIC FUNCTIONS
+# =============================================================================
+check_docker_desktop_running() {
+    local os; os=$(detect_os)
+    if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+        # Check if Docker Desktop is running on Windows
+        if command -v powershell.exe >/dev/null 2>&1; then
+            powershell.exe -Command "Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue" >/dev/null 2>&1
+        elif command -v cmd.exe >/dev/null 2>&1; then
+            cmd.exe /c "tasklist /FI \"IMAGENAME eq Docker Desktop.exe\" 2>nul | find /I \"Docker Desktop.exe\" >nul"
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
+}
+
+uninstall_docker_desktop_windows() {
+    local os; os=$(detect_os)
+    [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]] || return 1
+    [[ "$INTERACTIVE" == true ]] || return 1
+    
+    log_warn "Docker Desktop detected. For optimal Kubernetes experience, Rancher Desktop is recommended."
+    log_info "Rancher Desktop provides better resource management and k8s integration."
+    
+    if ! prompt_yes_no "Would you like to replace Docker Desktop with Rancher Desktop?" y; then
+        log_info "Keeping Docker Desktop. Ensure it has Kubernetes enabled."
+        return 0
+    fi
+    
+    log_info "Starting Docker Desktop to Rancher Desktop migration..."
+    
+    # Stop Docker Desktop gracefully first
+    log_info "Stopping Docker Desktop..."
+    set +e
+    if command -v powershell.exe >/dev/null 2>&1; then
+        powershell.exe -Command "Stop-Process -Name 'Docker Desktop' -Force -ErrorAction SilentlyContinue" 2>/dev/null
+        sleep 5
+    fi
+    set -e
+    
+    # Attempt uninstallation
+    local uninstall_success=false
+    
+    # Try winget first (most reliable)
+    if winget_available; then
+        log_info "Attempting to uninstall Docker Desktop using winget..."
+        set +e
+        if winget uninstall "Docker Desktop" --silent 2>/dev/null; then
+            uninstall_success=true
+            log_success "Docker Desktop uninstalled successfully via winget"
+        fi
+        set -e
+    fi
+    
+    # Try chocolatey if winget failed
+    if [[ "$uninstall_success" == false ]] && choco_available; then
+        log_info "Attempting to uninstall Docker Desktop using chocolatey..."
+        set +e
+        if choco uninstall docker-desktop -y 2>/dev/null; then
+            uninstall_success=true
+            log_success "Docker Desktop uninstalled successfully via chocolatey"
+        fi
+        set -e
+    fi
+    
+    # Manual uninstall instructions if automated methods failed
+    if [[ "$uninstall_success" == false ]]; then
+        log_warn "Automated uninstall failed. Please manually uninstall Docker Desktop:"
+        log_info "1. Go to Settings > Apps > Docker Desktop"
+        log_info "2. Click 'Uninstall' and follow the prompts"
+        log_info "3. Restart your computer when prompted"
+        
+        if prompt_yes_no "Have you manually uninstalled Docker Desktop?" n; then
+            uninstall_success=true
+        fi
+    fi
+    
+    return $([[ "$uninstall_success" == true ]] && echo 0 || echo 1)
+}
+
+install_rancher_desktop_windows() {
+    local os; os=$(detect_os)
+    [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]] || return 1
+    
+    log_info "Installing Rancher Desktop..."
+    
+    local install_cmd
+    if install_cmd=$(attempt_install "rancher-desktop"); then
+        log_info "Running: ${install_cmd}"
+        set +e
+        if [[ "$install_cmd" =~ winget ]]; then
+            # Use PowerShell for winget to handle Windows paths properly
+            powershell.exe -Command "${install_cmd}"
+        else
+            bash -lc "${install_cmd}"
+        fi
+        local rc=$?
+        set -e
+        
+        if [[ $rc -eq 0 ]]; then
+            log_success "Rancher Desktop installed successfully"
+            log_info "Starting Rancher Desktop (this may take a few minutes)..."
+            
+            # Try to start Rancher Desktop
+            set +e
+            if command -v powershell.exe >/dev/null 2>&1; then
+                powershell.exe -Command "Start-Process 'Rancher Desktop'" 2>/dev/null
+            fi
+            set -e
+            
+            log_info "Waiting for Rancher Desktop to initialize..."
+            log_info "Please configure Rancher Desktop:"
+            log_info "1. Enable Kubernetes in Rancher Desktop settings"
+            log_info "2. Wait for the cluster to start (green indicator)"
+            log_info "3. Verify with: kubectl cluster-info"
+            
+            # Wait for user confirmation
+            if [[ "$INTERACTIVE" == true ]]; then
+                read -r -p "Press Enter when Rancher Desktop is ready..." || true
+            else
+                sleep 30
+            fi
+            
+            return ${EXIT_SUCCESS}
+        else
+            log_error "Failed to install Rancher Desktop (exit code: ${rc})"
+            return ${EXIT_MISSING_DEPS}
+        fi
+    else
+        log_error "No installation method available for Rancher Desktop"
+        log_info "Please download and install manually from: https://rancherdesktop.io/"
+        return ${EXIT_MISSING_DEPS}
+    fi
+}
+
+migrate_docker_to_rancher_windows() {
+    local os; os=$(detect_os)
+    [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]] || return 0
+    [[ "$INTERACTIVE" == true ]] || return 0
+    
+    # Check if Docker Desktop is installed and running
+    if check_docker_desktop_running || command -v docker >/dev/null 2>&1; then
+        log_info "Docker Desktop detected on Windows system"
+        
+        if prompt_yes_no "Would you like to migrate from Docker Desktop to Rancher Desktop for better Kubernetes support?" y; then
+            if uninstall_docker_desktop_windows; then
+                install_rancher_desktop_windows || {
+                    log_error "Failed to install Rancher Desktop"
+                    log_info "You can install it manually from https://rancherdesktop.io/"
+                    return ${EXIT_MISSING_DEPS}
+                }
+            else
+                log_warn "Docker Desktop uninstallation failed. Continuing with existing setup."
+            fi
+        fi
+    fi
+    
+    return ${EXIT_SUCCESS}
 }
 
 # =============================================================================
@@ -456,7 +806,7 @@ check_kubernetes_cluster() {
     fi
     
     # Check cluster connectivity with timeout
-    if timeout 10s kubectl cluster-info >/dev/null 2>&1; then
+    if run_with_timeout 10 kubectl cluster-info >/dev/null 2>&1; then
         local context
         context="$(kubectl config current-context 2>/dev/null || echo 'unknown')"
         log_success "Kubernetes cluster accessible (context: ${context})"
@@ -474,11 +824,29 @@ check_kubernetes_cluster() {
         log_error "Ensure your cluster is running and kubectl is configured correctly"
         if [[ "$INTERACTIVE" == true ]]; then
             local os; os=$(detect_os)
-            if [[ "$os" == "macos" ]] && prompt_yes_no "Open Rancher Desktop to start Kubernetes now?" y; then
+            
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                # Windows-specific cluster startup handling
+                if prompt_yes_no "Would you like to set up Kubernetes on Windows now?" y; then
+                    migrate_docker_to_rancher_windows || true
+                    
+                    log_info "Waiting 30s for Kubernetes cluster to initialize..."
+                    sleep 30
+                    if run_with_timeout 30 kubectl cluster-info >/dev/null 2>&1; then
+                        log_success "Cluster is now accessible"
+                        return ${EXIT_SUCCESS}
+                    else
+                        log_warn "Cluster not ready yet. You may need to:"
+                        log_info "1. Open Rancher Desktop and enable Kubernetes"
+                        log_info "2. Wait for the cluster status to show 'Running' (green)"
+                        log_info "3. Run this script again"
+                    fi
+                fi
+            elif [[ "$os" == "macos" ]] && prompt_yes_no "Open Rancher Desktop to start Kubernetes now?" y; then
                 set +e; open -a "Rancher Desktop" 2>/dev/null || open -a Docker 2>/dev/null || true; set -e
                 log_info "Waiting 15s for cluster to initialize..."
                 sleep 15
-                if timeout 20s kubectl cluster-info >/dev/null 2>&1; then
+                if run_with_timeout 20 kubectl cluster-info >/dev/null 2>&1; then
                     log_success "Cluster is now accessible"
                     return ${EXIT_SUCCESS}
                 fi
@@ -611,10 +979,31 @@ check_lab() {
 check_docker_compose() {
     log_subheader "Docker Environment"
     
+    local os; os=$(detect_os)
+    
     check_command "docker" "Docker Engine" || {
-        if [[ "$INTERACTIVE" == true ]] && prompt_yes_no "Attempt to install/start Docker Desktop?" y; then
-            local os; os=$(detect_os)
-            if [[ "$os" == "macos" ]]; then
+        if [[ "$INTERACTIVE" == true ]] && prompt_yes_no "Attempt to install/start container runtime?" y; then
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                # On Windows, prefer Rancher Desktop for better k8s integration
+                log_info "For Windows, installing Rancher Desktop (includes Docker + Kubernetes)..."
+                if install_rancher_desktop_windows; then
+                    log_info "Rancher Desktop installed. Waiting for services to start..."
+                    sleep 15
+                else
+                    log_warn "Rancher Desktop installation failed, falling back to Docker Desktop"
+                    local install_cmd
+                    if install_cmd=$(attempt_install "docker"); then
+                        log_info "Running: ${install_cmd}"
+                        set +e
+                        if [[ "$install_cmd" =~ winget ]]; then
+                            powershell.exe -Command "${install_cmd}"
+                        else
+                            bash -lc "${install_cmd}"
+                        fi
+                        set -e
+                    fi
+                fi
+            elif [[ "$os" == "macos" ]]; then
                 if brew_available; then
                     set +e; bash -lc "brew install --cask docker"; set -e
                 fi
@@ -632,15 +1021,38 @@ check_docker_compose() {
         log_success "Docker daemon is running"
     else
         log_error "Docker daemon is not running or not accessible"
-        if [[ "$INTERACTIVE" == true ]] && prompt_yes_no "Start Docker Desktop now?" y; then
-            set +e; open -a Docker 2>/dev/null || true; set -e
-            log_info "Waiting 10s for Docker to start..."; sleep 10
-            if docker info >/dev/null 2>&1; then
-                log_success "Docker daemon is running"
-                return ${EXIT_SUCCESS}
+        if [[ "$INTERACTIVE" == true ]]; then
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                if prompt_yes_no "Start container runtime now?" y; then
+                    # Try to start Rancher Desktop first, then Docker Desktop
+                    set +e
+                    if command -v powershell.exe >/dev/null 2>&1; then
+                        powershell.exe -Command "Start-Process 'Rancher Desktop'" 2>/dev/null || \
+                        powershell.exe -Command "Start-Process 'Docker Desktop'" 2>/dev/null || true
+                    fi
+                    set -e
+                    log_info "Waiting 20s for container runtime to start..."
+                    sleep 20
+                    if docker info >/dev/null 2>&1; then
+                        log_success "Docker daemon is running"
+                        return ${EXIT_SUCCESS}
+                    else
+                        log_warn "Container runtime may still be starting. Please wait and try again."
+                    fi
+                fi
+            elif [[ "$os" == "macos" ]] && prompt_yes_no "Start Docker Desktop now?" y; then
+                set +e; open -a Docker 2>/dev/null || true; set -e
+                log_info "Waiting 10s for Docker to start..."; sleep 10
+                if docker info >/dev/null 2>&1; then
+                    log_success "Docker daemon is running"
+                    return ${EXIT_SUCCESS}
+                fi
             fi
         fi
-        log_error "Please start Docker and ensure your user has proper permissions"
+        log_error "Please start your container runtime and ensure proper permissions"
+        log_info "For Windows: Start Rancher Desktop or Docker Desktop"
+        log_info "For macOS: Start Docker Desktop"
+        log_info "For Linux: Ensure Docker service is running"
         run_cleanup_menu
         return ${EXIT_MISSING_DEPS}
     fi
@@ -693,12 +1105,50 @@ main() {
         echo -e "\n${RED}${BOLD}❌ Prerequisites check failed${NC}"
         if [[ "$INTERACTIVE" == true ]]; then
             echo -e "${YELLOW}You can rerun this checker after remediation, or continue at your own risk.${NC}"
-            if prompt_yes_no "Open troubleshooting guide now?" y; then
-                echo -e "See: ${BOLD}docs/troubleshooting/troubleshooting.md${NC}"
+            
+            local os; os=$(detect_os)
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                echo -e "\n${CYAN}${BOLD}Windows-specific remediation options:${NC}"
+                if prompt_with_options "Choose how to proceed:" \
+                    "Install missing tools automatically (recommended)" \
+                    "Get manual installation instructions" \
+                    "Continue with current setup" \
+                    "Open troubleshooting guide"; then
+                    
+                    case $? in
+                        0) # Auto-install
+                            log_info "Attempting to install missing prerequisites automatically..."
+                            # Re-run checks with installation attempts
+                            ;;
+                        1) # Manual instructions
+                            echo -e "\n${YELLOW}Manual Installation Instructions for Windows:${NC}"
+                            echo -e "1. Install winget: ${BOLD}https://aka.ms/getwinget${NC}"
+                            echo -e "2. Install tools: ${BOLD}winget install kubectl helm git${NC}"
+                            echo -e "3. Install Rancher Desktop: ${BOLD}https://rancherdesktop.io/${NC}"
+                            echo -e "4. Enable Kubernetes in Rancher Desktop settings"
+                            ;;
+                        2) # Continue
+                            log_warn "Continuing with incomplete setup..."
+                            ;;
+                        3) # Troubleshooting
+                            echo -e "See: ${BOLD}docs/troubleshooting/troubleshooting.md${NC}"
+                            echo -e "Windows guide: ${BOLD}docs/setup/windows-setup.md${NC}"
+                            ;;
+                    esac
+                fi
+            else
+                if prompt_yes_no "Open troubleshooting guide now?" y; then
+                    echo -e "See: ${BOLD}docs/troubleshooting/troubleshooting.md${NC}"
+                fi
             fi
             run_cleanup_menu
         else
             echo -e "${RED}Please install missing dependencies before starting the lab, or run without --non-interactive for guided remediation.${NC}"
+            local os; os=$(detect_os)
+            if [[ "$os" == "windows" ]] || [[ "$os" == "wsl" ]]; then
+                echo -e "${YELLOW}For Windows users: Consider using winget, chocolatey, or scoop for package management.${NC}"
+                echo -e "${YELLOW}Recommended: Install Rancher Desktop for integrated Kubernetes support.${NC}"
+            fi
         fi
     fi
     
